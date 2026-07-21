@@ -19,7 +19,7 @@ func main() {
 		fail("usage: go run ./scripts/verify-reports.go REPORT_DIRECTORY")
 	}
 	dir := os.Args[1]
-	jsonPath := firstExisting(filepath.Join(dir, "credscope.json"), filepath.Join(dir, "action-smoke.json"))
+	jsonPath := firstExisting(filepath.Join(dir, "credscope.json"), filepath.Join(dir, "action-smoke.json"), filepath.Join(dir, "credscope-report.json"))
 	if jsonPath == "" {
 		fail("JSON report is missing")
 	}
@@ -28,8 +28,8 @@ func main() {
 	if err := json.Unmarshal(primary, &jsonDoc); err != nil {
 		fail("JSON report is invalid")
 	}
-	if jsonDoc["schema_version"] != "1" {
-		fail("JSON schema version is not 1")
+	if jsonDoc["schema_version"] != "2" {
+		fail("JSON schema version is not 2")
 	}
 	assertNoRaw(primary)
 
@@ -59,8 +59,8 @@ func main() {
 		assertNoRaw(data)
 	}
 
-	htmlPath := filepath.Join(dir, "credscope.html")
-	if _, err := os.Stat(htmlPath); err == nil {
+	htmlPath := firstExisting(filepath.Join(dir, "credscope.html"), filepath.Join(dir, "credscope-report.html"))
+	if htmlPath != "" {
 		data := read(htmlPath)
 		lower := strings.ToLower(string(data))
 		if !bytes.HasPrefix(bytes.ToLower(data), []byte("<!doctype html>")) || !strings.Contains(lower, "content-security-policy") || !strings.Contains(lower, "<main") {

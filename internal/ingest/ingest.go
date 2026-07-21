@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/credscope/credscope/internal/adapters/gitleaks"
-	"github.com/credscope/credscope/internal/config"
-	"github.com/credscope/credscope/internal/discovery"
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/parsers/compose"
-	"github.com/credscope/credscope/internal/parsers/githubactions"
+	"github.com/Bavlik/CredScope/internal/adapters/gitleaks"
+	"github.com/Bavlik/CredScope/internal/config"
+	"github.com/Bavlik/CredScope/internal/discovery"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/parsers/compose"
+	"github.com/Bavlik/CredScope/internal/parsers/githubactions"
 )
 
 func Repository(ctx context.Context, root string, cfg config.Config, gitleaksReport string) (domain.ParsedRepository, error) {
@@ -59,7 +59,7 @@ func Repository(ctx context.Context, root string, cfg config.Config, gitleaksRep
 		}
 	}
 	if gitleaksReport != "" {
-		result.Findings, err = gitleaks.New(absRoot, gitleaksReport).Findings(ctx)
+		result.Findings, err = gitleaks.NewWithPathPrefix(absRoot, gitleaksReport, cfg.Gitleaks.PathPrefix).Findings(ctx)
 		if err != nil {
 			return domain.ParsedRepository{}, err
 		}

@@ -1,6 +1,6 @@
 name: CredScope
-description: Map credential references to reachable workflows, permissions, and Compose services.
-author: CredScope maintainers
+description: Deterministic offline-first static credential exposure and reachability analysis for Docker Compose and GitHub Actions.
+author: Abdallah Alotaibi
 
 branding:
   icon: shield
@@ -15,6 +15,14 @@ inputs:
     description: Optional Gitleaks JSON report path.
     required: false
     default: ""
+  gitleaks-path-prefix:
+    description: Exact absolute scanner path prefix to strip from Gitleaks finding paths.
+    required: false
+    default: ""
+  profile:
+    description: "Environment profile: auto, local, ci, staging, or production."
+    required: false
+    default: auto
   config:
     description: Optional CredScope configuration file path.
     required: false
@@ -49,13 +57,13 @@ outputs:
     description: The configured report path, empty when output was directed to stdout.
     value: ${{ steps.run.outputs.report-path }}
   highest-score:
-    description: Highest credential blast-radius score.
+    description: Highest risk score.
     value: ${{ steps.run.outputs.highest-score }}
   highest-severity:
     description: Highest analyzed severity, or none for an empty result.
     value: ${{ steps.run.outputs.highest-severity }}
   credentials-analyzed:
-    description: Number of credential analyses.
+    description: Number of analyzed credential or configuration items.
     value: ${{ steps.run.outputs.credentials-analyzed }}
   threshold-exceeded:
     description: Whether CredScope returned threshold exit code 1.
@@ -78,6 +86,8 @@ runs:
       env:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_GITLEAKS_REPORT: ${{ inputs.gitleaks-report }}
+        INPUT_GITLEAKS_PATH_PREFIX: ${{ inputs.gitleaks-path-prefix }}
+        INPUT_PROFILE: ${{ inputs.profile }}
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_OUTPUT: ${{ inputs.output }}

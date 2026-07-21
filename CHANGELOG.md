@@ -1,32 +1,35 @@
 # Changelog
 
-All notable changes to CredScope are documented here. The project follows [Semantic Versioning](https://semver.org/) after its first tagged release.
+All notable changes to CredScope are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-No changes are currently scheduled beyond the release candidate.
-
-## [0.1.0] - Release candidate (not tagged)
+This section prepares the experimental v0.2.0 release. No v0.2.0 tag or release has been created.
 
 ### Added
 
-- Secure repository discovery, strict configuration, sanitization, and staged report writing.
-- Gitleaks JSON, GitHub Actions, and Docker Compose input parsing.
-- Deterministic graph construction, rule catalog v1, scoring policy v1, confidence, and remediation.
-- Terminal, JSON schema v1, SARIF 2.1.0, standalone HTML, and Mermaid reports.
-- Pre-release composite GitHub Action, CI and security workflows, and GoReleaser packaging.
-- Apache-2.0 licensing and open-source governance documentation.
+- Source-aware credential and configuration classification.
+- Environment profiles for auto, local, CI, staging, and production assumptions.
+- Reason-required false-positive controls in `.credscope.yml`.
+- Safe Gitleaks path-prefix normalization for container-generated reports.
+- Typed graph edges and explicit evidence kinds.
 
 ### Changed
 
-- Safely create missing report parent directories inside the analyzed root while rejecting traversal, symbolic links, and Windows reparse points.
-- Rank and bound human evidence paths without changing graph traversal or scoring.
-- Compact JSON schema v1 by retaining one shortest path per endpoint and referencing canonical graph evidence.
-- Deduplicate identical Mermaid source/relationship/target edges.
-- Add fail-closed graph, evidence-path, discovery-count, and display-text resource limits.
+- Corrected reachability semantics so dependency and network topology do not imply credential transmission.
+- Separated risk scores from evidence confidence.
+- Bumped deterministic JSON reporting to schema v2; see [the migration notes](docs/CONFIGURATION.md#json-schema-v2-migration).
+- Cleaned up documentation and made source installation the primary method.
 
 ### Security
 
-- Expanded hostile-input, path-confinement, Action exit propagation, resource-limit, fuzz, and leakage verification.
+- Added regression coverage for classification, topology isolation, profile behavior, allowlist reasons, unsafe ignore paths, Gitleaks prefix confinement, secret-safe JSON, offline HTML, SARIF validity, Mermaid deduplication, and terminal sanitization.
 
-No `v0.1.0` release has been published yet.
+## [0.1.0] - 2026-07-21
+
+### Added
+
+- Gitleaks JSON, GitHub Actions, and Docker Compose static parsing.
+- Deterministic graph construction, rule catalog v1, scoring policy v1, and remediation guidance.
+- Terminal, JSON, SARIF 2.1.0, standalone HTML, and Mermaid reports.
+- Root-confined discovery and report writing, resource limits, sanitization, CI workflows, and GoReleaser packaging.

@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
 )
 
 func TestSARIFStructureLocationsMappingAndDeduplication(t *testing.T) {
 	ev := domain.Evidence{Location: domain.Location{Path: `.github\workflows\deploy hostile.yml`, Line: 7}, Confidence: domain.ConfidenceConfirmed}
 	match := domain.RuleMatch{RuleID: "CRD201", Title: "Workflow grants write permission", Severity: domain.SeverityHigh, Confidence: domain.ConfidenceConfirmed, Evidence: []domain.Evidence{ev}, RemediationID: "REM003"}
-	credential := domain.CredentialAnalysis{Credential: domain.CredentialSubject{ID: "credential:safe", Label: "DEMO_TOKEN"}, Score: 70, Severity: domain.SeverityHigh, PolicyVersion: "v1", RuleCatalogVersion: "v1", MatchedRules: []domain.RuleMatch{match, match}, Remediations: []domain.RemediationResult{{ID: "REM003", SuggestedAction: "Reduce permissions"}}}
-	input := reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{StartedAt: time.Unix(1, 0)}, Analysis: domain.AnalysisResult{PolicyVersion: "v1", RuleCatalogVersion: "v1", Credentials: []domain.CredentialAnalysis{credential}}}
+	credential := domain.CredentialAnalysis{Credential: domain.CredentialSubject{ID: "credential:safe", Label: "DEMO_TOKEN", Classification: domain.ClassificationSecret, ClassificationSource: "source_syntax"}, Score: 70, Severity: domain.SeverityHigh, PolicyVersion: "v2", RuleCatalogVersion: "v2", MatchedRules: []domain.RuleMatch{match, match}, Remediations: []domain.RemediationResult{{ID: "REM003", SuggestedAction: "Reduce permissions"}}}
+	input := reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{StartedAt: time.Unix(1, 0)}, Analysis: domain.AnalysisResult{PolicyVersion: "v2", RuleCatalogVersion: "v2", Profile: domain.ProfileSelection{Requested: domain.ProfileCI, Selected: domain.ProfileCI, Source: "explicit", Reason: "test profile", Assumptions: []string{"ephemeral jobs"}}, Credentials: []domain.CredentialAnalysis{credential}}}
 	var first, second bytes.Buffer
 	if err := New().Render(&first, input, reporters.Options{Pretty: true}); err != nil {
 		t.Fatal(err)
@@ -28,13 +28,16 @@ func TestSARIFStructureLocationsMappingAndDeduplication(t *testing.T) {
 	if first.String() != second.String() {
 		t.Fatal("SARIF is not deterministic")
 	}
-	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "113898441a9be869942f0af252b2392fac01ee97795d9b04ff3214526def97b0" {
+	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "de52716d1735a28b6ff6ebd5dc60c3ef86e314c2097a3a87a6e037500cdd4a9b" {
 		t.Fatalf("SARIF golden hash = %s", got)
 	}
 	var decoded struct {
 		Schema  string `json:"$schema"`
 		Version string `json:"version"`
 		Runs    []struct {
+			Properties struct {
+				EnvironmentProfile string `json:"environmentProfile"`
+			} `json:"properties"`
 			Tool struct {
 				Driver struct {
 					Name  string `json:"name"`
@@ -60,14 +63,14 @@ func TestSARIFStructureLocationsMappingAndDeduplication(t *testing.T) {
 	if err := json.Unmarshal(first.Bytes(), &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Version != "2.1.0" || decoded.Schema != schemaURL || len(decoded.Runs) != 1 || len(decoded.Runs[0].Tool.Driver.Rules) != 27 {
+	if decoded.Version != "2.1.0" || decoded.Schema != schemaURL || len(decoded.Runs) != 1 || len(decoded.Runs[0].Tool.Driver.Rules) != 27 || decoded.Runs[0].Properties.EnvironmentProfile != "ci" {
 		t.Fatalf("invalid SARIF header: %s", first.String())
 	}
 	if len(decoded.Runs[0].Results) != 1 {
 		t.Fatalf("results = %d, want deduplicated 1", len(decoded.Runs[0].Results))
 	}
 	result := decoded.Runs[0].Results[0]
-	if result.Level != "error" || len(result.Locations) != 1 || result.Locations[0].PhysicalLocation.Region.StartLine != 7 || !strings.Contains(result.Locations[0].PhysicalLocation.ArtifactLocation.URI, "%20") || result.Partial["credentialRule/v1"] == "" {
+	if result.Level != "error" || len(result.Locations) != 1 || result.Locations[0].PhysicalLocation.Region.StartLine != 7 || !strings.Contains(result.Locations[0].PhysicalLocation.ArtifactLocation.URI, "%20") || result.Partial["credentialRule/v2"] == "" {
 		t.Fatalf("invalid result: %#v", result)
 	}
 	if strings.Contains(first.String(), "RAW_SECRET_NOT_IN_MODEL") {

@@ -5,20 +5,31 @@ package analysis
 import (
 	"context"
 	"fmt"
+	"path"
 	"sort"
+	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/graph"
-	"github.com/credscope/credscope/internal/remediation"
-	"github.com/credscope/credscope/internal/rules"
-	"github.com/credscope/credscope/internal/scoring"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/graph"
+	profilepkg "github.com/Bavlik/CredScope/internal/profile"
+	"github.com/Bavlik/CredScope/internal/remediation"
+	"github.com/Bavlik/CredScope/internal/rules"
+	"github.com/Bavlik/CredScope/internal/scoring"
 )
+
+type IgnoreDirective struct{ Value, Reason string }
 
 type Options struct {
 	MaxTraversalDepth int
 	MaxEvidencePaths  int
 	MaxTotalPaths     int
 	DisabledRules     map[string]bool
+	Profile           domain.Profile
+	Classifications   map[string]domain.Classification
+	IgnorePaths       []IgnoreDirective
+	IgnoreVariables   []IgnoreDirective
+	IgnoreFindings    []IgnoreDirective
+	IgnoreRules       []IgnoreDirective
 }
 
 const DefaultMaxTotalEvidencePaths = 50000
@@ -27,11 +38,17 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	if err := ctx.Err(); err != nil {
 		return domain.AnalysisResult{}, err
 	}
-	built := graph.Build(parsed)
+	parsed, preIgnored := applyRepositoryIgnores(parsed, options)
+	selection := profilepkg.Select(options.Profile, parsed)
+	ignoredVariables := make(map[string]domain.IgnoredItem)
+	for _, item := range options.IgnoreVariables {
+		ignoredVariables[strings.ToUpper(item.Value)] = domain.IgnoredItem{Kind: "variable", Target: strings.ToUpper(item.Value), Reason: item.Reason}
+	}
+	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables})
 	if built.LimitExceeded {
 		return domain.AnalysisResult{}, fmt.Errorf("analysis graph exceeded the safety limit of %d nodes or %d edges", graph.DefaultMaxGraphNodes, graph.DefaultMaxGraphEdges)
 	}
-	result := domain.AnalysisResult{PolicyVersion: scoring.PolicyVersion, RuleCatalogVersion: rules.CatalogVersion, Graph: built.Graph, Warnings: append([]string{}, built.Warnings...), Credentials: []domain.CredentialAnalysis{}}
+	result := domain.AnalysisResult{PolicyVersion: scoring.PolicyVersion, RuleCatalogVersion: rules.CatalogVersion, Graph: built.Graph, Warnings: append([]string{}, built.Warnings...), Credentials: []domain.CredentialAnalysis{}, Profile: selection, IgnoredItems: append(preIgnored, built.Ignored...)}
 	totalPaths := 0
 	for _, warning := range parsed.Warnings {
 		message := warning.Code + ": " + warning.Message
@@ -66,8 +83,26 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 			}
 			matches = filtered
 		}
-		score := scoring.Calculate(matches)
+		if len(options.IgnoreRules) > 0 {
+			ignoredRules := make(map[string]IgnoreDirective)
+			for _, item := range options.IgnoreRules {
+				ignoredRules[strings.ToUpper(item.Value)] = item
+			}
+			filtered := matches[:0]
+			for _, match := range matches {
+				if directive, ok := ignoredRules[match.RuleID]; ok {
+					result.IgnoredItems = appendOrIncrement(result.IgnoredItems, domain.IgnoredItem{Kind: "rule", Target: match.RuleID, Reason: directive.Reason, Count: 1})
+					continue
+				}
+				filtered = append(filtered, match)
+			}
+			matches = filtered
+		}
+		score := scoring.CalculateForProfile(matches, selection, credential.ExpectedSecret)
 		remediations := remediation.Generate(credential, matches)
+		if !credential.RotationApplicable {
+			remediations = removeRotation(remediations)
+		}
 		remediationIDs := make([]string, 0, len(remediations))
 		for _, item := range remediations {
 			remediationIDs = append(remediationIDs, item.ID)
@@ -90,7 +125,98 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	}
 	sort.Slice(result.Credentials, func(i, j int) bool { return result.Credentials[i].Credential.ID < result.Credentials[j].Credential.ID })
 	result.Warnings = uniqueStrings(result.Warnings)
+	sort.Slice(result.IgnoredItems, func(i, j int) bool {
+		if result.IgnoredItems[i].Kind != result.IgnoredItems[j].Kind {
+			return result.IgnoredItems[i].Kind < result.IgnoredItems[j].Kind
+		}
+		return result.IgnoredItems[i].Target < result.IgnoredItems[j].Target
+	})
+	for _, item := range result.IgnoredItems {
+		result.IgnoredCount += item.Count
+	}
 	return result, nil
+}
+
+func removeRotation(items []domain.RemediationResult) []domain.RemediationResult {
+	result := items[:0]
+	for _, item := range items {
+		if item.ID != "REM001" {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func applyRepositoryIgnores(parsed domain.ParsedRepository, options Options) (domain.ParsedRepository, []domain.IgnoredItem) {
+	var ignored []domain.IgnoredItem
+	pathReason := func(value string) (string, bool) {
+		for _, item := range options.IgnorePaths {
+			if matchPath(item.Value, value) {
+				return item.Reason, true
+			}
+		}
+		return "", false
+	}
+	workflows := parsed.Workflows[:0]
+	for _, item := range parsed.Workflows {
+		if reason, ok := pathReason(item.File); ok {
+			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "path", Target: item.File, Reason: reason, Count: 1})
+		} else {
+			workflows = append(workflows, item)
+		}
+	}
+	parsed.Workflows = workflows
+	compose := parsed.Compose[:0]
+	for _, item := range parsed.Compose {
+		if reason, ok := pathReason(item.File); ok {
+			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "path", Target: item.File, Reason: reason, Count: 1})
+		} else {
+			compose = append(compose, item)
+		}
+	}
+	parsed.Compose = compose
+	findingIDs := make(map[string]IgnoreDirective)
+	for _, item := range options.IgnoreFindings {
+		findingIDs[item.Value] = item
+	}
+	findings := parsed.Findings[:0]
+	for _, item := range parsed.Findings {
+		if directive, ok := findingIDs[item.ID]; ok {
+			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "finding", Target: item.ID, Reason: directive.Reason, Count: 1})
+			continue
+		}
+		if directive, ok := findingIDs[item.RuleID]; ok {
+			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "finding", Target: item.RuleID, Reason: directive.Reason, Count: 1})
+			continue
+		}
+		if reason, ok := pathReason(item.Location.Path); ok {
+			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "path", Target: item.Location.Path, Reason: reason, Count: 1})
+			continue
+		}
+		findings = append(findings, item)
+	}
+	parsed.Findings = findings
+	return parsed, ignored
+}
+
+func matchPath(pattern, value string) bool {
+	pattern, value = strings.ReplaceAll(pattern, "\\", "/"), strings.ReplaceAll(value, "\\", "/")
+	if strings.HasSuffix(pattern, "/**") {
+		prefix := strings.TrimSuffix(pattern, "**")
+		return strings.HasPrefix(value, prefix)
+	}
+	matched, _ := path.Match(pattern, value)
+	return matched
+}
+
+func appendOrIncrement(items []domain.IgnoredItem, value domain.IgnoredItem) []domain.IgnoredItem {
+	for index := range items {
+		if items[index].Kind == value.Kind && items[index].Target == value.Target && items[index].Reason == value.Reason {
+			items[index].Count += value.Count
+			return items
+		}
+	}
+	return append(items, value)
 }
 
 func effectivePathLimit(configured int) int {

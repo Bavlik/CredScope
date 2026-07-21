@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use CredScope in research, please cite it using this metadata."
+title: CredScope
+type: software
+authors:
+  - given-names: Abdallah
+    family-names: Alotaibi
+    alias: Bavlik
+repository-code: "https://github.com/Bavlik/CredScope"
+license: Apache-2.0

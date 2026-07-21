@@ -1,4 +1,4 @@
-module github.com/credscope/credscope
+module github.com/Bavlik/CredScope
 
 go 1.26.0
 

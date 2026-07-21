@@ -211,4 +211,5 @@ type ParsedRepository struct {
 	Workflows      []Workflow       `json:"workflows"`
 	Compose        []ComposeProject `json:"compose"`
 	Warnings       []ParseWarning   `json:"warnings"`
+	Ignored        []IgnoredItem    `json:"ignored_items"`
 }

@@ -1,41 +1,16 @@
 # Installation
 
-CredScope is a local `v0.1.0` release candidate. No tag, GitHub Release, installer, package-manager entry, or container image exists yet.
-
-## Current supported method
-
-Build from a trusted checkout with Go 1.26 or a supported newer release:
+Source installation is the preferred method. Install Git and Go 1.26, then run:
 
 ```bash
-go mod verify
-go build -trimpath -o credscope ./cmd/credscope
-./credscope version
+git clone https://github.com/Bavlik/CredScope.git
+cd CredScope
+go run ./cmd/credscope version
+go run ./cmd/credscope scan /path/to/repository
 ```
 
-Windows PowerShell:
+Build locally with `go build -o credscope ./cmd/credscope`, or on Windows with `go build -o credscope.exe ./cmd/credscope`.
 
-```powershell
-go mod verify
-go build -trimpath -o credscope.exe ./cmd/credscope
-.\credscope.exe version
-```
+GitHub Release binaries are optional conveniences. Verify checksums. Official v0.1.0 Windows binaries are unsigned; building from source avoids relying on an unsigned executable without requiring users to disable security controls.
 
-You can also run the safe demonstration without installing:
-
-```bash
-go run ./cmd/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --no-color
-```
-
-## After the first release
-
-GoReleaser is configured and locally snapshot-tested for Linux amd64/arm64, macOS amd64/arm64, and Windows amd64, plus SHA-256 checksums. After the official repository identity and remote release workflow are verified, the project can document concrete download URLs and a tagged command of this form:
-
-```text
-go install <verified-module>/cmd/credscope@v0.1.0
-```
-
-This is illustrative, not a currently functional installation command.
-
-Checksum-verifying shell and PowerShell installers are intentionally deferred. A trustworthy installer requires a confirmed public repository owner, published archives, and stable checksum filenames. Container packaging is also deferred until an immutable runtime base and registry identity are selected and audited.
-
-The composite GitHub Action can be tested from the checked-out repository today with `uses: ./`; external `OWNER/credscope@v1` usage becomes valid only after the public repository and version ref exist.
+CredScope is Apache-2.0 licensed. No payment or commercial license is required.

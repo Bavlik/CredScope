@@ -49,7 +49,7 @@ func TestActionManifestInputsOutputsAndCompositeRuntime(t *testing.T) {
 			t.Fatalf("composite Action dependency is not pinned to a full commit: %q", use)
 		}
 	}
-	wantInputs := []string{"config", "fail-on", "format", "gitleaks-report", "minimum-score", "no-color", "output", "path", "verbose"}
+	wantInputs := []string{"config", "fail-on", "format", "gitleaks-path-prefix", "gitleaks-report", "minimum-score", "no-color", "output", "path", "profile", "verbose"}
 	wantOutputs := []string{"credentials-analyzed", "highest-score", "highest-severity", "report-path", "threshold-exceeded"}
 	if got := sortedKeys(manifest.Inputs); strings.Join(got, ",") != strings.Join(wantInputs, ",") {
 		t.Fatalf("inputs = %v", got)

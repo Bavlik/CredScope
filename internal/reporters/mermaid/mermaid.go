@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
 
 const (
@@ -27,18 +27,20 @@ func (Reporter) Name() string                     { return "mermaid" }
 func (Reporter) Validate(reporters.Options) error { return nil }
 
 func (Reporter) Render(writer io.Writer, input reporters.Input, _ reporters.Options) error {
-	fmt.Fprintln(writer, "# CredScope blast-radius graph")
+	fmt.Fprintln(writer, "# CredScope static exposure graph")
 	fmt.Fprintf(writer, "\nRepository: `%s`\n\nScoring policy: `%s`\n\nRule catalog: `%s`\n", markdown(input.Scan.Repository), markdown(input.Analysis.PolicyVersion), markdown(input.Analysis.RuleCatalogVersion))
+	fmt.Fprintf(writer, "\nEnvironment profile: `%s` — %s\n", markdown(string(input.Analysis.Profile.Selected)), markdown(input.Analysis.Profile.Reason))
+	fmt.Fprintf(writer, "\nProfile assumptions: %s\n", markdown(strings.Join(input.Analysis.Profile.Assumptions, "; ")))
 	credentials := reporters.OrderedCredentials(input, false)
 	if len(credentials) > 0 {
-		fmt.Fprintln(writer, "\n## Credential summary\n\n| Credential | Score | Severity | Matched rules |\n| --- | ---: | --- | --- |")
+		fmt.Fprintln(writer, "\n## Credential summary\n\n| Item | Classification | Risk score | Confidence | Severity | Matched rules |\n| --- | --- | ---: | --- | --- | --- |")
 		for _, credential := range credentials {
 			ruleIDs := make([]string, 0, len(credential.MatchedRules))
 			for _, match := range credential.MatchedRules {
 				ruleIDs = append(ruleIDs, match.RuleID)
 			}
 			sort.Strings(ruleIDs)
-			fmt.Fprintf(writer, "| %s | %d/100 | %s | %s |\n", markdown(credential.Credential.Label), credential.Score, markdown(string(credential.Severity)), strings.Join(ruleIDs, ", "))
+			fmt.Fprintf(writer, "| %s | %s | %d/100 | %s | %s | %s |\n", markdown(credential.Credential.Label), markdown(string(credential.Credential.Classification)), credential.Score, markdown(string(credential.Confidence.Overall)), markdown(string(credential.Severity)), strings.Join(ruleIDs, ", "))
 		}
 	}
 	nodes := append([]domain.Node{}, input.Analysis.Graph.Nodes...)
@@ -62,7 +64,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, _ reporters.Opti
 	edgesByRelationship := make(map[string]domain.Edge)
 	for _, edge := range input.Analysis.Graph.Edges {
 		if included[edge.From] && included[edge.To] {
-			key := edge.From + "\x00" + string(edge.Type) + "\x00" + edge.To
+			key := edge.From + "\x00" + string(edge.Type) + "\x00" + string(edge.EvidenceKind) + "\x00" + edge.To
 			if current, exists := edgesByRelationship[key]; !exists || edge.ID < current.ID {
 				edgesByRelationship[key] = edge
 			}
@@ -92,7 +94,15 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, _ reporters.Opti
 			fmt.Fprintln(writer, "    %% Graph bounded by CredScope policy; no external links are emitted.")
 		}
 		for _, edge := range edges {
-			fmt.Fprintf(writer, "    %s -->|%s| %s\n", nodeID(edge.From), string(edge.Type), nodeID(edge.To))
+			evidenceKind := edge.EvidenceKind
+			if evidenceKind == "" {
+				evidenceKind = domain.EvidenceConfirmedDataFlow
+			}
+			arrow := "-->"
+			if evidenceKind == domain.EvidenceNetworkTopology {
+				arrow = "-.->"
+			}
+			fmt.Fprintf(writer, "    %s %s|%s · %s| %s\n", nodeID(edge.From), arrow, string(edge.Type), string(evidenceKind), nodeID(edge.To))
 		}
 	}
 	fmt.Fprintln(writer, "```")

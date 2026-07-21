@@ -14,7 +14,7 @@ import (
 
 func TestArgumentsPreserveSpacesAndShellMetacharacters(t *testing.T) {
 	input := Inputs{Path: "repo with spaces;& $(touch) `quoted`", GitleaksReport: "reports/gitleaks file.json", Config: "config files/safe.yml", Format: "sarif", Output: "reports/result file.sarif", FailOn: "high", MinimumScore: 40, Verbose: true, NoColor: true}
-	want := []string{"scan", input.Path, "--gitleaks-report", input.GitleaksReport, "--config", input.Config, "--format", "sarif", "--fail-on", "high", "--minimum-score", "40", "--output", input.Output, "--verbose=true", "--no-color=true"}
+	want := []string{"scan", input.Path, "--gitleaks-report", input.GitleaksReport, "--config", input.Config, "--profile", "auto", "--format", "sarif", "--fail-on", "high", "--minimum-score", "40", "--output", input.Output, "--verbose=true", "--no-color=true"}
 	if got := Arguments(input); !reflect.DeepEqual(got, want) {
 		t.Fatalf("arguments = %#v, want %#v", got, want)
 	}
@@ -32,10 +32,10 @@ func TestParseInputsDefaultsOptionalValuesAndRejectsInvalidValues(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Path != "." || got.Format != "sarif" || got.FailOn != "high" || got.Output != "" || !got.NoColor {
+	if got.Path != "." || got.Format != "sarif" || got.FailOn != "high" || got.Profile != "auto" || got.Output != "" || !got.NoColor {
 		t.Fatalf("unexpected defaults: %#v", got)
 	}
-	for name, value := range map[string]string{"INPUT_FORMAT": "xml", "INPUT_FAIL_ON": "urgent", "INPUT_MINIMUM_SCORE": "101", "INPUT_VERBOSE": "sometimes", "INPUT_PATH": "bad\npath"} {
+	for name, value := range map[string]string{"INPUT_FORMAT": "xml", "INPUT_FAIL_ON": "urgent", "INPUT_PROFILE": "internet", "INPUT_MINIMUM_SCORE": "101", "INPUT_VERBOSE": "sometimes", "INPUT_PATH": "bad\npath"} {
 		t.Run(name, func(t *testing.T) {
 			invalid := map[string]string{name: value}
 			if _, parseErr := ParseInputs(func(key string) string { return invalid[key] }); parseErr == nil {

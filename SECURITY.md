@@ -2,27 +2,18 @@
 
 ## Supported versions
 
-CredScope is currently pre-release. Until `v0.1.0` is published, security fixes are made on the default branch only. After the first stable release, the latest minor release line will receive security fixes; older pre-release builds are not supported.
+CredScope v0.2.0 is being prepared as an experimental release. Security fixes are made on the latest maintained release line and the default branch. v0.1.0 remains immutable as a historical release.
 
 ## Reporting a vulnerability
 
-Do not open a public issue containing a vulnerability exploit, repository source, credentials, tokens, or unredacted scanner output.
+Do not open a public issue containing exploit details, repository source, credentials, tokens, personal data, or unredacted scanner output.
 
-Use GitHub private vulnerability reporting for this repository once it is enabled. If that channel is not visible, open a public issue containing only a request for a private maintainer contact; do not include sensitive details. The project does not publish a security email address at this time.
+Use GitHub private vulnerability reporting for [Bavlik/CredScope](https://github.com/Bavlik/CredScope/security/advisories/new). If that channel is unavailable, open a public issue containing only a request for private maintainer contact; do not include sensitive details.
 
-Please include:
+Include the affected version or commit, operating system and architecture, a minimal reproduction using clearly fake credentials, expected and observed behavior, impact, and whether the issue is already public. No response-time guarantee is offered.
 
-- the affected CredScope version or commit;
-- the operating system and architecture;
-- a minimal synthetic reproduction with all credentials replaced by obvious fake values;
-- the expected and observed behavior;
-- security impact and any proposed mitigation;
-- whether the issue is already public.
+## Security boundary
 
-Maintainers will acknowledge reports when the repository's private reporting channel is operational. No response-time SLA is promised during the pre-release period.
+CredScope does not validate whether credentials are active, execute repository content, prove runtime data flow, prove external network exposure, replace secret scanners, or provide complete vulnerability scanning. It imports scanner findings and analyzes static exposure context.
 
-## Scope and limitations
-
-CredScope performs deterministic static analysis. It does not validate credentials, authenticate to cloud providers, prove effective IAM permissions, resolve remote reusable workflows, inspect running containers, or establish definite external reachability. Reports are advisory and must not be treated as proof that a repository or deployment is secure.
-
-See [the security model](docs/security-model.md) for trust boundaries and residual risks.
+The CLI is designed to remain offline, bound input sizes, reject unsafe paths and symlinks, avoid raw-secret serialization, sanitize repository-controlled output, and preserve deterministic ordering. See [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).

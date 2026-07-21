@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 type evaluation struct {
@@ -52,7 +52,7 @@ func Evaluate(graph domain.Graph, credentialID string, paths []domain.EvidencePa
 	add("CRD101", findings, e.nodeEvidence(findings), domain.ConfidenceConfirmed)
 	workflows := e.nodesOfType(domain.NodeWorkflow)
 	add("CRD102", workflows, e.nodeEvidence(workflows), domain.ConfidenceConfirmed)
-	jobs := e.directTargets(domain.NodeJob, domain.EdgePassedTo, domain.EdgePropagatesTo)
+	jobs := e.directTargets(domain.NodeJob, domain.EdgeConfiguredIn, domain.EdgeExplicitlyForwardedTo, domain.EdgeAvailableToProcess)
 	if len(jobs) >= 2 {
 		add("CRD103", jobs, e.nodeEvidence(jobs), domain.ConfidenceHigh)
 	}
@@ -80,12 +80,13 @@ func Evaluate(graph domain.Graph, credentialID string, paths []domain.EvidencePa
 	productionEnvironments := e.nodesMatching(domain.NodeEnvironment, func(node domain.Node) bool { return node.Metadata["production_like"] == "true" })
 	add("CRD208", productionEnvironments, e.nodeEvidence(productionEnvironments), domain.ConfidenceMedium)
 
-	directServices := e.directTargets(domain.NodeComposeService, domain.EdgePassedTo)
+	directServices := e.directTargets(domain.NodeComposeService, domain.EdgeAvailableToService, domain.EdgeMountedAsSecret, domain.EdgeExplicitlyForwardedTo)
 	add("CRD301", directServices, e.nodeEvidence(directServices), domain.ConfidenceConfirmed)
 	privileged := e.nodesMatching(domain.NodeComposeService, func(node domain.Node) bool { return node.Metadata["privileged"] == "true" })
 	add("CRD302", privileged, e.nodeEvidence(privileged), domain.ConfidenceConfirmed)
 	ports := e.nodesOfType(domain.NodePortExposure)
-	add("CRD303", ports, e.nodeEvidence(ports), domain.ConfidenceMedium)
+	nonLoopbackPorts := filterNodeIDs(ports, e.nodes, func(node domain.Node) bool { return !isLoopbackHost(node.Metadata["host_ip"]) })
+	add("CRD303", nonLoopbackPorts, e.nodeEvidence(nonLoopbackPorts), domain.ConfidenceMedium)
 	dockerSockets := e.nodesMatching(domain.NodeVolumeMount, func(node domain.Node) bool { return node.Metadata["docker_socket"] == "true" })
 	add("CRD304", dockerSockets, e.nodeEvidence(dockerSockets), domain.ConfidenceConfirmed)
 	hostNetwork := e.nodesMatching(domain.NodeComposeService, func(node domain.Node) bool { return node.Metadata["host_network"] == "true" })
@@ -139,6 +140,21 @@ func (e evaluation) nodesOfType(kind domain.NodeType) []string {
 	return e.nodesMatching(kind, func(domain.Node) bool { return true })
 }
 
+func filterNodeIDs(ids []string, nodes map[string]domain.Node, keep func(domain.Node) bool) []string {
+	result := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if node, ok := nodes[id]; ok && keep(node) {
+			result = append(result, id)
+		}
+	}
+	return result
+}
+
+func isLoopbackHost(value string) bool {
+	value = strings.ToLower(strings.TrimSpace(value))
+	return value == "localhost" || value == "::1" || strings.HasPrefix(value, "127.")
+}
+
 func (e evaluation) nodesMatching(kind domain.NodeType, match func(domain.Node) bool) []string {
 	var result []string
 	for id := range e.reach {
@@ -183,9 +199,9 @@ func (e evaluation) directByEvidence(kind domain.NodeType, evidenceType string) 
 }
 
 func (e evaluation) independentComponents() []string {
-	workflows := e.directTargets(domain.NodeWorkflow, domain.EdgeReferencedBy, domain.EdgePropagatesTo)
-	services := e.directTargets(domain.NodeComposeService, domain.EdgePassedTo)
-	jobs := e.directTargets(domain.NodeJob, domain.EdgePassedTo, domain.EdgePropagatesTo)
+	workflows := e.directTargets(domain.NodeWorkflow, domain.EdgeConfiguredIn, domain.EdgeExplicitlyForwardedTo)
+	services := e.directTargets(domain.NodeComposeService, domain.EdgeAvailableToService, domain.EdgeMountedAsSecret, domain.EdgeExplicitlyForwardedTo)
+	jobs := e.directTargets(domain.NodeJob, domain.EdgeConfiguredIn, domain.EdgeExplicitlyForwardedTo, domain.EdgeAvailableToProcess)
 	result := appendCopy(workflows, services...)
 	if len(workflows) == 0 || len(jobs) >= 2 {
 		result = append(result, jobs...)

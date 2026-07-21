@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/discovery"
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/input"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/discovery"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/input"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
 
 type ErrorKind string
@@ -47,13 +47,17 @@ func (e *ParseError) Error() string {
 }
 
 type Adapter struct {
-	Root string
-	Path string
+	Root       string
+	Path       string
+	PathPrefix string
 }
 
 var _ domain.FindingSource = (*Adapter)(nil)
 
 func New(root, reportPath string) *Adapter { return &Adapter{Root: root, Path: reportPath} }
+func NewWithPathPrefix(root, reportPath, prefix string) *Adapter {
+	return &Adapter{Root: root, Path: reportPath, PathPrefix: prefix}
+}
 
 func (a *Adapter) Name() string { return "gitleaks" }
 
@@ -74,7 +78,7 @@ func (a *Adapter) Findings(ctx context.Context) ([]domain.Finding, error) {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		finding, convertErr := convert(rawFindings[index], rel, index)
+		finding, convertErr := convert(rawFindings[index], rel, index, a.PathPrefix)
 		if convertErr != nil {
 			return nil, convertErr
 		}
@@ -146,7 +150,7 @@ func jsonError(reportPath string, err error) error {
 	return &ParseError{Kind: ErrorInvalidStructure, Path: reportPath, Index: -1, Msg: "finding fields have invalid JSON types"}
 }
 
-func convert(raw rawFinding, reportPath string, index int) (domain.Finding, error) {
+func convert(raw rawFinding, reportPath string, index int, pathPrefix ...string) (domain.Finding, error) {
 	redact := func(value string) string {
 		for _, sensitive := range []string{raw.Secret, raw.Match} {
 			if sensitive != "" {
@@ -159,7 +163,11 @@ func convert(raw rawFinding, reportPath string, index int) (domain.Finding, erro
 	if ruleID == "" {
 		ruleID = "unknown"
 	}
-	file, err := normalizeFindingPath(redact(raw.File))
+	prefix := ""
+	if len(pathPrefix) > 0 {
+		prefix = pathPrefix[0]
+	}
+	file, err := normalizeFindingPath(redact(raw.File), prefix)
 	if err != nil {
 		return domain.Finding{}, &ParseError{Kind: ErrorUnsafePath, Path: reportPath, Index: index, Msg: "finding file must be repository-relative"}
 	}
@@ -213,21 +221,39 @@ func convert(raw rawFinding, reportPath string, index int) (domain.Finding, erro
 			Fingerprint: fingerprint,
 			Type:        ruleID,
 		},
-		Location:   domain.Location{Path: file, Line: line},
-		Commit:     commit,
-		CommitInfo: commitInfo,
-		Tags:       tags,
-		Source:     "gitleaks",
+		Location:             domain.Location{Path: file, Line: line},
+		Commit:               commit,
+		CommitInfo:           commitInfo,
+		Tags:                 tags,
+		Source:               "gitleaks",
+		TestFixtureCandidate: isTestFixturePath(file),
 	}, nil
 }
 
-func normalizeFindingPath(value string) (string, error) {
+func normalizeFindingPath(value string, configuredPrefix ...string) (string, error) {
 	if value == "" {
 		return "", nil
 	}
 	normalized := strings.ReplaceAll(value, "\\", "/")
-	if strings.HasPrefix(normalized, "/") || (len(normalized) >= 2 && normalized[1] == ':') {
-		return "", fmt.Errorf("absolute path")
+	prefix := ""
+	if len(configuredPrefix) > 0 {
+		prefix = strings.ReplaceAll(configuredPrefix[0], "\\", "/")
+	}
+	isAbsolute := strings.HasPrefix(normalized, "/") || (len(normalized) >= 3 && normalized[1] == ':' && normalized[2] == '/')
+	if isAbsolute {
+		if prefix == "" {
+			return "", fmt.Errorf("absolute path without configured prefix")
+		}
+		if err := validateConfiguredPrefix(prefix); err != nil {
+			return "", err
+		}
+		prefix = strings.TrimSuffix(path.Clean(prefix), "/")
+		cleanValue := path.Clean(normalized)
+		if cleanValue != prefix && !strings.HasPrefix(cleanValue, prefix+"/") {
+			return "", fmt.Errorf("absolute path outside configured prefix")
+		}
+		normalized = strings.TrimPrefix(cleanValue, prefix)
+		normalized = strings.TrimPrefix(normalized, "/")
 	}
 	normalized = path.Clean(normalized)
 	if normalized == "." {
@@ -237,6 +263,31 @@ func normalizeFindingPath(value string) (string, error) {
 		return "", fmt.Errorf("parent traversal")
 	}
 	return normalized, nil
+}
+
+func validateConfiguredPrefix(prefix string) error {
+	if strings.ContainsRune(prefix, 0) {
+		return fmt.Errorf("configured prefix contains NUL")
+	}
+	isAbsolute := strings.HasPrefix(prefix, "/") || (len(prefix) >= 3 && prefix[1] == ':' && prefix[2] == '/')
+	if !isAbsolute {
+		return fmt.Errorf("configured prefix is not absolute")
+	}
+	for _, part := range strings.Split(prefix, "/") {
+		if part == ".." {
+			return fmt.Errorf("configured prefix contains parent traversal")
+		}
+	}
+	cleaned := path.Clean(prefix)
+	if cleaned == "/" || (len(cleaned) == 2 && cleaned[1] == ':') || (len(cleaned) == 3 && cleaned[1:] == ":/") {
+		return fmt.Errorf("configured prefix is a filesystem root")
+	}
+	return nil
+}
+
+func isTestFixturePath(value string) bool {
+	value = strings.ToLower(strings.ReplaceAll(value, "\\", "/"))
+	return strings.HasPrefix(value, "tests/") || strings.Contains(value, "/tests/") || strings.HasPrefix(value, "testdata/") || strings.Contains(value, "/testdata/")
 }
 
 func sanitizeTags(tags []string, sensitiveValues ...string) []string {

@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/parsers/yamlsafe"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/parsers/yamlsafe"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -238,7 +238,7 @@ func parseEnvironment(file string, node *yaml.Node, field, serviceName string) (
 			name := sanitizer.Identifier(entry[0].Value)
 			value := entry[1].Value
 			refs := extractComposeReferences(file, entry[1], field+"."+name, value)
-			if len(refs) == 0 && (entry[1].Tag == "!!null" || looksCredential(name)) {
+			if len(refs) == 0 {
 				refs = append(refs, composeReference(file, entry[1], field+"."+name, name, domain.ConfidenceHigh))
 			}
 			hasLiteral := entry[1].Tag != "!!null" && strings.TrimSpace(composeExpression.ReplaceAllString(value, "")) != ""
@@ -257,7 +257,7 @@ func parseEnvironment(file string, node *yaml.Node, field, serviceName string) (
 			name = sanitizer.Identifier(strings.TrimSpace(name))
 			entryField := fmt.Sprintf("%s[%d]", field, index)
 			refs := extractComposeReferences(file, entry, entryField, value)
-			if len(refs) == 0 && (!hasValue || looksCredential(name)) {
+			if len(refs) == 0 {
 				refs = append(refs, composeReference(file, entry, entryField, name, domain.ConfidenceHigh))
 			}
 			hasLiteral := hasValue && strings.TrimSpace(composeExpression.ReplaceAllString(value, "")) != ""

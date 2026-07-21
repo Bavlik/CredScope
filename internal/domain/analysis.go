@@ -1,6 +1,6 @@
 package domain
 
-const RuleCatalogVersion = "v1"
+const RuleCatalogVersion = "v2"
 
 type Graph struct {
 	Nodes []Node `json:"nodes"`
@@ -16,28 +16,37 @@ type PathNode struct {
 }
 
 type PathEdge struct {
-	ID           string     `json:"id"`
-	From         string     `json:"from"`
-	To           string     `json:"to"`
-	Relationship EdgeType   `json:"relationship"`
-	Evidence     []Evidence `json:"evidence,omitempty"`
-	Confidence   Confidence `json:"confidence"`
+	ID           string       `json:"id"`
+	From         string       `json:"from"`
+	To           string       `json:"to"`
+	Relationship EdgeType     `json:"relationship"`
+	EvidenceKind EvidenceKind `json:"evidence_kind"`
+	Evidence     []Evidence   `json:"evidence,omitempty"`
+	Confidence   Confidence   `json:"confidence"`
 }
 
 type EvidencePath struct {
-	ID           string     `json:"id"`
-	CredentialID string     `json:"credential_id"`
-	Nodes        []PathNode `json:"nodes"`
-	Edges        []PathEdge `json:"edges"`
-	Confidence   Confidence `json:"confidence"`
-	Truncated    bool       `json:"truncated,omitempty"`
+	ID           string       `json:"id"`
+	CredentialID string       `json:"credential_id"`
+	Nodes        []PathNode   `json:"nodes"`
+	Edges        []PathEdge   `json:"edges"`
+	Confidence   Confidence   `json:"confidence"`
+	EvidenceKind EvidenceKind `json:"evidence_kind"`
+	Truncated    bool         `json:"truncated,omitempty"`
 }
 
 type CredentialSubject struct {
-	ID           string   `json:"id"`
-	Label        string   `json:"label"`
-	Type         string   `json:"type,omitempty"`
-	Fingerprints []string `json:"fingerprints,omitempty"`
+	ID                       string         `json:"id"`
+	Label                    string         `json:"label"`
+	Type                     string         `json:"type,omitempty"`
+	Fingerprints             []string       `json:"fingerprints,omitempty"`
+	Classification           Classification `json:"classification"`
+	ClassificationConfidence Confidence     `json:"classification_confidence"`
+	ClassificationReason     string         `json:"classification_reason"`
+	ClassificationSource     string         `json:"classification_source"`
+	ExpectedSecret           bool           `json:"expected_secret"`
+	RotationApplicable       bool           `json:"rotation_remediation_applicable"`
+	TestFixtureCandidate     bool           `json:"test_fixture_candidate"`
 }
 
 type RuleMatch struct {
@@ -53,21 +62,26 @@ type RuleMatch struct {
 }
 
 type ScoreAdjustment struct {
-	Kind        string `json:"kind"`
-	Percent     int    `json:"percent"`
-	Description string `json:"description"`
+	Kind             string `json:"kind"`
+	Percent          int    `json:"percent"`
+	Description      string `json:"description"`
+	RiskOrConfidence string `json:"risk_or_confidence"`
+	ProfileChanged   bool   `json:"profile_changed"`
 }
 
 type ScoreContribution struct {
-	RuleID               string            `json:"rule_id"`
-	Description          string            `json:"description"`
-	BaseWeight           int               `json:"base_weight"`
-	Adjustments          []ScoreAdjustment `json:"adjustments"`
-	AdjustedWeight       int               `json:"adjusted_weight"`
-	ConfidenceMultiplier int               `json:"confidence_multiplier_percent"`
-	FinalContribution    int               `json:"final_contribution"`
-	Confidence           Confidence        `json:"confidence"`
-	Evidence             []Evidence        `json:"evidence"`
+	RuleID            string            `json:"rule_id"`
+	Description       string            `json:"description"`
+	BaseWeight        int               `json:"base_weight"`
+	Adjustments       []ScoreAdjustment `json:"adjustments"`
+	AdjustedWeight    int               `json:"adjusted_weight"`
+	ConfidenceWeight  int               `json:"confidence_weight_percent"`
+	FinalContribution int               `json:"final_contribution"`
+	Confidence        Confidence        `json:"confidence"`
+	ConditionStatus   string            `json:"condition_status"`
+	RiskOrConfidence  string            `json:"risk_or_confidence"`
+	ProfileChanged    bool              `json:"profile_changed"`
+	Evidence          []Evidence        `json:"evidence"`
 }
 
 type ConfidenceSummary struct {
@@ -124,4 +138,7 @@ type AnalysisResult struct {
 	Graph              Graph                `json:"graph"`
 	Credentials        []CredentialAnalysis `json:"credentials"`
 	Warnings           []string             `json:"warnings"`
+	Profile            ProfileSelection     `json:"profile"`
+	IgnoredItems       []IgnoredItem        `json:"ignored_items"`
+	IgnoredCount       int                  `json:"ignored_count"`
 }

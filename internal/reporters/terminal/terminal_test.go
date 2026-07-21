@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
 )
 
 func TestTerminalDeterministicDetailedAndControlSafe(t *testing.T) {
@@ -25,7 +25,7 @@ func TestTerminalDeterministicDetailedAndControlSafe(t *testing.T) {
 		t.Fatal("terminal output was not deterministic")
 	}
 	output := first.String()
-	for _, expected := range []string{"CRITICAL - ALPHAevil", "Blast-radius score: 91/100", "+15 CRD101", "Rotate the credential", "ALPHAevil -> production"} {
+	for _, expected := range []string{"CRITICAL - ALPHAevil", "Risk score: 91/100", "Evidence confidence:", "+15 CRD101", "Rotate the credential", "ALPHAevil -> production"} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("missing %q in:\n%s", expected, output)
 		}
@@ -87,5 +87,5 @@ func TestTerminalEvidenceIsRelevantAndBounded(t *testing.T) {
 
 func terminalInput() reporters.Input {
 	ev := domain.Evidence{Type: "scanner_finding", Location: domain.Location{Path: "demo.yml", Line: 2}, Source: "test", Confidence: domain.ConfidenceConfirmed}
-	return reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: "demo", StartedAt: time.Unix(1, 0), CompletedAt: time.Unix(2, 0), FailOn: "high"}, Analysis: domain.AnalysisResult{PolicyVersion: "v1", RuleCatalogVersion: "v1", Credentials: []domain.CredentialAnalysis{{Credential: domain.CredentialSubject{ID: "credential:safe", Label: "ALPHA\x1b[31mevil"}, Score: 91, Severity: domain.SeverityCritical, Confidence: domain.ConfidenceSummary{Overall: domain.ConfidenceHigh}, Reachable: domain.ReachableCounts{Workflows: 1, Environments: 1}, EvidencePaths: []domain.EvidencePath{{Nodes: []domain.PathNode{{ID: "c", Label: "ALPHA\x1b[31mevil"}, {ID: "e", Type: domain.NodeEnvironment, Label: "production"}}}}, Contributions: []domain.ScoreContribution{{RuleID: "CRD101", Description: "Credential finding imported", BaseWeight: 15, FinalContribution: 15, Confidence: domain.ConfidenceConfirmed, ConfidenceMultiplier: 100, Evidence: []domain.Evidence{ev}}}, Remediations: []domain.RemediationResult{{ID: "REM001", Title: "Rotate the credential", SuggestedAction: "Rotate safely", Priority: 1}}, Warnings: []string{"Runtime exposure unknown"}}}}}
+	return reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: "demo", StartedAt: time.Unix(1, 0), CompletedAt: time.Unix(2, 0), FailOn: "high"}, Analysis: domain.AnalysisResult{PolicyVersion: "v2", RuleCatalogVersion: "v2", Credentials: []domain.CredentialAnalysis{{Credential: domain.CredentialSubject{ID: "credential:safe", Label: "ALPHA\x1b[31mevil"}, Score: 91, Severity: domain.SeverityCritical, Confidence: domain.ConfidenceSummary{Overall: domain.ConfidenceHigh}, Reachable: domain.ReachableCounts{Workflows: 1, Environments: 1}, EvidencePaths: []domain.EvidencePath{{Nodes: []domain.PathNode{{ID: "c", Label: "ALPHA\x1b[31mevil"}, {ID: "e", Type: domain.NodeEnvironment, Label: "production"}}}}, Contributions: []domain.ScoreContribution{{RuleID: "CRD101", Description: "Credential finding imported", BaseWeight: 15, FinalContribution: 15, Confidence: domain.ConfidenceConfirmed, ConfidenceWeight: 100, Evidence: []domain.Evidence{ev}}}, Remediations: []domain.RemediationResult{{ID: "REM001", Title: "Rotate the credential", SuggestedAction: "Rotate safely", Priority: 1}}, Warnings: []string{"Runtime exposure unknown"}}}}}
 }

@@ -5,10 +5,10 @@ package rules
 import (
 	"sort"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
-const CatalogVersion = "v1"
+const CatalogVersion = "v2"
 
 type Rule struct {
 	ID                   string            `json:"id"`

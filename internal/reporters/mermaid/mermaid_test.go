@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
 )
 
 func TestMermaidStableSanitizedAndNoDirectives(t *testing.T) {
-	input := reporters.Input{Scan: reporters.Scan{Repository: "demo`\n%%{init:evil}"}, Analysis: domain.AnalysisResult{PolicyVersion: "v1", RuleCatalogVersion: "v1", Graph: domain.Graph{Nodes: []domain.Node{{ID: "a", Type: domain.NodeCredential, Label: `TOKEN\"] --> X\nclick a "https://evil" %%{init}`}, {ID: "b", Type: domain.NodeWorkflow, Label: "deploy"}}, Edges: []domain.Edge{{ID: "e", From: "a", To: "b", Type: domain.EdgeReferencedBy}}}}}
+	input := reporters.Input{Scan: reporters.Scan{Repository: "demo`\n%%{init:evil}"}, Analysis: domain.AnalysisResult{PolicyVersion: "v2", RuleCatalogVersion: "v2", Profile: domain.ProfileSelection{Requested: domain.ProfileAuto, Selected: domain.ProfileAuto, Source: "conservative_fallback", Reason: "test context", Assumptions: []string{"runtime unknown"}}, Graph: domain.Graph{Nodes: []domain.Node{{ID: "a", Type: domain.NodeCredential, Label: `TOKEN\"] --> X\nclick a "https://evil" %%{init}`}, {ID: "b", Type: domain.NodeWorkflow, Label: "deploy"}}, Edges: []domain.Edge{{ID: "e", From: "a", To: "b", Type: domain.EdgeReferencedBy}}}}}
 	var first, second bytes.Buffer
 	if err := New().Render(&first, input, reporters.Options{}); err != nil {
 		t.Fatal(err)
@@ -23,11 +23,11 @@ func TestMermaidStableSanitizedAndNoDirectives(t *testing.T) {
 	if first.String() != second.String() {
 		t.Fatal("Mermaid differs")
 	}
-	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "2dade3186ecbbcbe343a00dffc06fb2fdfda825b7fe6e5485de730305f7412f6" {
+	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "967b7148e166ce4dc0b4e8660f8a5589dfe3853278aec80fa98262e7ff8113d1" {
 		t.Fatalf("Mermaid golden hash = %s", got)
 	}
 	output := first.String()
-	if !strings.Contains(output, "```mermaid\ngraph TD") || !strings.Contains(output, "-->|REFERENCED_BY|") {
+	if !strings.Contains(output, "```mermaid\ngraph TD") || !strings.Contains(output, "-->|configured_in · confirmed_static_data_flow|") {
 		t.Fatal(output)
 	}
 	if strings.Contains(output, "%%{init") || strings.Contains(output, "click a") || strings.Contains(output, "https://") || strings.Contains(output, "RAW_SECRET_NOT_IN_MODEL") {
@@ -65,7 +65,7 @@ func TestMermaidDeduplicatesEquivalentRelationships(t *testing.T) {
 	if err := New().Render(&output, input, reporters.Options{}); err != nil {
 		t.Fatal(err)
 	}
-	if got := strings.Count(output.String(), "-->|REFERENCED_BY|"); got != 1 {
+	if got := strings.Count(output.String(), "-->|configured_in · confirmed_static_data_flow|"); got != 1 {
 		t.Fatalf("equivalent edges emitted %d times:\n%s", got, output.String())
 	}
 }

@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
-	"github.com/credscope/credscope/internal/rules"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/rules"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
 
 const schemaURL = "https://json.schemastore.org/sarif-2.1.0.json"
@@ -33,8 +33,16 @@ type log struct {
 	Runs    []run  `json:"runs"`
 }
 type run struct {
-	Tool    tool     `json:"tool"`
-	Results []result `json:"results"`
+	Tool       tool          `json:"tool"`
+	Results    []result      `json:"results"`
+	Properties runProperties `json:"properties"`
+}
+type runProperties struct {
+	EnvironmentProfile string   `json:"environmentProfile"`
+	ProfileSource      string   `json:"profileSource"`
+	ProfileReason      string   `json:"profileReason"`
+	ProfileAssumptions []string `json:"profileAssumptions"`
+	IgnoredCount       int      `json:"ignoredCount"`
 }
 type tool struct {
 	Driver driver `json:"driver"`
@@ -93,13 +101,18 @@ type region struct {
 	StartLine int `json:"startLine"`
 }
 type properties struct {
-	CredentialID       string `json:"credentialId"`
-	Credential         string `json:"credential"`
-	BlastRadiusScore   int    `json:"blastRadiusScore"`
-	Confidence         string `json:"confidence"`
-	PolicyVersion      string `json:"policyVersion"`
-	RuleCatalogVersion string `json:"ruleCatalogVersion"`
-	RemediationID      string `json:"remediationId,omitempty"`
+	CredentialID         string `json:"credentialId"`
+	Credential           string `json:"credential"`
+	RiskScore            int    `json:"riskScore"`
+	Confidence           string `json:"confidence"`
+	PolicyVersion        string `json:"policyVersion"`
+	RuleCatalogVersion   string `json:"ruleCatalogVersion"`
+	RemediationID        string `json:"remediationId,omitempty"`
+	Classification       string `json:"classification"`
+	ClassificationSource string `json:"classificationSource"`
+	EnvironmentProfile   string `json:"environmentProfile"`
+	AnalysisSource       string `json:"analysisSource"`
+	ProfileAssumptions   string `json:"profileAssumptions"`
 }
 
 type keyedResult struct {
@@ -126,12 +139,16 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 			}
 			primary, related := locations(match.Evidence)
 			remediation := remediationAction(credential, match.RemediationID)
-			text := match.RuleID + ": " + match.Title + " for " + sanitizer.TerminalText(credential.Credential.Label) + ". Blast-radius score " + strconv.Itoa(credential.Score) + "/100."
+			text := match.RuleID + ": " + match.Title + " for " + sanitizer.TerminalText(credential.Credential.Label) + ". Risk score " + strconv.Itoa(credential.Score) + "/100."
 			if remediation != "" {
 				text += " Recommended action: " + remediation
 			}
 			fingerprint := stableFingerprint(credential.Credential.ID + "\x00" + match.RuleID)
-			item := result{RuleID: match.RuleID, RuleIndex: indexes[match.RuleID], Level: level(match.Severity), Message: message{Text: text}, RelatedLocations: related, PartialFingerprints: map[string]string{"credentialRule/v1": fingerprint}, Properties: properties{CredentialID: credential.Credential.ID, Credential: sanitizer.TerminalText(credential.Credential.Label), BlastRadiusScore: credential.Score, Confidence: string(match.Confidence), PolicyVersion: credential.PolicyVersion, RuleCatalogVersion: credential.RuleCatalogVersion, RemediationID: match.RemediationID}}
+			source := "credscope_static_reachability"
+			if match.RuleID == "CRD101" {
+				source = "imported_secret_scanner"
+			}
+			item := result{RuleID: match.RuleID, RuleIndex: indexes[match.RuleID], Level: level(match.Severity), Message: message{Text: text}, RelatedLocations: related, PartialFingerprints: map[string]string{"credentialRule/v2": fingerprint}, Properties: properties{CredentialID: credential.Credential.ID, Credential: sanitizer.TerminalText(credential.Credential.Label), RiskScore: credential.Score, Confidence: string(match.Confidence), PolicyVersion: credential.PolicyVersion, RuleCatalogVersion: credential.RuleCatalogVersion, RemediationID: match.RemediationID, Classification: string(credential.Credential.Classification), ClassificationSource: credential.Credential.ClassificationSource, EnvironmentProfile: string(input.Analysis.Profile.Selected), AnalysisSource: source, ProfileAssumptions: strings.Join(input.Analysis.Profile.Assumptions, "; ")}}
 			if primary != nil {
 				item.Locations = []location{*primary}
 			}
@@ -154,7 +171,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 	for _, item := range keyed {
 		results = append(results, item.value)
 	}
-	document := log{Schema: schemaURL, Version: "2.1.0", Runs: []run{{Tool: tool{Driver: driver{Name: input.Tool.Name, Version: input.Tool.Version, Rules: descriptors}}, Results: results}}}
+	document := log{Schema: schemaURL, Version: "2.1.0", Runs: []run{{Tool: tool{Driver: driver{Name: input.Tool.Name, Version: input.Tool.Version, Rules: descriptors}}, Results: results, Properties: runProperties{EnvironmentProfile: string(input.Analysis.Profile.Selected), ProfileSource: input.Analysis.Profile.Source, ProfileReason: input.Analysis.Profile.Reason, ProfileAssumptions: append([]string{}, input.Analysis.Profile.Assumptions...), IgnoredCount: input.Analysis.IgnoredCount}}}}
 	encoder := json.NewEncoder(writer)
 	encoder.SetEscapeHTML(true)
 	if options.Pretty {

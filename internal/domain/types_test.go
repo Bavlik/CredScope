@@ -25,7 +25,7 @@ func TestFindingSerializationHasNoRawSecretField(t *testing.T) {
 }
 
 func TestPublicEnumValuesAreStable(t *testing.T) {
-	if ConfidenceConfirmed != "confirmed" || SeverityCritical != "critical" || EdgePassedTo != "PASSED_TO" {
+	if ConfidenceConfirmed != "confirmed" || SeverityCritical != "critical" || EdgeExplicitlyForwardedTo != "explicitly_forwarded_to" || EvidenceNetworkTopology != "network_topology_only" {
 		t.Fatal("public serialized enum changed")
 	}
 }

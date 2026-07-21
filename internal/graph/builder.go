@@ -5,34 +5,50 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/classification"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
+
+type BuildOptions struct {
+	Classifications  map[string]domain.Classification
+	IgnoredVariables map[string]domain.IgnoredItem
+}
 
 type BuildResult struct {
 	Graph         domain.Graph
 	Credentials   []domain.CredentialSubject
 	Warnings      []string
 	LimitExceeded bool
+	Ignored       []domain.IgnoredItem
 }
 
 type builder struct {
 	graph       *mutableGraph
 	credentials map[string]*credentialState
 	warnings    map[string]struct{}
+	options     BuildOptions
+	ignored     map[string]domain.IgnoredItem
 }
 
 type credentialState struct {
-	id           string
-	label        string
-	kind         string
-	fingerprints map[string]struct{}
+	id                   string
+	label                string
+	kind                 string
+	fingerprints         map[string]struct{}
+	kinds                map[domain.ReferenceKind]struct{}
+	importedFinding      bool
+	testFixtureCandidate bool
 }
 
 // Build constructs a graph from scanner-neutral parsed repository data. It
 // never resolves expressions or executes repository content.
 func Build(parsed domain.ParsedRepository) BuildResult {
-	b := &builder{graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{})}
+	return BuildWithOptions(parsed, BuildOptions{})
+}
+
+func BuildWithOptions(parsed domain.ParsedRepository, options BuildOptions) BuildResult {
+	b := &builder{graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{}), options: options, ignored: make(map[string]domain.IgnoredItem)}
 	b.build(parsed)
 	return b.finish()
 }
@@ -40,7 +56,7 @@ func Build(parsed domain.ParsedRepository) BuildResult {
 func (b *builder) build(parsed domain.ParsedRepository) {
 	repoID := b.graph.addNode(domain.NodeRepository, "selected-repository", "repository", nil, map[string]string{"scope": "selected_root"}, nil, domain.ConfidenceConfirmed)
 	for _, finding := range parsed.Findings {
-		credentialID := b.credential(finding.Credential.Label, finding.Credential.Type, finding.Credential.Fingerprint)
+		credentialID := b.credential(finding.Credential.Label, finding.Credential.Type, finding.Credential.Fingerprint, "", true, finding.TestFixtureCandidate)
 		if credentialID == "" {
 			continue
 		}
@@ -61,19 +77,29 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	}
 }
 
-func (b *builder) credential(label, kind, fingerprint string) string {
+func (b *builder) credential(label, kind, fingerprint string, referenceKind domain.ReferenceKind, importedFinding, testFixtureCandidate bool) string {
 	label = sanitizer.Identifier(label)
 	if label == "" {
 		b.warnings["A parsed credential reference had an empty name and was excluded from analysis."] = struct{}{}
 		return ""
 	}
 	key := strings.ToUpper(label)
+	if ignored, ok := b.options.IgnoredVariables[key]; ok {
+		ignored.Count++
+		b.ignored["variable\x00"+key] = ignored
+		return ""
+	}
 	state := b.credentials[key]
 	if state == nil {
-		state = &credentialState{label: label, kind: kind, fingerprints: make(map[string]struct{})}
+		state = &credentialState{label: label, kind: kind, fingerprints: make(map[string]struct{}), kinds: make(map[domain.ReferenceKind]struct{})}
 		state.id = b.graph.addNode(domain.NodeCredential, key, label, nil, map[string]string{"credential_type": kind}, nil, domain.ConfidenceConfirmed)
 		b.credentials[key] = state
 	}
+	if referenceKind != "" {
+		state.kinds[referenceKind] = struct{}{}
+	}
+	state.importedFinding = state.importedFinding || importedFinding
+	state.testFixtureCandidate = state.testFixtureCandidate || testFixtureCandidate
 	if state.kind == "" && kind != "" {
 		state.kind = kind
 	}
@@ -87,7 +113,7 @@ func (b *builder) reference(ref domain.Reference) string {
 	if ref.Kind != domain.ReferenceSecret && ref.Kind != domain.ReferenceComposeVariable && ref.Kind != domain.ReferenceComposeSecret {
 		return ""
 	}
-	return b.credential(ref.Name, string(ref.Kind), "")
+	return b.credential(ref.Name, string(ref.Kind), "", ref.Kind, false, false)
 }
 
 func (b *builder) file(path string, ev domain.Evidence) string {
@@ -103,7 +129,7 @@ func (b *builder) workflow(repoID string, workflow domain.Workflow) {
 	b.graph.addEdge(wfID, fileID, domain.EdgeDetectedIn, []domain.Evidence{evidence("workflow_definition", workflow.Evidence, "Workflow is defined in this file.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 	for _, ref := range workflow.References {
 		if credentialID := b.reference(ref); credentialID != "" {
-			b.graph.addEdge(credentialID, wfID, domain.EdgeReferencedBy, []domain.Evidence{evidence("credential_reference", ref.Evidence, "Workflow contains a credential reference.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+			b.graph.addTypedEdge(credentialID, wfID, domain.EdgeConfiguredIn, domain.EvidenceExposureContext, []domain.Evidence{evidence("credential_reference", ref.Evidence, "Workflow contains this reference.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 		}
 	}
 	for _, trigger := range workflow.Triggers {
@@ -116,7 +142,7 @@ func (b *builder) workflow(repoID string, workflow domain.Workflow) {
 	for _, binding := range workflow.Environment {
 		for _, ref := range binding.References {
 			if credentialID := b.reference(ref); credentialID != "" {
-				b.graph.addEdge(credentialID, wfID, domain.EdgePropagatesTo, []domain.Evidence{evidence("workflow_environment", ref.Evidence, "Credential is copied into workflow-level environment scope.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+				b.graph.addTypedEdge(credentialID, wfID, domain.EdgeConfiguredIn, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("workflow_environment", ref.Evidence, "Reference is configured in workflow-level environment scope.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 			}
 		}
 	}
@@ -148,7 +174,7 @@ func (b *builder) permission(parent, parentKey string, permission domain.Permiss
 func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[string]string, job domain.WorkflowJob, inheritedRefs []domain.Reference) {
 	jobID := jobIDs[job.ID]
 	jobKey := nodeKey(wfKey, job.ID)
-	b.graph.addEdge(jobID, wfID, domain.EdgeReferencedBy, []domain.Evidence{evidence("workflow_job", job.Evidence, "Job belongs to this workflow.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+	b.graph.addTypedEdge(jobID, wfID, domain.EdgeBelongsTo, domain.EvidenceExposureContext, []domain.Evidence{evidence("workflow_job", job.Evidence, "Job belongs to this workflow.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 	for _, need := range job.Needs {
 		if dependencyID := jobIDs[need]; dependencyID != "" {
 			b.graph.addEdge(jobID, dependencyID, domain.EdgeDependsOn, []domain.Evidence{evidence("job_dependency", job.Evidence, "Job declares a dependency.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
@@ -171,13 +197,13 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 	}
 	for _, ref := range job.References {
 		if credentialID := b.reference(ref); credentialID != "" {
-			b.graph.addEdge(credentialID, jobID, domain.EdgePassedTo, []domain.Evidence{evidence("job_credential_reference", ref.Evidence, "Job contains a credential reference.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+			b.graph.addTypedEdge(credentialID, jobID, domain.EdgeConfiguredIn, domain.EvidenceExposureContext, []domain.Evidence{evidence("job_credential_reference", ref.Evidence, "Job contains this reference.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 		}
 	}
 	for _, binding := range job.Environment {
 		for _, ref := range binding.References {
 			if credentialID := b.reference(ref); credentialID != "" {
-				b.graph.addEdge(credentialID, jobID, domain.EdgePropagatesTo, []domain.Evidence{evidence("job_environment", ref.Evidence, "Credential is copied into job-level environment scope.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+				b.graph.addTypedEdge(credentialID, jobID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("job_environment", ref.Evidence, "Reference is explicitly forwarded into job-level environment scope.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 			}
 		}
 	}
@@ -187,7 +213,7 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 	}
 	for _, ref := range inheritedRefs {
 		if credentialID := b.reference(ref); credentialID != "" {
-			b.graph.addEdge(credentialID, jobID, domain.EdgePropagatesTo, []domain.Evidence{evidence("workflow_environment", ref.Evidence, "Workflow-level credential environment is inherited by this job.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+			b.graph.addTypedEdge(credentialID, jobID, domain.EdgeAvailableToProcess, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("workflow_environment", ref.Evidence, "Workflow-level environment reference is available to this job.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 		}
 	}
 	if job.ReusableWorkflow != nil {
@@ -198,7 +224,7 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 	for outputIndex, output := range job.Outputs {
 		for _, ref := range output.References {
 			if credentialID := b.reference(ref); credentialID != "" {
-				b.graph.addEdge(credentialID, jobID, domain.EdgePropagatesTo, []domain.Evidence{evidence("job_output", ref.Evidence, "Credential is referenced by a job output.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+				b.graph.addTypedEdge(credentialID, jobID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("job_output", ref.Evidence, "Reference is explicitly forwarded through a job output.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 			}
 		}
 		_ = outputIndex
@@ -207,7 +233,7 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 		stepID := b.step(jobID, jobKey, index, step)
 		for _, ref := range propagatedRefs {
 			if credentialID := b.reference(ref); credentialID != "" {
-				b.graph.addEdge(credentialID, stepID, domain.EdgePropagatesTo, []domain.Evidence{evidence("inherited_environment", ref.Evidence, "Credential environment is inherited by this workflow step.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+				b.graph.addTypedEdge(credentialID, stepID, domain.EdgeAvailableToProcess, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("inherited_environment", ref.Evidence, "Environment reference is available to this workflow step.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 			}
 		}
 	}
@@ -231,7 +257,11 @@ func (b *builder) step(jobID, jobKey string, index int, step domain.WorkflowStep
 			if step.Run != nil && hasReference(step.Run.References, ref.Name) {
 				evidenceType = "shell_credential_reference"
 			}
-			b.graph.addEdge(credentialID, stepID, domain.EdgePassedTo, []domain.Evidence{evidence(evidenceType, ref.Evidence, "Credential is passed to a workflow step.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
+			edgeType := domain.EdgeExplicitlyForwardedTo
+			if evidenceType == "shell_credential_reference" {
+				edgeType = domain.EdgeReferencedByProcess
+			}
+			b.graph.addTypedEdge(credentialID, stepID, edgeType, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence(evidenceType, ref.Evidence, "Reference is used by this workflow step.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
 		}
 	}
 	if step.Action != nil {
@@ -255,17 +285,33 @@ func (b *builder) compose(repoID string, project domain.ComposeProject) {
 	for _, service := range project.Services {
 		b.service(fileID, project, serviceIDs, service)
 	}
-	for _, shared := range project.SharedCredentials {
-		for i := range shared.Services {
-			for j := i + 1; j < len(shared.Services); j++ {
-				left, right := serviceIDs[shared.Services[i]], serviceIDs[shared.Services[j]]
-				if left != "" && right != "" {
-					b.graph.addEdge(left, right, domain.EdgeSharedWith, shared.Evidence, shared.Confidence)
-					b.graph.addEdge(right, left, domain.EdgeSharedWith, shared.Evidence, shared.Confidence)
-				}
+	for i := range project.Services {
+		for j := i + 1; j < len(project.Services); j++ {
+			if !shareComposeNetwork(project.Services[i], project.Services[j]) {
+				continue
 			}
+			left, right := serviceIDs[project.Services[i].Name], serviceIDs[project.Services[j].Name]
+			ev := []domain.Evidence{evidence("compose_network", project.Evidence, "Services share a Compose network; this is topology only and does not imply credential transmission.", domain.ConfidenceHigh)}
+			b.graph.addTypedEdge(left, right, domain.EdgeNetworkReachable, domain.EvidenceNetworkTopology, ev, domain.ConfidenceHigh)
+			b.graph.addTypedEdge(right, left, domain.EdgeNetworkReachable, domain.EvidenceNetworkTopology, ev, domain.ConfidenceHigh)
 		}
 	}
+}
+
+func shareComposeNetwork(left, right domain.ComposeService) bool {
+	if len(left.Networks) == 0 && len(right.Networks) == 0 {
+		return true
+	}
+	set := make(map[string]bool, len(left.Networks))
+	for _, item := range left.Networks {
+		set[item.Name] = true
+	}
+	for _, item := range right.Networks {
+		if set[item.Name] {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *builder) service(fileID string, project domain.ComposeProject, serviceIDs map[string]string, service domain.ComposeService) {
@@ -274,7 +320,11 @@ func (b *builder) service(fileID string, project domain.ComposeProject, serviceI
 	b.graph.addEdge(serviceID, fileID, domain.EdgeDetectedIn, []domain.Evidence{evidence("compose_service", service.Evidence, "Service is defined in this Compose file.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 	for _, ref := range service.References {
 		if credentialID := b.reference(ref); credentialID != "" {
-			b.graph.addEdge(credentialID, serviceID, domain.EdgePassedTo, []domain.Evidence{evidence("compose_credential_reference", ref.Evidence, "Credential reference is passed to this Compose service.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+			edgeType := domain.EdgeAvailableToService
+			if ref.Kind == domain.ReferenceComposeSecret {
+				edgeType = domain.EdgeMountedAsSecret
+			}
+			b.graph.addTypedEdge(credentialID, serviceID, edgeType, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("compose_credential_reference", ref.Evidence, "Reference is available to this Compose service.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 		}
 	}
 	for _, port := range service.Ports {
@@ -283,7 +333,7 @@ func (b *builder) service(fileID string, project domain.ComposeProject, serviceI
 			label = "published " + port.Published + " -> " + port.Target
 		}
 		portID := b.graph.addNode(domain.NodePortExposure, nodeKey(serviceKey, port.Published, port.Target, port.HostIP, port.Protocol), label, locationPtr(port.Evidence), map[string]string{"published": port.Published, "target": port.Target, "host_ip": port.HostIP, "protocol": port.Protocol, "runtime_exposure": "unknown"}, []domain.Evidence{port.Evidence}, domain.ConfidenceMedium)
-		b.graph.addEdge(serviceID, portID, domain.EdgePublishesPort, []domain.Evidence{evidence("published_host_port", port.Evidence, "Service publishes a host port and may be externally reachable depending on runtime configuration.", domain.ConfidenceMedium)}, domain.ConfidenceMedium)
+		b.graph.addTypedEdge(serviceID, portID, domain.EdgeExposesPort, domain.EvidenceExposureContext, []domain.Evidence{evidence("published_host_port", port.Evidence, "Service publishes a host port; external reachability remains unknown.", domain.ConfidenceMedium)}, domain.ConfidenceMedium)
 	}
 	for _, volume := range service.Volumes {
 		metadata := map[string]string{"source": volume.Source, "target": volume.Target, "type": volume.Type, "read_only": boolText(volume.ReadOnly), "host_bind": boolText(volume.HostBind), "writable_host_bind": boolText(volume.WritableHostBind), "docker_socket": boolText(volume.DockerSocket)}
@@ -292,15 +342,15 @@ func (b *builder) service(fileID string, project domain.ComposeProject, serviceI
 	}
 	for _, item := range service.Secrets {
 		secretID := b.graph.addNode(domain.NodeComposeSecret, nodeKey(project.File, item.Source), item.Source, locationPtr(item.Evidence), map[string]string{"source": item.Source}, []domain.Evidence{item.Evidence}, domain.ConfidenceConfirmed)
-		b.graph.addEdge(serviceID, secretID, domain.EdgeUsesSecret, []domain.Evidence{evidence("compose_secret", item.Evidence, "Service uses a declared Compose secret reference.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+		b.graph.addTypedEdge(secretID, serviceID, domain.EdgeMountedAsSecret, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("compose_secret", item.Evidence, "Declared Compose secret is mounted into this service.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 	}
 	for _, item := range service.EnvFiles {
 		envFileID := b.graph.addNode(domain.NodeEnvFile, nodeKey(project.File, item.Path), item.Path, locationPtr(item.Evidence), map[string]string{"path": item.Path}, []domain.Evidence{item.Evidence}, domain.ConfidenceConfirmed)
-		b.graph.addEdge(serviceID, envFileID, domain.EdgeLoadsEnvFile, []domain.Evidence{evidence("compose_env_file", item.Evidence, "Service loads variables from this env_file at runtime.", domain.ConfidenceHigh)}, domain.ConfidenceHigh)
+		b.graph.addTypedEdge(serviceID, envFileID, domain.EdgeReadsEnvFile, domain.EvidenceExposureContext, []domain.Evidence{evidence("compose_env_file", item.Evidence, "Service is configured to read this env_file at runtime.", domain.ConfidenceHigh)}, domain.ConfidenceHigh)
 	}
 	for _, dependency := range service.DependsOn {
 		if targetID := serviceIDs[dependency.Name]; targetID != "" {
-			b.graph.addEdge(serviceID, targetID, domain.EdgeDependsOn, []domain.Evidence{evidence("compose_dependency", dependency.Evidence, "Service declares this dependency.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+			b.graph.addTypedEdge(serviceID, targetID, domain.EdgeDependsOn, domain.EvidenceNetworkTopology, []domain.Evidence{evidence("compose_dependency", dependency.Evidence, "Service declares this dependency; it does not imply credential transmission.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 		}
 	}
 }
@@ -316,12 +366,26 @@ func (b *builder) finish() BuildResult {
 			fingerprints = append(fingerprints, fingerprint)
 		}
 		sort.Strings(fingerprints)
-		result.Credentials = append(result.Credentials, domain.CredentialSubject{ID: state.id, Label: state.label, Type: state.kind, Fingerprints: fingerprints})
+		kinds := make([]domain.ReferenceKind, 0, len(state.kinds))
+		for kind := range state.kinds {
+			kinds = append(kinds, kind)
+		}
+		assessment := classification.Assess(classification.Input{Name: state.label, ReferenceKinds: kinds, ImportedFinding: state.importedFinding, Override: b.options.Classifications[strings.ToUpper(state.label)], TestFixtureCandidate: state.testFixtureCandidate})
+		result.Credentials = append(result.Credentials, domain.CredentialSubject{ID: state.id, Label: state.label, Type: state.kind, Fingerprints: fingerprints, Classification: assessment.Classification, ClassificationConfidence: assessment.Confidence, ClassificationReason: assessment.Reason, ClassificationSource: assessment.Source, ExpectedSecret: assessment.ExpectedSecret, RotationApplicable: assessment.RotationApplicable, TestFixtureCandidate: state.testFixtureCandidate})
 	}
 	sort.Slice(result.Credentials, func(i, j int) bool { return result.Credentials[i].ID < result.Credentials[j].ID })
 	for warning := range b.warnings {
 		result.Warnings = append(result.Warnings, warning)
 	}
+	for _, ignored := range b.ignored {
+		result.Ignored = append(result.Ignored, ignored)
+	}
+	sort.Slice(result.Ignored, func(i, j int) bool {
+		if result.Ignored[i].Kind != result.Ignored[j].Kind {
+			return result.Ignored[i].Kind < result.Ignored[j].Kind
+		}
+		return result.Ignored[i].Target < result.Ignored[j].Target
+	})
 	sort.Strings(result.Warnings)
 	return result
 }

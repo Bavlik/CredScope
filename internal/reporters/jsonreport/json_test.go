@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/credscope/credscope/internal/analysis"
-	"github.com/credscope/credscope/internal/config"
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/ingest"
-	"github.com/credscope/credscope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/analysis"
+	"github.com/Bavlik/CredScope/internal/config"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/ingest"
+	"github.com/Bavlik/CredScope/internal/reporters"
 )
 
 func TestJSONSchemaStableValidDeterministicAndEscaped(t *testing.T) {
@@ -31,17 +31,17 @@ func TestJSONSchemaStableValidDeterministicAndEscaped(t *testing.T) {
 	if first.String() != second.String() {
 		t.Fatal("JSON output differs")
 	}
-	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "81f3ab4e86bc9690b9573c798b3b290b66b1d702ceaf724434247702fe412a41" {
+	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "6a7f2c70dbe36f0082819bc5ca6e74c6b4886a33c551d8b1a6b8819f5fac5bdc" {
 		t.Fatalf("JSON golden hash = %s", got)
 	}
 	var decoded map[string]any
 	if err := json.Unmarshal(first.Bytes(), &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded["schema_version"] != "1" {
+	if decoded["schema_version"] != "2" {
 		t.Fatalf("schema = %#v", decoded["schema_version"])
 	}
-	for _, field := range []string{"tool", "scan", "policies", "summary", "credentials", "graph", "repository_warnings", "parser_warnings", "non_fatal_errors"} {
+	for _, field := range []string{"tool", "scan", "policies", "summary", "credentials", "graph", "ignored_count", "ignored_items", "repository_warnings", "parser_warnings", "non_fatal_errors"} {
 		if _, ok := decoded[field]; !ok {
 			t.Errorf("missing field %s", field)
 		}
@@ -127,5 +127,5 @@ func TestVulnerableFixtureJSONIsCompactAndReferencesExistingPaths(t *testing.T) 
 }
 
 func jsonInput() reporters.Input {
-	return reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: "demo<script>", StartedAt: time.Unix(10, 0), CompletedAt: time.Unix(11, 0), Format: "json", FailOn: "high", ThresholdExceeded: true}, Analysis: domain.AnalysisResult{PolicyVersion: "v1", RuleCatalogVersion: "v1", Graph: domain.Graph{Nodes: []domain.Node{}, Edges: []domain.Edge{}}, Credentials: []domain.CredentialAnalysis{{Credential: domain.CredentialSubject{ID: "credential:safe", Label: "TOKEN", Fingerprints: []string{"sha256:safe"}}, Score: 80, Severity: domain.SeverityCritical, PolicyVersion: "v1", RuleCatalogVersion: "v1", MatchedRules: []domain.RuleMatch{}, Contributions: []domain.ScoreContribution{}, EvidencePaths: []domain.EvidencePath{}, Warnings: []string{}, RemediationIDs: []string{}, Remediations: []domain.RemediationResult{}}}, Warnings: []string{}}, ParserWarnings: []domain.ParseWarning{}, NonFatalErrors: []string{}}
+	return reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: "demo<script>", StartedAt: time.Unix(10, 0), CompletedAt: time.Unix(11, 0), Format: "json", FailOn: "high", ThresholdExceeded: true}, Analysis: domain.AnalysisResult{PolicyVersion: "v2", RuleCatalogVersion: "v2", Profile: domain.ProfileSelection{Requested: domain.ProfileAuto, Selected: domain.ProfileAuto, Source: "conservative_fallback", Reason: "test context", Assumptions: []string{"runtime unknown"}}, Graph: domain.Graph{Nodes: []domain.Node{}, Edges: []domain.Edge{}}, Credentials: []domain.CredentialAnalysis{{Credential: domain.CredentialSubject{ID: "credential:safe", Label: "TOKEN", Fingerprints: []string{"sha256:safe"}, Classification: domain.ClassificationSecret, ClassificationConfidence: domain.ConfidenceMedium, ClassificationReason: "name heuristic", ClassificationSource: "variable_name_heuristic", ExpectedSecret: true}, Score: 80, Severity: domain.SeverityCritical, PolicyVersion: "v2", RuleCatalogVersion: "v2", MatchedRules: []domain.RuleMatch{}, Contributions: []domain.ScoreContribution{}, EvidencePaths: []domain.EvidencePath{}, Warnings: []string{}, RemediationIDs: []string{}, Remediations: []domain.RemediationResult{}}}, Warnings: []string{}}, ParserWarnings: []domain.ParseWarning{}, NonFatalErrors: []string{}}
 }

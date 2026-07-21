@@ -1,4 +1,5 @@
-version: 1
+version: 2
+profile: auto
 
 scan:
   include:
@@ -9,17 +10,26 @@ scan:
     - "compose.yml"
     - "compose.yaml"
   exclude:
-    - "testdata/**"
+    - ".git/**"
+    - "vendor/**"
+    - "node_modules/**"
+
+gitleaks:
+  path_prefix: ""
+
+ignore:
+  paths: []
+  variables: []
+  findings: []
+  rules: []
+
+classifications: {}
 
 risk:
   fail_on: high
   minimum_score: 40
 
-rules:
-  CRD104:
-    enabled: true
-  CRD208:
-    enabled: false
+rules: {}
 
 output:
   format: terminal

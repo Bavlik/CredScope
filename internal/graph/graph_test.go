@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 func TestBuildStableIDsDeduplicationAndOrdering(t *testing.T) {
@@ -47,6 +47,22 @@ func TestBuildStableIDsDeduplicationAndOrdering(t *testing.T) {
 		if index > 0 && first.Graph.Edges[index-1].ID > edge.ID {
 			t.Fatal("edges are not sorted")
 		}
+	}
+}
+
+func TestTopologyEdgesDoNotBecomeCredentialTransmissionPaths(t *testing.T) {
+	nodes := []domain.Node{{ID: "cred", Type: domain.NodeCredential}, {ID: "api", Type: domain.NodeComposeService}, {ID: "redis", Type: domain.NodeComposeService}, {ID: "port", Type: domain.NodePortExposure}}
+	edges := []domain.Edge{{ID: "available", From: "cred", To: "api", Type: domain.EdgeAvailableToService, EvidenceKind: domain.EvidenceConfirmedDataFlow, Confidence: domain.ConfidenceConfirmed}, {ID: "depends", From: "api", To: "redis", Type: domain.EdgeDependsOn, EvidenceKind: domain.EvidenceNetworkTopology, Confidence: domain.ConfidenceConfirmed}, {ID: "network", From: "api", To: "redis", Type: domain.EdgeNetworkReachable, EvidenceKind: domain.EvidenceNetworkTopology, Confidence: domain.ConfidenceConfirmed}, {ID: "port", From: "redis", To: "port", Type: domain.EdgeExposesPort, EvidenceKind: domain.EvidenceExposureContext, Confidence: domain.ConfidenceMedium}}
+	paths := Traverse(domain.Graph{Nodes: nodes, Edges: edges}, "cred", 8)
+	for _, p := range paths {
+		for _, n := range p.Nodes {
+			if n.ID == "redis" || n.ID == "port" {
+				t.Fatalf("topology implied secret transmission: %+v", p)
+			}
+		}
+	}
+	if len(paths) != 1 || paths[0].Nodes[len(paths[0].Nodes)-1].ID != "api" {
+		t.Fatalf("unexpected paths: %+v", paths)
 	}
 }
 

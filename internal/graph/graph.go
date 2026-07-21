@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 type mutableGraph struct {
@@ -57,11 +57,15 @@ func (g *mutableGraph) addNode(kind domain.NodeType, key, label string, location
 }
 
 func (g *mutableGraph) addEdge(from, to string, kind domain.EdgeType, evidence []domain.Evidence, confidence domain.Confidence) string {
+	return g.addTypedEdge(from, to, kind, defaultEvidenceKind(kind), evidence, confidence)
+}
+
+func (g *mutableGraph) addTypedEdge(from, to string, kind domain.EdgeType, evidenceKind domain.EvidenceKind, evidence []domain.Evidence, confidence domain.Confidence) string {
 	if from == "" || to == "" {
 		return ""
 	}
 	evidence = uniqueEvidence(evidence)
-	key := from + "\x00" + to + "\x00" + string(kind) + "\x00" + evidenceKey(evidence)
+	key := from + "\x00" + to + "\x00" + string(kind) + "\x00" + string(evidenceKind) + "\x00" + evidenceKey(evidence)
 	id := stableID("edge", key)
 	if _, ok := g.edges[id]; ok {
 		return id
@@ -71,9 +75,20 @@ func (g *mutableGraph) addEdge(from, to string, kind domain.EdgeType, evidence [
 		return ""
 	}
 	if _, ok := g.edges[id]; !ok {
-		g.edges[id] = domain.Edge{ID: id, From: from, To: to, Type: kind, Evidence: evidence, Confidence: confidence}
+		g.edges[id] = domain.Edge{ID: id, From: from, To: to, Type: kind, EvidenceKind: evidenceKind, Evidence: evidence, Confidence: confidence}
 	}
 	return id
+}
+
+func defaultEvidenceKind(kind domain.EdgeType) domain.EvidenceKind {
+	switch kind {
+	case domain.EdgeDependsOn, domain.EdgeNetworkReachable:
+		return domain.EvidenceNetworkTopology
+	case domain.EdgeExposesPort, domain.EdgeMountsVolume, domain.EdgeReadsEnvFile, domain.EdgeHasPermission, domain.EdgeTriggeredBy, domain.EdgeUsesEnvironment, domain.EdgeRunsAction, domain.EdgeCallsWorkflow, domain.EdgeDetectedIn, domain.EdgeBelongsTo:
+		return domain.EvidenceExposureContext
+	default:
+		return domain.EvidenceConfirmedDataFlow
+	}
 }
 
 func (g *mutableGraph) finish() domain.Graph {

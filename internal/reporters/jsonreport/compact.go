@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 // compactCredentials keeps schema v1 while avoiding repeated path prefixes and

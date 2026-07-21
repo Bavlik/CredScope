@@ -6,7 +6,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/credscope/credscope/internal/actionrunner"
+	"github.com/Bavlik/CredScope/internal/actionrunner"
 )
 
 func main() {

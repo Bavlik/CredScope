@@ -11,20 +11,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/credscope/credscope/internal/analysis"
-	"github.com/credscope/credscope/internal/config"
-	"github.com/credscope/credscope/internal/discovery"
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/ingest"
-	"github.com/credscope/credscope/internal/reporters"
-	htmlreport "github.com/credscope/credscope/internal/reporters/html"
-	jsonreport "github.com/credscope/credscope/internal/reporters/jsonreport"
-	mermaidreport "github.com/credscope/credscope/internal/reporters/mermaid"
-	sarifreport "github.com/credscope/credscope/internal/reporters/sarif"
-	terminalreport "github.com/credscope/credscope/internal/reporters/terminal"
-	"github.com/credscope/credscope/internal/rules"
-	"github.com/credscope/credscope/internal/safefile"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/analysis"
+	"github.com/Bavlik/CredScope/internal/config"
+	"github.com/Bavlik/CredScope/internal/discovery"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/ingest"
+	"github.com/Bavlik/CredScope/internal/reporters"
+	htmlreport "github.com/Bavlik/CredScope/internal/reporters/html"
+	jsonreport "github.com/Bavlik/CredScope/internal/reporters/jsonreport"
+	mermaidreport "github.com/Bavlik/CredScope/internal/reporters/mermaid"
+	sarifreport "github.com/Bavlik/CredScope/internal/reporters/sarif"
+	terminalreport "github.com/Bavlik/CredScope/internal/reporters/terminal"
+	"github.com/Bavlik/CredScope/internal/rules"
+	"github.com/Bavlik/CredScope/internal/safefile"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +63,7 @@ func NewRootCommand(info BuildInfo, stdout, stderr io.Writer) *cobra.Command {
 func newRootCommand(info BuildInfo, stdout, stderr io.Writer, clock func() time.Time) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "credscope",
-		Short:         "Map the blast radius of leaked credentials",
+		Short:         "Analyze static credential exposure and reachability",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
@@ -74,24 +74,26 @@ func newRootCommand(info BuildInfo, stdout, stderr io.Writer, clock func() time.
 }
 
 type scanOptions struct {
-	configPath   string
-	gitleaksPath string
-	format       string
-	output       string
-	failOn       string
-	minimumScore int
-	include      []string
-	exclude      []string
-	noColor      bool
-	quiet        bool
-	verbose      bool
+	configPath         string
+	gitleaksPath       string
+	format             string
+	output             string
+	failOn             string
+	minimumScore       int
+	include            []string
+	exclude            []string
+	noColor            bool
+	quiet              bool
+	verbose            bool
+	profile            string
+	gitleaksPathPrefix string
 }
 
 func newScanCommand(info BuildInfo, clock func() time.Time) *cobra.Command {
 	var opts scanOptions
 	cmd := &cobra.Command{
 		Use:   "scan [repository]",
-		Short: "Analyze credential blast radius and produce a report",
+		Short: "Analyze static credential exposure and produce a report",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := "."
@@ -103,6 +105,8 @@ func newScanCommand(info BuildInfo, clock func() time.Time) *cobra.Command {
 	}
 	f := cmd.Flags()
 	f.StringVar(&opts.gitleaksPath, "gitleaks-report", "", "path to a Gitleaks JSON report")
+	f.StringVar(&opts.gitleaksPathPrefix, "gitleaks-path-prefix", "", "exact absolute scanner path prefix to strip from Gitleaks finding paths")
+	f.StringVar(&opts.profile, "profile", "auto", "environment profile: auto, local, ci, staging, or production")
 	f.StringVarP(&opts.format, "format", "f", "terminal", "report format: terminal, json, sarif, html, or mermaid")
 	f.StringVarP(&opts.output, "output", "o", "", "write report to path")
 	f.StringVar(&opts.failOn, "fail-on", "none", "failure threshold: none, informational, low, medium, high, or critical")
@@ -183,7 +187,11 @@ func runScan(cmd *cobra.Command, root string, opts scanOptions, info BuildInfo, 
 		}
 	}
 	sort.Strings(disabledRuleIDs)
-	analyzed, err := analysis.Analyze(cmd.Context(), parsed, analysis.Options{DisabledRules: disabledRules})
+	classifications := make(map[string]domain.Classification, len(cfg.Classifications))
+	for name, value := range cfg.Classifications {
+		classifications[strings.ToUpper(name)] = domain.Classification(value)
+	}
+	analyzed, err := analysis.Analyze(cmd.Context(), parsed, analysis.Options{DisabledRules: disabledRules, Profile: domain.Profile(cfg.Profile), Classifications: classifications, IgnorePaths: ignoreDirectives(cfg.Ignore.Paths), IgnoreVariables: ignoreDirectives(cfg.Ignore.Variables), IgnoreFindings: ignoreDirectives(cfg.Ignore.Findings), IgnoreRules: ignoreDirectives(cfg.Ignore.Rules)})
 	if err != nil {
 		return &codedError{code: ExitInternal, err: fmt.Errorf("analyze repository: %w", err)}
 	}
@@ -195,7 +203,7 @@ func runScan(cmd *cobra.Command, root string, opts scanOptions, info BuildInfo, 
 	}
 	input := reporters.Input{
 		Tool:           reporters.Tool{Name: productName, Version: sanitizer.TerminalText(info.Version), Commit: sanitizer.TerminalText(info.Commit)},
-		Scan:           reporters.Scan{Repository: repositoryName, StartedAt: started, CompletedAt: completed, FailOn: cfg.Risk.FailOn, MinimumScore: cfg.Risk.MinimumScore, Format: cfg.Output.Format, ThresholdExceeded: exceeded, Includes: append([]string{}, cfg.Scan.Include...), Excludes: append([]string{}, cfg.Scan.Exclude...), DisabledRules: disabledRuleIDs, NoColor: cfg.Output.NoColor, Quiet: cfg.Output.Quiet, Verbose: cfg.Output.Verbose},
+		Scan:           reporters.Scan{Repository: repositoryName, StartedAt: started, CompletedAt: completed, FailOn: cfg.Risk.FailOn, MinimumScore: cfg.Risk.MinimumScore, Format: cfg.Output.Format, ThresholdExceeded: exceeded, Includes: append([]string{}, cfg.Scan.Include...), Excludes: append([]string{}, cfg.Scan.Exclude...), DisabledRules: disabledRuleIDs, NoColor: cfg.Output.NoColor, Quiet: cfg.Output.Quiet, Verbose: cfg.Output.Verbose, Profile: analyzed.Profile},
 		Analysis:       analyzed,
 		ParserWarnings: append([]domain.ParseWarning{}, parsed.Warnings...),
 	}
@@ -283,6 +291,20 @@ func applyCLIOverrides(cmd *cobra.Command, cfg *config.Config, opts scanOptions)
 	if changed("verbose") {
 		cfg.Output.Verbose = opts.verbose
 	}
+	if changed("profile") {
+		cfg.Profile = opts.profile
+	}
+	if changed("gitleaks-path-prefix") {
+		cfg.Gitleaks.PathPrefix = opts.gitleaksPathPrefix
+	}
+}
+
+func ignoreDirectives(items []config.IgnoreEntry) []analysis.IgnoreDirective {
+	result := make([]analysis.IgnoreDirective, 0, len(items))
+	for _, item := range items {
+		result = append(result, analysis.IgnoreDirective{Value: item.Value, Reason: item.Reason})
+	}
+	return result
 }
 
 func newVersionCommand(info BuildInfo) *cobra.Command {

@@ -84,13 +84,14 @@ func TestValidateRejectsTraversalAndInvalidValues(t *testing.T) {
 		name   string
 		mutate func(*Config)
 	}{
-		{"version", func(c *Config) { c.Version = 2 }},
+		{"version", func(c *Config) { c.Version = 3 }},
 		{"score", func(c *Config) { c.Risk.MinimumScore = 101 }},
 		{"severity", func(c *Config) { c.Risk.FailOn = "urgent" }},
 		{"format", func(c *Config) { c.Output.Format = "xml" }},
 		{"traversal", func(c *Config) { c.Scan.Include = []string{"../outside"} }},
 		{"conflicting output", func(c *Config) { c.Output.Quiet, c.Output.Verbose = true, true }},
 		{"rule ID", func(c *Config) { c.Rules["BAD001"] = RuleConfig{Enabled: true} }},
+		{"root gitleaks prefix", func(c *Config) { c.Gitleaks.PathPrefix = "/" }},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -107,6 +108,48 @@ func TestLoadRejectsOversizedConfiguration(t *testing.T) {
 	path := writeConfig(t, "version: 1\n#"+strings.Repeat("x", maxConfigSize))
 	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "exceeds") {
 		t.Fatalf("expected size error, got %v", err)
+	}
+}
+
+func TestIgnoreEntriesRequireReasonsAndRejectUnsafeValues(t *testing.T) {
+	cfg := Default()
+	cfg.Ignore.Paths = []IgnoreEntry{{Value: "tests/**"}}
+	if err := cfg.Validate(); err == nil || !strings.Contains(err.Error(), "requires a human-readable reason") {
+		t.Fatalf("expected missing reason error, got %v", err)
+	}
+	cfg = Default()
+	cfg.Ignore.Paths = []IgnoreEntry{{Value: "../outside", Reason: "not relevant"}}
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("unsafe ignore path accepted")
+	}
+	cfg = Default()
+	cfg.Ignore.Variables = []IgnoreEntry{{Value: "TOKEN=actual-value", Reason: "bad entry"}}
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("secret-like ignore value accepted")
+	}
+}
+
+func TestIgnoreMetadataRejectsCommonSecretMaterial(t *testing.T) {
+	secretLikeToken := "gh" + "p_" + strings.Repeat("a", 36)
+	for _, content := range []string{
+		"version: 2\nignore:\n  findings:\n    - value: " + secretLikeToken + "\n      reason: copied token\n",
+		"version: 2\nignore:\n  rules:\n    - value: CRD101\n      reason: PASSWORD=do-not-store-values-here\n",
+	} {
+		path := writeConfig(t, content)
+		if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "must not contain secret material") {
+			t.Fatalf("secret-like ignore metadata was accepted: %v", err)
+		}
+	}
+}
+
+func TestValidV2Controls(t *testing.T) {
+	cfg := Default()
+	cfg.Profile = "production"
+	cfg.Gitleaks.PathPrefix = "/repo"
+	cfg.Ignore.Variables = []IgnoreEntry{{Value: "PUBLIC_MODE", Reason: "documented public setting"}}
+	cfg.Classifications["PUBLIC_MODE"] = "public_configuration"
+	if err := cfg.Validate(); err != nil {
+		t.Fatal(err)
 	}
 }
 

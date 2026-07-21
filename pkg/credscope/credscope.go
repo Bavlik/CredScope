@@ -4,11 +4,11 @@ package credscope
 import (
 	"context"
 
-	"github.com/credscope/credscope/internal/analysis"
-	"github.com/credscope/credscope/internal/config"
-	"github.com/credscope/credscope/internal/discovery"
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/ingest"
+	"github.com/Bavlik/CredScope/internal/analysis"
+	"github.com/Bavlik/CredScope/internal/config"
+	"github.com/Bavlik/CredScope/internal/discovery"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/ingest"
 )
 
 const (

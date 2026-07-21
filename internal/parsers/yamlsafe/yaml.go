@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/credscope/credscope/internal/discovery"
-	"github.com/credscope/credscope/internal/input"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/discovery"
+	"github.com/Bavlik/CredScope/internal/input"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 	"go.yaml.in/yaml/v3"
 )
 
