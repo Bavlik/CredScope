@@ -2,103 +2,210 @@
 
 > Map the blast radius of leaked credentials before attackers do.
 
-CredScope is a deterministic security analysis tool that maps detected credential references to the workflows, services, permissions, environments, and infrastructure they may reach. It is offline-first, does not execute repository content, and is designed to compile into a single cross-platform executable.
+[![CI configured](https://img.shields.io/badge/CI-configured-2563eb)](.github/workflows/ci.yml)
+[![CodeQL configured](https://img.shields.io/badge/CodeQL-configured-2563eb)](.github/workflows/codeql.yml)
+[![Go 1.26](https://img.shields.io/badge/Go-1.26-00ADD8)](go.mod)
+[![License Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Status pre-release](https://img.shields.io/badge/status-pre--release-orange)](docs/PROJECT_SPEC.md)
+
+CredScope is an offline-first security analysis tool that connects detected credential references to the GitHub Actions workflows, permissions, environments, and Docker Compose services they may reach. Instead of stopping at “a secret was found,” it produces traceable evidence paths, a deterministic blast-radius score, and specific remediation guidance.
 
 > CredScope is a deterministic security analysis engine. It does not use LLMs, external AI APIs, telemetry, or cloud processing.
 
-## Development status
+AI may be used as a development aid, but CredScope has zero AI runtime dependency.
 
-The repository currently contains the completed Phase 1–4 implementation for `v0.1.0`: secure discovery and parsing, deterministic reachability analysis, rule catalog v1, scoring policy v1, remediation, the complete scan CLI, and terminal, JSON, SARIF, standalone HTML, and Mermaid reports. GitHub Action packaging, CI/release automation, community files, and the final release audit remain later phases.
+CredScope is pre-release. Phase 5 automation is configured, but no `v0.1.0` tag or public release has been created.
 
-## Current commands
+## What the output looks like
 
 ```text
-credscope scan [repository]
+CredScope dev
+Repository: vulnerable
+Scoring policy: v1
+Rule catalog: v1
+
+Summary
+  Credentials analyzed: 3
+  Critical: 2
+
+CRITICAL - FAKE_PRODUCTION_TOKEN
+Blast-radius score: 100/100
+Confidence: High
+
+Reachable components: workflows 1, jobs 2, services 3
+Matched rules: CRD101, CRD102, CRD201, CRD301, CRD304, CRD401, ...
+Recommended actions: rotate the exposed credential; reduce workflow
+permissions; separate CI and runtime credentials; remove Docker socket mounts.
+```
+
+Values shown above come from synthetic fixtures. CredScope never prints complete secret values.
+
+```mermaid
+graph LR
+    credential[Credential reference] --> workflow[GitHub workflow]
+    workflow --> job[Deployment job]
+    job --> permission[Write permission]
+    job --> environment[Production environment]
+    credential --> service[Compose service]
+    service --> port[Published host port]
+```
+
+## Why CredScope exists
+
+Secret scanners locate suspicious material, but response priority depends on where a credential is used. A credential referenced only in a development job is different from one shared by a write-capable deployment workflow and a privileged runtime service. CredScope correlates those static relationships without validating the credential, authenticating to a cloud provider, or executing repository content.
+
+Every claim is backed by a graph path with file, line, parser source, evidence type, and confidence when available. Assumptions remain labeled as structural inferences or unknown runtime conditions.
+
+## Features
+
+- Imports single-object and array-form Gitleaks JSON while immediately fingerprinting and discarding raw secret material.
+- Parses GitHub Actions triggers, jobs, permissions, environments, reusable workflows, action references, outputs, and inert shell references.
+- Parses Docker Compose environments, secrets, ports, networks, volumes, privilege, host networking, users, and service relationships.
+- Builds stable, cycle-safe credential reachability graphs and evidence paths.
+- Applies rule catalog v1 and scoring policy v1 with documented confidence multipliers and duplicate suppression.
+- Produces terminal, JSON schema v1, SARIF 2.1.0, standalone HTML, and bounded Mermaid reports.
+- Supports deterministic CI thresholds and secure, staged, root-confined report files.
+- Provides a source-built composite GitHub Action that is testable before the first release.
+
+## Supported inputs
+
+- Gitleaks JSON reports.
+- `.github/workflows/*.yml` and `.github/workflows/*.yaml`.
+- Root-level `docker-compose.yml`, `docker-compose.yaml`, `compose.yml`, and `compose.yaml`.
+- Optional strict `.credscope.yml` configuration.
+
+See [input behavior and limitations](docs/inputs.md).
+
+## Report formats
+
+| Format | Purpose |
+| --- | --- |
+| `terminal` | Concise developer output, with safe `--verbose` evidence |
+| `json` | Stable schema version 1 for automation and integration |
+| `sarif` | SARIF 2.1.0 for code-scanning platforms |
+| `html` | Standalone offline, accessible report with no external assets |
+| `mermaid` | Bounded Markdown graph with sanitized labels and stable node IDs |
+
+All formats write to stdout unless `--output` is supplied. See [reporting](docs/reporting.md).
+
+## Installation
+
+### Pre-release local build
+
+Go 1.26 or a supported newer version is required.
+
+```bash
+git clone <YOUR-FORK-OR-CHECKOUT>
+cd credscope
+go build -trimpath -o credscope ./cmd/credscope
+./credscope version
+```
+
+On Windows PowerShell:
+
+```powershell
+go build -trimpath -o credscope.exe ./cmd/credscope
+.\credscope.exe version
+```
+
+Release binaries, tagged `go install`, checksum-verifying installers, and container images are not available before the first release. The planned post-release methods are documented in [installation](docs/installation.md) without presenting them as currently functional.
+
+## Quick start
+
+Run the safe built-in demonstration without network access:
+
+```bash
+go run ./cmd/credscope scan testdata/vulnerable \
+  --gitleaks-report gitleaks.json \
+  --verbose \
+  --no-color
+```
+
+Generate reports:
+
+```bash
+go run ./cmd/credscope scan . --format json --output credscope.json
+go run ./cmd/credscope scan . --format sarif --output credscope.sarif --fail-on high
+go run ./cmd/credscope scan . --format html --output credscope-report.html
+go run ./cmd/credscope scan . --format mermaid --output blast-radius.md
+```
+
+Other commands:
+
+```text
 credscope version
 credscope rules list
 credscope explain CRD101
 ```
 
-`scan` now executes the complete static pipeline and emits the selected report:
+## GitHub Action
 
-```bash
-credscope scan testdata/vulnerable \
-  --gitleaks-report gitleaks.json \
-  --verbose
+The composite Action builds the pinned checked-in source on a GitHub-hosted Linux runner. It does not download an unreleased CredScope artifact and does not upload reports automatically.
+
+Inside this repository, the Action smoke test uses:
+
+```yaml
+- uses: ./
+  with:
+    path: testdata/vulnerable
+    gitleaks-report: gitleaks.json
+    format: sarif
+    output: credscope.sarif
+    fail-on: high
+    minimum-score: "0"
 ```
 
-```bash
-credscope scan . --format json --output credscope.json
-credscope scan . --format sarif --output credscope.sarif --fail-on high
-credscope scan . --format html --output credscope-report.html
-credscope scan . --format mermaid --output blast-radius.md
-```
+After the first release, consumers will be able to replace `./` with the verified repository owner and a reviewed major-version ref such as `OWNER/credscope@v1`. See [GitHub Action inputs, outputs, and exit handling](docs/github-action.md).
 
-All formats write to stdout when `--output` is omitted. File output is root-confined, staged, owner-only where supported, and refuses to overwrite detected analysis inputs.
+## CI integration
 
-Embedding example:
+The [complete example](docs/examples/github-action.yml) generates a redacted Gitleaks JSON report with the pinned CLI, runs CredScope, and uploads SARIF explicitly. The caller grants only `contents: read` and `security-events: write`; CredScope itself never uploads the report.
 
-```go
-parsed, err := credscope.ParseRepository(ctx, root, credscope.DefaultConfig(), gitleaksReport)
-result, err := credscope.Analyze(ctx, parsed, credscope.AnalysisOptions{})
-```
+Exit codes are stable:
 
-The result contains stable graph nodes and edges, credential evidence paths, matched rules, score breakdowns, confidence summaries, reachability counts, warnings, and deduplicated remediations. See [architecture](docs/architecture.md), [scoring policy v1](docs/scoring.md), and [rule catalog v1](docs/rules.md).
+| Code | Meaning |
+| ---: | --- |
+| 0 | Analysis completed and the configured threshold was not exceeded |
+| 1 | Analysis completed, the report was emitted, and the threshold was exceeded |
+| 2 | Invalid command usage or configuration |
+| 3 | Malformed or unsupported analysis input |
+| 4 | Analysis or report generation failure |
 
-## Reports and CI thresholds
+## Risk scoring
 
-- Terminal: concise human report with optional safe `--verbose` evidence and automatic color detection.
-- JSON: stable schema version 1 with full graph and credential analyses.
-- SARIF: SARIF 2.1.0 with one deduplicated result per actionable rule and credential.
-- HTML: standalone offline report with contextual escaping, CSP, responsive/print styles, and no JavaScript.
-- Mermaid: bounded Markdown graph with stable safe IDs and sanitized labels.
+Scoring policy v1 calculates a per-credential score from 0 to 100 using matched catalog rules only. Confirmed, High, Medium, Low, and Unknown evidence use multipliers of 100%, 90%, 70%, 40%, and 0%. Equivalent findings and rules are deduplicated, component adjustments are bounded, and the total is capped at 100.
 
-`--minimum-score` controls terminal display and threshold eligibility. `--fail-on` controls the minimum failing severity. Exit code 1 is returned only when both conditions are met, after the report has been emitted. See [reporting](docs/reporting.md), [configuration](docs/configuration.md), and [safe examples](docs/examples/).
+Scores measure static structural blast radius. They do not establish credential validity, exploitability, effective cloud permissions, or internet exposure. Read [the scoring policy](docs/scoring.md) and [rule catalog](docs/rules.md).
 
-## Supported inputs
+## Privacy and security
 
-- Gitleaks JSON arrays and single finding objects. Raw `Secret` and `Match` values are consumed only to create irreversible fingerprints and are never returned.
-- GitHub Actions workflows under `.github/workflows/*.yml` and `.yaml`.
-- Root-level `docker-compose.yml`, `docker-compose.yaml`, `compose.yml`, and `compose.yaml` files.
+- No source, secret, fingerprint, or report is sent to CredScope services; there are no CredScope services.
+- The CLI performs no network requests, telemetry, cloud authentication, workflow execution, shell execution, or container execution.
+- Raw Gitleaks `Secret` and `Match` values are consumed only for irreversible fingerprints and cannot enter the domain model.
+- Discovery, explicit inputs, and report files remain confined to the selected root and reject unsafe symlinks.
+- YAML and JSON inputs are size- and structure-bounded.
+- HTML, terminal, and Mermaid output sanitize repository-controlled values.
 
-See [input parsing](docs/inputs.md) for parsed fields, structural signals, security boundaries, and current limitations.
+The GitHub Action and repository CI naturally use GitHub-hosted infrastructure to build and test the source. That automation does not change the CredScope CLI runtime boundary. See [SECURITY.md](SECURITY.md) and [the security model](docs/security-model.md).
 
-## Build and test
+## Limitations
 
-Go 1.26 or a supported newer release is required.
+- CredScope does not verify secret validity or inspect effective cloud IAM permissions.
+- Reusable workflows are represented but not fetched or resolved.
+- Published ports indicate possible host reachability, not definite public exposure.
+- Docker image defaults, env-file contents, runtime users, and running containers are not inspected.
+- GitHub expression and Compose interpolation parsing is intentionally bounded, not a complete runtime evaluator.
+- The composite Action currently supports GitHub-hosted Linux runners only.
+- No release, installer, container image, SBOM, or artifact attestation has been published.
 
-```bash
-go mod download
-go test ./...
-go test -race ./...
-go vet ./...
-go build ./cmd/credscope
-```
+## Roadmap
 
-## Configuration
+Phase 6 is the final release audit: execute all GitHub-hosted checks, validate GoReleaser artifacts, inspect leakage and reproducibility, confirm public repository identity, and decide whether `v0.1.0` is publishable. See [ROADMAP.md](ROADMAP.md) and [the release checklist](docs/RELEASE_CHECKLIST.md).
 
-Copy `.credscope.yml.example` to `.credscope.yml` and adjust it as needed. CLI flags override configuration values, and configuration values override built-in defaults. Unknown YAML fields, unsupported versions, parent-directory traversal, invalid thresholds, and conflicting output modes are rejected.
+## Contributing
 
-## Security properties
-
-- Secret-bearing domain fields do not exist; only labels and irreversible, domain-separated fingerprints are modeled.
-- Terminal output strips ANSI and control characters from repository-controlled values.
-- Discovery is confined to the selected root, does not follow symlinks, skips common generated directories, and rejects oversized supported inputs.
-- Explicit inputs cannot traverse outside the repository root.
-- Report writes are root-confined, reject symlinks, use temporary files, and request owner-only permissions.
-- Configuration input is size-limited, single-document, and decoded with strict known-field checking.
-- YAML inputs are single-document and bounded by file size, scalar size, depth, node count, alias count, and duplicate-key checks.
-- Shell commands, workflows, reusable workflows, Compose services, env files, and containers are never executed or resolved over the network.
-- Literal environment values and shell bodies are represented by fingerprints and redacted structure rather than retained verbatim.
-- Graph and path traversal is deterministic, cycle-safe, and depth-limited.
-- Scores use documented rule weights and confidence multipliers; Unknown runtime conditions contribute no points.
-- Recommendations are advisory and never modify analyzed files.
-- Every reporter consumes the same immutable analysis model and performs no network or process execution.
-- HTML is standalone and escaped; Mermaid directives and external links from repository content are suppressed.
-- Report output cannot replace discovered workflows, Compose files, configuration, or the selected Gitleaks report.
-
-See [configuration documentation](docs/configuration.md) and the [foundation security model](docs/security-model.md).
+Read [CONTRIBUTING.md](CONTRIBUTING.md), the detailed [development guide](docs/contributing.md), and the [Code of Conduct](CODE_OF_CONDUCT.md). Use synthetic test data only. Security vulnerabilities belong in the private process described by [SECURITY.md](SECURITY.md), not a public issue.
 
 ## License
 
-The final open-source license and community files are scheduled for the productization phase; the repository is not ready for public redistribution until that phase is complete.
+Licensed under the [Apache License 2.0](LICENSE).

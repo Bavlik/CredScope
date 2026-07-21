@@ -1,0 +1,42 @@
+name: Action smoke test
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  local-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Run the checked-out Action
+        id: credscope
+        uses: ./
+        with:
+          path: testdata/vulnerable
+          gitleaks-report: gitleaks.json
+          format: json
+          output: action-smoke.json
+          fail-on: none
+          minimum-score: "0"
+          no-color: "true"
+
+      - name: Verify Action result
+        shell: bash
+        run: |
+          test -s testdata/vulnerable/action-smoke.json
+          test "${{ steps.credscope.outputs.credentials-analyzed }}" -gt 0
+          test "${{ steps.credscope.outputs.highest-score }}" -ge 80
+          test "${{ steps.credscope.outputs.highest-severity }}" = critical
+          test "${{ steps.credscope.outputs.threshold-exceeded }}" = false
+          go run ./scripts/verify-reports.go testdata/vulnerable
+
+      - name: Remove smoke report
+        if: always()
+        shell: bash
+        run: rm -f testdata/vulnerable/action-smoke.json

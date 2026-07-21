@@ -57,4 +57,4 @@ The fixtures use only obviously synthetic identifiers and values. No workflow, s
 - Remote and local reusable workflow contents are not followed.
 - Docker image defaults, runtime reachability, environment-file contents, and effective container users are not inspected.
 - Gitleaks findings without secret material use a metadata-derived correlation fingerprint, which does not prove two credentials are identical.
-- Phase 2 produces parsed models only. Graphs, scores, remediations, and JSON/SARIF/HTML/Mermaid reports do not exist yet.
+- CredScope does not yet support other scanner formats, Kubernetes, Terraform, GitLab CI, or cloud-provider API analysis.

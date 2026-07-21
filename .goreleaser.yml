@@ -1,0 +1,63 @@
+version: 2
+
+project_name: credscope
+
+builds:
+  - id: credscope
+    main: ./cmd/credscope
+    binary: credscope
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    flags:
+      - -trimpath
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    ldflags:
+      - -s -w -buildid=
+      - -X main.version=v{{ .Version }}
+      - -X main.commit={{ .FullCommit }}
+      - -X main.date={{ .Env.BUILD_DATE }}
+
+archives:
+  - id: credscope
+    ids: [credscope]
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+    wrap_in_directory: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+release:
+  prerelease: auto

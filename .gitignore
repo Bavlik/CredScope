@@ -4,6 +4,8 @@
 /coverage/
 *.out
 *.test
+/credscope
+/credscope.exe
 
 # Local toolchain used only when Go is not installed on the host
 /.tools/
@@ -13,10 +15,20 @@
 /credscope.sarif
 /credscope-report.html
 /blast-radius.md
+/.tmp-build/
+/.tmp-reports/
+/testdata/vulnerable/action-smoke.json
+
+# GoReleaser and local security tools
+/dist/
+/govulncheck
+/gitleaks
 
 # Editor and operating-system files
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
-
+*.swp
+*.swo
+*~

@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+env:
+  GOFLAGS: -mod=readonly
+
+jobs:
+  quality:
+    name: Quality and race tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Verify formatting
+        run: test -z "$(gofmt -l .)"
+
+      - name: Run unit and integration tests
+        run: go test -count=1 ./...
+
+      - name: Run race detector
+        run: go test -race -count=1 ./...
+
+      - name: Run vet
+        run: go vet ./...
+
+      - name: Verify modules
+        run: go mod verify
+
+      - name: Check patches
+        run: git diff --check
+
+      - name: Build CLI
+        run: |
+          mkdir -p .tmp-build
+          go build -trimpath -o .tmp-build/credscope ./cmd/credscope
+
+      - name: Verify release metadata injection
+        run: |
+          go build -trimpath -ldflags "-X main.version=v0.1.0-test -X main.commit=0123456789abcdef -X main.date=2026-01-02T03:04:05Z" -o .tmp-build/credscope-versioned ./cmd/credscope
+          test "$(.tmp-build/credscope-versioned version)" = "CredScope v0.1.0-test (commit 0123456789abcdef, built 2026-01-02T03:04:05Z)"
+
+      - name: Smoke test CLI and reports
+        run: |
+          mkdir -p .tmp-reports
+          .tmp-build/credscope version
+          .tmp-build/credscope rules list >/dev/null
+          .tmp-build/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --format terminal --no-color >/dev/null
+          .tmp-build/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --format json >.tmp-reports/credscope.json
+          .tmp-build/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --format json >.tmp-reports/credscope-repeat.json
+          .tmp-build/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --format sarif >.tmp-reports/credscope.sarif
+          .tmp-build/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --format html >.tmp-reports/credscope.html
+          .tmp-build/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json --format mermaid >.tmp-reports/blast-radius.md
+          go run ./scripts/verify-reports.go .tmp-reports
+
+      - name: Check deterministic security data
+        run: go test -count=2 ./internal/analysis ./internal/graph ./internal/reporters/...
+
+      - name: Check generated reports for raw synthetic values
+        run: |
+          raw_one='FAKE_RAW_''SECRET_FOR_TESTS_ONLY'
+          raw_two='DEMO_DATABASE_PASSWORD_''VALUE_FOR_TESTS_ONLY'
+          if grep -R -F -e "$raw_one" -e "$raw_two" .tmp-reports; then
+            echo 'raw synthetic value found in generated reports' >&2
+            exit 1
+          fi
+
+  platform-smoke:
+    name: Native build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: Build
+        run: go build -trimpath -o credscope${{ runner.os == 'Windows' && '.exe' || '' }} ./cmd/credscope
+      - name: Smoke test (Unix)
+        if: runner.os != 'Windows'
+        run: ./credscope version
+      - name: Smoke test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\credscope.exe version
+
+  cross-build:
+    name: Compile ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: Compile
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p .tmp-build
+          go build -trimpath -o .tmp-build/credscope-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/credscope

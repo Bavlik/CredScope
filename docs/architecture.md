@@ -15,7 +15,7 @@ repository files / Gitleaks JSON
   -> terminal / JSON / SARIF / HTML / Mermaid
 ```
 
-Phase 4 completes this pipeline while retaining strict separation between analysis and presentation.
+Phase 4 completes this pipeline while retaining strict separation between analysis and presentation. Phase 5 adds repository automation around that runtime without changing the analysis model.
 
 ## Package responsibilities
 
@@ -28,6 +28,7 @@ Phase 4 completes this pipeline while retaining strict separation between analys
 - `internal/reporters/{terminal,jsonreport,sarif,html,mermaid}` render to caller-supplied writers without filesystem or network access.
 - `internal/cli` validates configuration, runs the pipeline, buffers a complete report, and delegates file publication to `internal/safefile`.
 - `pkg/credscope` exposes `Analyze` for embedding.
+- `internal/actionrunner` is a GitHub-hosted automation boundary. It validates Action inputs, constructs argv without shell evaluation, builds the checked-in CLI source, preserves CLI exit codes, and writes only numeric/enumerated Action summaries.
 
 ## Graph model
 
@@ -61,3 +62,9 @@ Both operations remain offline and inert.
 ## Report publication
 
 Reporters do not open paths. The CLI renders to memory first, then either writes stdout or invokes the root-confined staged writer. The writer rejects symlinks, directories, root escape, and known input-file destinations. This keeps presentation failures from partially replacing an existing report.
+
+## Repository automation
+
+The composite Action builds the repository source rather than downloading an unreleased artifact. CI runs the full Linux quality and race suite once, native smoke builds on Linux/Windows/macOS, and a separate five-target compile matrix. Security workflows isolate CodeQL, govulncheck, Gitleaks history scanning, and pull-request dependency review. The tag-only release workflow delegates artifact assembly to GoReleaser.
+
+These workflows may use GitHub APIs, caches, and release infrastructure. The compiled CredScope CLI remains offline and has no dependency on the Action runner or release tooling.

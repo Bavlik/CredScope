@@ -37,6 +37,18 @@ func TestVersionCommand(t *testing.T) {
 	}
 }
 
+func TestDevelopmentVersionMetadata(t *testing.T) {
+	var output bytes.Buffer
+	cmd := newVersionCommand(BuildInfo{Version: "dev", Commit: "none", Date: "unknown"})
+	cmd.SetOut(&output)
+	if err := cmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if output.String() != "CredScope dev (commit none, built unknown)\n" {
+		t.Fatalf("development version output = %q", output.String())
+	}
+}
+
 func TestRulesAreSortedAndExplainable(t *testing.T) {
 	output, err := executeCommand(t, "rules", "list")
 	if err != nil {

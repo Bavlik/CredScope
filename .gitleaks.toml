@@ -1,0 +1,18 @@
+title = "CredScope repository secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic Gitleaks input fixtures used to verify immediate redaction"
+paths = [
+  '''^testdata/vulnerable/gitleaks\.json$''',
+]
+
+[[allowlists]]
+description = "Generated secret-safe examples contain irreversible SHA-256 fingerprint fields"
+targetRules = ["generic-api-key"]
+paths = [
+  '''^docs/examples/credscope-report\.json$''',
+  '''^docs/examples/credscope\.sarif$''',
+]

@@ -18,6 +18,7 @@ Discovery and explicit inputs remain inside a canonical repository root, reject 
 - Phase 2: scanner-neutral Gitleaks import, GitHub Actions parsing, Docker Compose parsing, safe fixtures, typed malformed-input errors, and parser security tests.
 - Phase 3: stable directed graph and evidence paths, catalog v1, scoring policy v1, confidence model, cross-component rules, remediation catalog, and embedding API.
 - Phase 4: complete `scan` orchestration plus terminal, JSON schema v1, SARIF 2.1.0, standalone HTML, and bounded Mermaid reporters with threshold exit behavior.
+- Phase 5: source-built composite GitHub Action, least-privilege CI and security workflows, pinned third-party Actions, deterministic GoReleaser packaging, Apache-2.0 governance files, and pre-release installation/release documentation.
 
 The pipeline is discovery → parsing/ingestion → graph construction → evidence traversal → rule matching → scoring → remediation → selected reporter.
 
@@ -31,9 +32,15 @@ Exit codes are 0 success, 1 threshold exceeded after report generation, 2 usage/
 
 Rule catalog `v1` defines the 27 `CRD1xx`–`CRD5xx` rules documented in `docs/rules.md`. Scoring policy `v1` uses documented weights, bounded component adjustments, integer half-up rounding, confidence multipliers of 100/90/70/40/0, and a score cap of 100. Duplicate findings, graph elements, paths, rules, and remediations are deterministically suppressed.
 
+## Current productization behavior
+
+The composite Action supports GitHub-hosted Linux runners, validates all documented inputs without shell evaluation, preserves CLI exit codes, and exposes safe score/severity/count outputs. It builds the checked-in source so pre-release local Action tests do not rely on nonexistent artifacts. It does not upload reports automatically.
+
+CI runs formatting, tests, Linux race detection, vet, module verification, CLI/report validation, native platform smoke builds, and the five required cross-compilation targets. Separate workflows provide CodeQL, govulncheck, Gitleaks history scanning, and dependency review. GoReleaser is configured for tag-only archive and checksum publication with commit-derived version metadata.
+
 ## Remaining scope
 
-Phase 5 is productization: reusable GitHub Action, CI/security workflows, GoReleaser, cross-platform release workflow, open-source community files, license, changelog, roadmap, and release documentation. Phase 6 is the final audit: run all checks in the intended release environment, inspect generated artifacts and leakage, exercise the documented demo, and decide whether `v0.1.0` is publishable.
+Phase 6 is the final audit: run all checks in the intended release environment, inspect generated artifacts and leakage, exercise the documented demo, validate the public repository identity and release paths, and decide whether `v0.1.0` is publishable. No release tag, GitHub Release, installer, container, SBOM, or attestation exists yet.
 
 ## Explicit exclusions for v0.1.0
 
@@ -41,4 +48,4 @@ Kubernetes, Terraform, cloud IAM API analysis, Azure, GitLab CI, secret validity
 
 ## Definition of done for v0.1.0
 
-The CLI and five formats must build and pass unit, integration, parser, security, leakage, deterministic, and cross-platform checks; the reusable Action and least-privilege CI/security/release workflows must exist; documentation, fixtures, community files, license, changelog, and roadmap must be complete; release artifacts must be reproducible and contain no secret material; and all final Phase 6 checks must be factually reported. Phase 4 alone does not satisfy this release definition.
+The CLI and five formats must build and pass unit, integration, parser, security, leakage, deterministic, and cross-platform checks; the reusable Action and least-privilege CI/security/release workflows must exist; documentation, fixtures, community files, license, changelog, and roadmap must be complete; release artifacts must be reproducible and contain no secret material; and all final Phase 6 checks must be factually reported. Phase 5 prepares these controls but does not itself approve or publish `v0.1.0`.
