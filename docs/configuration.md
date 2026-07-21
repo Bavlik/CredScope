@@ -36,4 +36,4 @@ output:
 
 Include and exclude patterns are repository-relative. `*`, `?`, and `**` are supported; character classes are intentionally not supported. Absolute paths and patterns that traverse parent directories are rejected.
 
-The accepted `fail_on` values are `none`, `low`, `medium`, `high`, and `critical`. `minimum_score` must be between 0 and 100. The accepted output formats are reserved as `terminal`, `json`, `sarif`, `html`, and `mermaid`; only the Phase 1 terminal discovery inventory is currently implemented.
+The accepted `fail_on` values are `none`, `low`, `medium`, `high`, and `critical`. `minimum_score` must be between 0 and 100. The accepted output formats are reserved as `terminal`, `json`, `sarif`, `html`, and `mermaid`; only the Phase 2 terminal input inventory is currently implemented. Selecting another format or an output file returns an explicit usage error until reporters exist.

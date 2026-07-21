@@ -1,0 +1,4 @@
+services:
+  api:
+    environment: ["DEMO_TOKEN=${DEMO_TOKEN}"
+    ports: invalid

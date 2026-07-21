@@ -2,9 +2,12 @@
 package credscope
 
 import (
+	"context"
+
 	"github.com/credscope/credscope/internal/config"
 	"github.com/credscope/credscope/internal/discovery"
 	"github.com/credscope/credscope/internal/domain"
+	"github.com/credscope/credscope/internal/ingest"
 )
 
 const (
@@ -18,6 +21,9 @@ type (
 	CredentialIdentity = domain.CredentialIdentity
 	Report             = domain.Report
 	DiscoveredFile     = discovery.File
+	ParsedRepository   = domain.ParsedRepository
+	Workflow           = domain.Workflow
+	ComposeProject     = domain.ComposeProject
 )
 
 func DefaultConfig() Config { return config.Default() }
@@ -32,4 +38,10 @@ func Discover(repositoryRoot string, cfg Config) ([]DiscoveredFile, error) {
 		return nil, err
 	}
 	return finder.Find()
+}
+
+// ParseRepository imports scanner findings and parses supported YAML inputs.
+// It performs no graph construction, scoring, remediation, or reporting.
+func ParseRepository(ctx context.Context, repositoryRoot string, cfg Config, gitleaksReport string) (ParsedRepository, error) {
+	return ingest.Repository(ctx, repositoryRoot, cfg, gitleaksReport)
 }

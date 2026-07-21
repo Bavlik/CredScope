@@ -41,6 +41,8 @@ type Evidence struct {
 	RuleID      string     `json:"rule_id"`
 	Description string     `json:"description"`
 	Location    Location   `json:"location"`
+	Field       string     `json:"field,omitempty"`
+	Source      string     `json:"source,omitempty"`
 	Confidence  Confidence `json:"confidence"`
 }
 
@@ -61,8 +63,18 @@ type Finding struct {
 	Credential  CredentialIdentity `json:"credential"`
 	Location    Location           `json:"location"`
 	Commit      string             `json:"commit,omitempty"`
+	CommitInfo  *CommitMetadata    `json:"commit_info,omitempty"`
 	Tags        []string           `json:"tags,omitempty"`
 	Source      string             `json:"source"`
+}
+
+// CommitMetadata intentionally excludes the commit message body because it may
+// contain credential material. MessageFingerprint permits stable correlation.
+type CommitMetadata struct {
+	Author             string `json:"author,omitempty"`
+	Email              string `json:"email,omitempty"`
+	Date               string `json:"date,omitempty"`
+	MessageFingerprint string `json:"message_fingerprint,omitempty"`
 }
 
 type NodeType string

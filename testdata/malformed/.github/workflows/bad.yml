@@ -1,0 +1,5 @@
+name: malformed
+on: [push
+jobs:
+  broken:
+    steps: not-a-list

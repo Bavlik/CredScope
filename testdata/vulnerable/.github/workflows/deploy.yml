@@ -1,0 +1,60 @@
+name: Production deployment
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+env:
+  SHARED_DEPLOY_TOKEN: ${{ secrets.FAKE_PRODUCTION_TOKEN }}
+
+jobs:
+  prepare:
+    name: Prepare deployment
+    runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.EXAMPLE_AWS_DEPLOY_KEY }}
+    outputs:
+      copied_token: ${{ secrets.FAKE_PRODUCTION_TOKEN }}
+    steps:
+      - id: metadata
+        name: Unsafe context demonstration
+        run: |
+          echo "${{ github.event.pull_request.title }}"
+          deploy --token "${{ secrets.FAKE_PRODUCTION_TOKEN }}"
+      - name: Third-party deployment helper
+        uses: example-vendor/deploy-action@v1
+        with:
+          token: ${{ secrets.FAKE_PRODUCTION_TOKEN }}
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-build
+          path: dist
+
+  deploy:
+    name: Deploy production
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    permissions:
+      contents: write
+      security-events: write
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.EXAMPLE_AWS_DEPLOY_KEY }}
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v4
+      - name: Deploy
+        run: deploy --key "${{ env.AWS_ACCESS_KEY_ID }}"
+
+  reusable:
+    needs: deploy
+    uses: ./.github/workflows/reusable-not-resolved.yml
+    secrets: inherit

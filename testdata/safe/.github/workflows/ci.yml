@@ -1,0 +1,18 @@
+name: Safe CI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@0123456789abcdef0123456789abcdef01234567
+      - name: Run tests
+        run: go test ./...

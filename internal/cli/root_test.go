@@ -51,7 +51,7 @@ func TestFoundationScanDiscoversFiles(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(workflow), 0o750); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(workflow, []byte("name: CI"), 0o600); err != nil {
+	if err := os.WriteFile(workflow, []byte("name: CI\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo test\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	output, err := executeCommand(t, "scan", root)
@@ -60,6 +60,30 @@ func TestFoundationScanDiscoversFiles(t *testing.T) {
 	}
 	if !strings.Contains(output, "github-actions  .github/workflows/ci.yml") {
 		t.Fatalf("input missing from output: %s", output)
+	}
+}
+
+func TestScanRejectsMalformedDiscoveredWorkflow(t *testing.T) {
+	root := t.TempDir()
+	workflow := filepath.Join(root, ".github", "workflows", "bad.yml")
+	if err := os.MkdirAll(filepath.Dir(workflow), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(workflow, []byte("name: bad\njobs: [broken"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err := executeCommand(t, "scan", root)
+	var coded *codedError
+	if !errors.As(err, &coded) || coded.code != ExitMalformedInput {
+		t.Fatalf("error = %#v, want malformed-input coded error", err)
+	}
+}
+
+func TestScanRejectsUnavailableReporterFormat(t *testing.T) {
+	_, err := executeCommand(t, "scan", t.TempDir(), "--format", "json")
+	var coded *codedError
+	if !errors.As(err, &coded) || coded.code != ExitUsage {
+		t.Fatalf("error = %#v, want usage coded error", err)
 	}
 }
 

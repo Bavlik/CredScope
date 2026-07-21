@@ -1,0 +1,51 @@
+services:
+  production-api:
+    image: example.invalid/demo/api:1.0
+    environment:
+      AWS_SECRET_ACCESS_KEY: ${EXAMPLE_AWS_DEPLOY_KEY}
+      DEPLOY_TOKEN: ${FAKE_PRODUCTION_TOKEN:-}
+      STATIC_DEMO_PASSWORD: clearly-fake-demo-password
+    env_file:
+      - path: ./demo.env
+        required: false
+    secrets:
+      - source: demo_database_password
+        target: database_password
+    ports:
+      - "0.0.0.0:8443:443/tcp"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config:/app/config
+    privileged: true
+    depends_on:
+      database:
+        condition: service_healthy
+    profiles: [production]
+    restart: always
+    working_dir: /app
+
+  database:
+    image: example.invalid/demo/database:1.0
+    environment:
+      - DEPLOY_TOKEN=${FAKE_PRODUCTION_TOKEN:?required}
+      - DEMO_DATABASE_PASSWORD
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "/demo-healthcheck"]
+    profiles:
+      - production
+
+  worker:
+    image: example.invalid/demo/worker:1.0
+    user: "10001"
+    environment:
+      DEPLOY_TOKEN: ${FAKE_PRODUCTION_TOKEN}
+    networks:
+      internal:
+
+secrets:
+  demo_database_password:
+    file: ./secrets/demo-database-password.txt
+
+networks:
+  internal:

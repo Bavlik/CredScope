@@ -11,6 +11,7 @@ import (
 
 	"github.com/credscope/credscope/internal/config"
 	"github.com/credscope/credscope/internal/discovery"
+	"github.com/credscope/credscope/internal/ingest"
 	"github.com/credscope/credscope/internal/sanitizer"
 	"github.com/spf13/cobra"
 )
@@ -79,14 +80,14 @@ func newScanCommand() *cobra.Command {
 	var opts scanOptions
 	cmd := &cobra.Command{
 		Use:   "scan [repository]",
-		Short: "Discover supported security-analysis inputs",
+		Short: "Discover and validate supported security-analysis inputs",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := "."
 			if len(args) == 1 {
 				root = args[0]
 			}
-			return runFoundationScan(cmd, root, opts)
+			return runInputScan(cmd, root, opts)
 		},
 	}
 	f := cmd.Flags()
@@ -104,7 +105,7 @@ func newScanCommand() *cobra.Command {
 	return cmd
 }
 
-func runFoundationScan(cmd *cobra.Command, root string, opts scanOptions) error {
+func runInputScan(cmd *cobra.Command, root string, opts scanOptions) error {
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		return &codedError{code: ExitUsage, err: fmt.Errorf("resolve repository root: %w", err)}
@@ -128,6 +129,9 @@ func runFoundationScan(cmd *cobra.Command, root string, opts scanOptions) error 
 	if err := cfg.Validate(); err != nil {
 		return &codedError{code: ExitUsage, err: err}
 	}
+	if cfg.Output.Format != "terminal" || cfg.Output.Path != "" {
+		return &codedError{code: ExitUsage, err: fmt.Errorf("report output is not implemented in Phase 2; use terminal format without --output")}
+	}
 
 	finder, err := discovery.New(absRoot, discovery.Options{
 		Includes: cfg.Scan.Include,
@@ -141,6 +145,7 @@ func runFoundationScan(cmd *cobra.Command, root string, opts scanOptions) error 
 		return &codedError{code: ExitMalformedInput, err: err}
 	}
 
+	resolvedGitleaks := ""
 	if opts.gitleaksPath != "" {
 		resolved, resolveErr := finder.ResolveFile(opts.gitleaksPath)
 		if resolveErr != nil {
@@ -148,13 +153,19 @@ func runFoundationScan(cmd *cobra.Command, root string, opts scanOptions) error 
 		}
 		files = append(files, discovery.File{Path: resolved, Kind: discovery.KindGitleaks})
 		files = discovery.UniqueFiles(files)
+		resolvedGitleaks = resolved
+	}
+
+	parsed, err := ingest.Repository(cmd.Context(), absRoot, cfg, resolvedGitleaks)
+	if err != nil {
+		return &codedError{code: ExitMalformedInput, err: err}
 	}
 
 	if cfg.Output.Quiet {
 		return nil
 	}
 	writer := cmd.OutOrStdout()
-	fmt.Fprintf(writer, "%s %s\n", productName, sanitizer.TerminalText("foundation"))
+	fmt.Fprintf(writer, "%s %s\n", productName, sanitizer.TerminalText("inputs"))
 	fmt.Fprintf(writer, "Repository: %s\n", sanitizer.TerminalText(absRoot))
 	fmt.Fprintln(writer, "Discovered inputs:")
 	if len(files) == 0 {
@@ -169,6 +180,7 @@ func runFoundationScan(cmd *cobra.Command, root string, opts scanOptions) error 
 	}
 	if cfg.Output.Verbose {
 		fmt.Fprintf(writer, "Configuration: fail-on=%s minimum-score=%d format=%s\n", cfg.Risk.FailOn, cfg.Risk.MinimumScore, cfg.Output.Format)
+		fmt.Fprintf(writer, "Parsed inputs: findings=%d workflows=%d compose-projects=%d\n", len(parsed.Findings), len(parsed.Workflows), len(parsed.Compose))
 	}
 	return nil
 }

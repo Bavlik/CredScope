@@ -1,0 +1,15 @@
+name: One credential reference
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reference one synthetic credential
+        env:
+          DEMO_TOKEN: ${{ secrets.FAKE_SINGLE_WORKFLOW_TOKEN }}
+        run: echo "credential is provided through the environment"

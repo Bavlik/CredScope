@@ -1,0 +1,10 @@
+name: "<script>alert('demo')</script> ] --> \u001b[31m"
+
+on: [push]
+
+jobs:
+  hostile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "node ] --> graph TD; X[bad]"
+        run: echo harmless-demo-text

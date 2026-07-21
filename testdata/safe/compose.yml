@@ -1,0 +1,22 @@
+services:
+  api:
+    image: example.invalid/demo/api:1.0
+    user: "1000:1000"
+    environment:
+      LOG_LEVEL: info
+    expose:
+      - "8080"
+    networks:
+      - internal
+    volumes:
+      - cache:/var/cache/demo:ro
+    healthcheck:
+      test: ["CMD", "/healthcheck"]
+      interval: 30s
+    restart: unless-stopped
+
+networks:
+  internal:
+
+volumes:
+  cache:

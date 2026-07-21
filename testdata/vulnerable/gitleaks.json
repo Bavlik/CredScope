@@ -1,0 +1,41 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Clearly synthetic credential finding",
+    "StartLine": 8,
+    "File": ".env.example",
+    "Commit": "0000000000000000000000000000000000000000",
+    "Author": "Demo Author",
+    "Email": "demo@example.invalid",
+    "Date": "2026-01-01T00:00:00Z",
+    "Message": "Synthetic fixture commit",
+    "Tags": ["example", "credential", "example"],
+    "Secret": "FAKE_RAW_SECRET_FOR_TESTS_ONLY",
+    "Match": "DEMO_TOKEN=FAKE_RAW_SECRET_FOR_TESTS_ONLY",
+    "Key": "FAKE_PRODUCTION_TOKEN"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Clearly synthetic credential finding",
+    "StartLine": 8,
+    "File": ".env.example",
+    "Commit": "0000000000000000000000000000000000000000",
+    "Author": "Demo Author",
+    "Email": "demo@example.invalid",
+    "Date": "2026-01-01T00:00:00Z",
+    "Message": "Synthetic fixture commit",
+    "Tags": ["credential", "example"],
+    "Secret": "FAKE_RAW_SECRET_FOR_TESTS_ONLY",
+    "Match": "DEMO_TOKEN=FAKE_RAW_SECRET_FOR_TESTS_ONLY",
+    "Key": "FAKE_PRODUCTION_TOKEN"
+  },
+  {
+    "RuleID": "demo-password",
+    "Description": "Synthetic finding with Windows-style relative path",
+    "StartLine": 3,
+    "File": "config\\demo.env",
+    "Tags": ["demo"],
+    "Secret": "DEMO_DATABASE_PASSWORD_VALUE_FOR_TESTS_ONLY",
+    "Key": "DEMO_DATABASE_PASSWORD"
+  }
+]
