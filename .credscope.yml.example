@@ -1,0 +1,28 @@
+version: 1
+
+scan:
+  include:
+    - ".github/workflows/*.yml"
+    - ".github/workflows/*.yaml"
+    - "docker-compose.yml"
+    - "docker-compose.yaml"
+    - "compose.yml"
+    - "compose.yaml"
+  exclude:
+    - "testdata/**"
+
+risk:
+  fail_on: high
+  minimum_score: 40
+
+rules:
+  CRD104:
+    enabled: true
+  CRD208:
+    enabled: false
+
+output:
+  format: terminal
+  no_color: false
+  quiet: false
+  verbose: false

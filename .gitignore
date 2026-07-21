@@ -1,0 +1,22 @@
+# Build artifacts
+/bin/
+/dist/
+/coverage/
+*.out
+*.test
+
+# Local toolchain used only when Go is not installed on the host
+/.tools/
+
+# Generated reports
+/credscope.json
+/credscope.sarif
+/credscope-report.html
+/blast-radius.md
+
+# Editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
