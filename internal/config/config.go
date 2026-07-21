@@ -119,8 +119,8 @@ func (c Config) Validate() error {
 	if c.Risk.MinimumScore < 0 || c.Risk.MinimumScore > 100 {
 		return fmt.Errorf("risk.minimum_score must be between 0 and 100")
 	}
-	if !oneOf(c.Risk.FailOn, "none", "low", "medium", "high", "critical") {
-		return fmt.Errorf("risk.fail_on must be one of none, low, medium, high, critical")
+	if !oneOf(c.Risk.FailOn, "none", "informational", "low", "medium", "high", "critical") {
+		return fmt.Errorf("risk.fail_on must be one of none, informational, low, medium, high, critical")
 	}
 	if !oneOf(c.Output.Format, "terminal", "json", "sarif", "html", "mermaid") {
 		return fmt.Errorf("output.format must be one of terminal, json, sarif, html, mermaid")

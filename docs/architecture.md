@@ -11,9 +11,11 @@ repository files / Gitleaks JSON
   -> rule catalog v1
   -> scoring policy v1
   -> remediation results
+  -> reporter-independent presentation input
+  -> terminal / JSON / SARIF / HTML / Mermaid
 ```
 
-Phase 3 stops at internal analysis models. It has no terminal, JSON, SARIF, HTML, or Mermaid reporter.
+Phase 4 completes this pipeline while retaining strict separation between analysis and presentation.
 
 ## Package responsibilities
 
@@ -22,6 +24,9 @@ Phase 3 stops at internal analysis models. It has no terminal, JSON, SARIF, HTML
 - `internal/scoring` applies scoring policy v1 to deduplicated rule matches.
 - `internal/remediation` maps matched rules to safe recommendations without modifying repository files.
 - `internal/analysis` orchestrates the four stages and returns `domain.AnalysisResult`.
+- `internal/reporters` defines normalized scan metadata, summary, ordering, and threshold semantics.
+- `internal/reporters/{terminal,jsonreport,sarif,html,mermaid}` render to caller-supplied writers without filesystem or network access.
+- `internal/cli` validates configuration, runs the pipeline, buffers a complete report, and delegates file publication to `internal/safefile`.
 - `pkg/credscope` exposes `Analyze` for embedding.
 
 ## Graph model
@@ -52,3 +57,7 @@ result, err := credscope.Analyze(ctx, parsed, credscope.AnalysisOptions{})
 ```
 
 Both operations remain offline and inert.
+
+## Report publication
+
+Reporters do not open paths. The CLI renders to memory first, then either writes stdout or invokes the root-confined staged writer. The writer rejects symlinks, directories, root escape, and known input-file destinations. This keeps presentation failures from partially replacing an existing report.

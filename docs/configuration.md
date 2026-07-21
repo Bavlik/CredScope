@@ -36,4 +36,6 @@ output:
 
 Include and exclude patterns are repository-relative. `*`, `?`, and `**` are supported; character classes are intentionally not supported. Absolute paths and patterns that traverse parent directories are rejected.
 
-The accepted `fail_on` values are `none`, `low`, `medium`, `high`, and `critical`. `minimum_score` must be between 0 and 100. The accepted output formats are reserved as `terminal`, `json`, `sarif`, `html`, and `mermaid`; only the Phase 2 terminal input inventory is currently implemented. Selecting another format or an output file returns an explicit usage error until reporters exist.
+The accepted `fail_on` values are `none`, `informational`, `low`, `medium`, `high`, and `critical`. `minimum_score` must be between 0 and 100. It filters terminal credential display and threshold evaluation; complete machine reports retain all analyses. Exit code 1 requires both a score at or above `minimum_score` and severity at or above `fail_on`.
+
+All five output formats—`terminal`, `json`, `sarif`, `html`, and `mermaid`—are implemented. An empty output path writes to stdout. A non-empty path must remain inside the selected repository and is written using secure staged publication. `quiet` and `verbose` are mutually exclusive. Rule entries with `enabled: false` are removed before scoring and remediation.

@@ -129,6 +129,17 @@ func TestAnalyzeHonorsCancellation(t *testing.T) {
 	}
 }
 
+func TestDisabledRuleIsRemovedBeforeScoringAndRemediation(t *testing.T) {
+	parsed := domain.ParsedRepository{Findings: []domain.Finding{{ID: "finding:safe", RuleID: "demo", Credential: domain.CredentialIdentity{Label: "DEMO_TOKEN", Fingerprint: "sha256:safe"}, Source: "test"}}}
+	result, err := Analyze(context.Background(), parsed, Options{DisabledRules: map[string]bool{"CRD101": true}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Credentials) != 1 || result.Credentials[0].Score != 0 || hasRule(result.Credentials[0].MatchedRules, "CRD101") || len(result.Credentials[0].Remediations) != 0 {
+		t.Fatalf("disabled rule survived: %#v", result.Credentials)
+	}
+}
+
 func TestCriticalWriteAllAndUnresolvedReusableFixture(t *testing.T) {
 	root, err := filepath.Abs(filepath.Join("..", "..", "testdata", "vulnerable", "write-all"))
 	if err != nil {

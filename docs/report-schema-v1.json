@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CredScope report schema version 1",
+  "type": "object",
+  "required": ["schema_version", "tool", "scan", "policies", "summary", "credentials", "graph", "repository_warnings", "parser_warnings", "non_fatal_errors"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": { "name": { "type": "string" }, "version": { "type": "string" }, "commit": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "scan": { "type": "object" },
+    "policies": { "type": "object" },
+    "summary": { "type": "object" },
+    "credentials": { "type": "array" },
+    "graph": { "type": "object", "required": ["nodes", "edges"] },
+    "repository_warnings": { "type": "array", "items": { "type": "string" } },
+    "parser_warnings": { "type": "array" },
+    "non_fatal_errors": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

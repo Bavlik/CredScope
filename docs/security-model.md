@@ -27,10 +27,16 @@ The implementation provides these controls:
 - Scoring is integer-only, versioned, bounded at 100, and suppresses duplicate rule inflation.
 - Unknown runtime conditions contribute zero points and remain explicit warnings.
 - Remediation is advisory only and never rewrites workflows or Compose files.
+- Reporters operate only on the secret-safe analysis model and a supplied writer; they cannot open repository paths, run processes, or make network requests.
+- Machine-readable stdout contains report data only. Diagnostics are written to stderr.
+- HTML uses contextual escaping, no JavaScript or external resources, and a restrictive Content Security Policy.
+- Mermaid labels remove directives, external URLs, control characters, and graph-breaking syntax; click directives are never emitted.
+- SARIF locations are repository-relative and include a line only when evidence provides one.
+- Reports are completely rendered before owner-only staged publication, and detected analysis inputs cannot be overwritten.
 
 ## Phase 3 analysis boundary
 
-Phase 3 builds static reachability, matches rule catalog v1, applies scoring policy v1, and returns rule-based recommendations. It does not generate terminal, JSON, SARIF, HTML, or Mermaid reports. It does not authenticate to cloud providers, inspect running containers, validate credentials, resolve remote workflows, prove exploitability, or claim effective cloud permissions or definite internet exposure.
+Phase 4 adds terminal, JSON, SARIF, HTML, and Mermaid rendering. It does not authenticate to cloud providers, inspect running containers, validate credentials, resolve remote workflows, prove exploitability, or claim effective cloud permissions or definite internet exposure. GitHub Action packaging, CI, release automation, and the final release audit remain later phases.
 
 ## Residual risks
 

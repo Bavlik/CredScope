@@ -8,7 +8,7 @@ CredScope is a deterministic security analysis tool that maps detected credentia
 
 ## Development status
 
-The repository currently contains the completed Phase 1 foundation, Phase 2 input layer, and Phase 3 deterministic analysis core for `v0.1.0`: secure discovery and parsing, a credential reachability graph, evidence-path traversal, rule catalog v1, scoring policy v1, explicit confidence, and rule-based remediation. Security report formats remain a later phase and are not represented as complete here.
+The repository currently contains the completed Phase 1–4 implementation for `v0.1.0`: secure discovery and parsing, deterministic reachability analysis, rule catalog v1, scoring policy v1, remediation, the complete scan CLI, and terminal, JSON, SARIF, standalone HTML, and Mermaid reports. GitHub Action packaging, CI/release automation, community files, and the final release audit remain later phases.
 
 ## Current commands
 
@@ -19,7 +19,7 @@ credscope rules list
 credscope explain CRD101
 ```
 
-At this phase, `scan` securely discovers and validates supported repository inputs, then prints an input inventory. With `--verbose`, it also prints parser counts. The analysis core is available to Go embedders through `pkg/credscope`; CLI reporting is intentionally deferred to Phase 4.
+`scan` now executes the complete static pipeline and emits the selected report:
 
 ```bash
 credscope scan testdata/vulnerable \
@@ -27,7 +27,14 @@ credscope scan testdata/vulnerable \
   --verbose
 ```
 
-Only terminal inventory output is currently available. The reserved JSON, SARIF, HTML, and Mermaid formats return an explicit unsupported-format error until the reporting phase is implemented.
+```bash
+credscope scan . --format json --output credscope.json
+credscope scan . --format sarif --output credscope.sarif --fail-on high
+credscope scan . --format html --output credscope-report.html
+credscope scan . --format mermaid --output blast-radius.md
+```
+
+All formats write to stdout when `--output` is omitted. File output is root-confined, staged, owner-only where supported, and refuses to overwrite detected analysis inputs.
 
 Embedding example:
 
@@ -37,6 +44,16 @@ result, err := credscope.Analyze(ctx, parsed, credscope.AnalysisOptions{})
 ```
 
 The result contains stable graph nodes and edges, credential evidence paths, matched rules, score breakdowns, confidence summaries, reachability counts, warnings, and deduplicated remediations. See [architecture](docs/architecture.md), [scoring policy v1](docs/scoring.md), and [rule catalog v1](docs/rules.md).
+
+## Reports and CI thresholds
+
+- Terminal: concise human report with optional safe `--verbose` evidence and automatic color detection.
+- JSON: stable schema version 1 with full graph and credential analyses.
+- SARIF: SARIF 2.1.0 with one deduplicated result per actionable rule and credential.
+- HTML: standalone offline report with contextual escaping, CSP, responsive/print styles, and no JavaScript.
+- Mermaid: bounded Markdown graph with stable safe IDs and sanitized labels.
+
+`--minimum-score` controls terminal display and threshold eligibility. `--fail-on` controls the minimum failing severity. Exit code 1 is returned only when both conditions are met, after the report has been emitted. See [reporting](docs/reporting.md), [configuration](docs/configuration.md), and [safe examples](docs/examples/).
 
 ## Supported inputs
 
@@ -76,6 +93,9 @@ Copy `.credscope.yml.example` to `.credscope.yml` and adjust it as needed. CLI f
 - Graph and path traversal is deterministic, cycle-safe, and depth-limited.
 - Scores use documented rule weights and confidence multipliers; Unknown runtime conditions contribute no points.
 - Recommendations are advisory and never modify analyzed files.
+- Every reporter consumes the same immutable analysis model and performs no network or process execution.
+- HTML is standalone and escaped; Mermaid directives and external links from repository content are suppressed.
+- Report output cannot replace discovered workflows, Compose files, configuration, or the selected Gitleaks report.
 
 See [configuration documentation](docs/configuration.md) and the [foundation security model](docs/security-model.md).
 

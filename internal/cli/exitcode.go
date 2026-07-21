@@ -10,8 +10,9 @@ const (
 )
 
 type codedError struct {
-	code int
-	err  error
+	code   int
+	err    error
+	silent bool
 }
 
 func (e *codedError) Error() string { return e.err.Error() }

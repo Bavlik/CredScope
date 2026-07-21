@@ -16,6 +16,7 @@ import (
 
 type Options struct {
 	MaxTraversalDepth int
+	DisabledRules     map[string]bool
 }
 
 func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Options) (domain.AnalysisResult, error) {
@@ -41,6 +42,15 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 		}
 		paths := graph.Traverse(built.Graph, credential.ID, options.MaxTraversalDepth)
 		matches := rules.Evaluate(built.Graph, credential.ID, paths)
+		if len(options.DisabledRules) > 0 {
+			filtered := matches[:0]
+			for _, match := range matches {
+				if !options.DisabledRules[match.RuleID] {
+					filtered = append(filtered, match)
+				}
+			}
+			matches = filtered
+		}
 		score := scoring.Calculate(matches)
 		remediations := remediation.Generate(credential, matches)
 		remediationIDs := make([]string, 0, len(remediations))

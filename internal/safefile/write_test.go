@@ -64,6 +64,24 @@ func TestWriteReportRejectsTraversal(t *testing.T) {
 	}
 }
 
+func TestWriteReportProtectedRejectsInputOverwrite(t *testing.T) {
+	root := t.TempDir()
+	input := filepath.Join(root, "compose.yml")
+	if err := os.WriteFile(input, []byte("services: {}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteReportProtected(root, "compose.yml", []byte("report"), []string{input}); err == nil || !strings.Contains(err.Error(), "overwrite an analysis input") {
+		t.Fatalf("error = %v", err)
+	}
+	data, err := os.ReadFile(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "services: {}" {
+		t.Fatal("protected input changed")
+	}
+}
+
 func TestWriteReportRejectsSymlinkDestination(t *testing.T) {
 	root := t.TempDir()
 	target := filepath.Join(root, "target.json")

@@ -26,6 +26,14 @@ func TestDefaultIsValid(t *testing.T) {
 	}
 }
 
+func TestInformationalFailureThresholdIsValid(t *testing.T) {
+	cfg := Default()
+	cfg.Risk.FailOn = "informational"
+	if err := cfg.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestLoadOverlaysDefaults(t *testing.T) {
 	path := writeConfig(t, "version: 1\nrisk:\n  fail_on: high\n  minimum_score: 42\noutput:\n  verbose: true\n")
 	cfg, err := Load(path)

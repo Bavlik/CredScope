@@ -13,6 +13,12 @@ import (
 // with owner-only permissions. The destination must stay beneath root, and
 // existing symlinks are rejected.
 func WriteReport(root, destination string, data []byte) error {
+	return WriteReportProtected(root, destination, data, nil)
+}
+
+// WriteReportProtected additionally refuses to replace any known analysis
+// input. Protected paths may be absolute or repository-relative.
+func WriteReportProtected(root, destination string, data []byte, protected []string) error {
 	if destination == "" {
 		return errors.New("output path must not be empty")
 	}
@@ -31,6 +37,22 @@ func WriteReport(root, destination string, data []byte) error {
 	rel, err := filepath.Rel(absRoot, absDestination)
 	if err != nil || rel == ".." || strings.HasPrefix(filepath.ToSlash(rel), "../") {
 		return fmt.Errorf("output path %q is outside repository root", destination)
+	}
+	for _, item := range protected {
+		if item == "" {
+			continue
+		}
+		candidate := item
+		if !filepath.IsAbs(candidate) {
+			candidate = filepath.Join(absRoot, candidate)
+		}
+		candidate, candidateErr := filepath.Abs(candidate)
+		if candidateErr != nil {
+			return fmt.Errorf("resolve protected input path: %w", candidateErr)
+		}
+		if samePath(absDestination, candidate) {
+			return fmt.Errorf("output path %q would overwrite an analysis input", destination)
+		}
 	}
 
 	parent := filepath.Dir(absDestination)
@@ -79,6 +101,15 @@ func WriteReport(root, destination string, data []byte) error {
 	}
 	keep = true
 	return nil
+}
+
+func samePath(left, right string) bool {
+	left = filepath.Clean(left)
+	right = filepath.Clean(right)
+	if filepath.Separator == '\\' {
+		return strings.EqualFold(left, right)
+	}
+	return left == right
 }
 
 // publish preserves an existing report until the staged replacement succeeds.

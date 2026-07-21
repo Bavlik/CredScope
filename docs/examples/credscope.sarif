@@ -1,0 +1,1984 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "CredScope",
+          "version": "dev",
+          "rules": [
+            {
+              "id": "CRD101",
+              "name": "Credential finding imported",
+              "shortDescription": {
+                "text": "Credential finding imported"
+              },
+              "fullDescription": {
+                "text": "A scanner-neutral credential finding was imported."
+              },
+              "help": {
+                "text": "A scanner-neutral credential finding was imported.",
+                "markdown": "**CRD101 — Credential finding imported**\n\nA scanner-neutral credential finding was imported."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD102",
+              "name": "Credential referenced by workflow",
+              "shortDescription": {
+                "text": "Credential referenced by workflow"
+              },
+              "fullDescription": {
+                "text": "A GitHub Actions workflow structurally references the credential."
+              },
+              "help": {
+                "text": "A GitHub Actions workflow structurally references the credential.",
+                "markdown": "**CRD102 — Credential referenced by workflow**\n\nA GitHub Actions workflow structurally references the credential."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD103",
+              "name": "Credential used by multiple jobs",
+              "shortDescription": {
+                "text": "Credential used by multiple jobs"
+              },
+              "fullDescription": {
+                "text": "The credential is structurally referenced by multiple workflow jobs."
+              },
+              "help": {
+                "text": "The credential is structurally referenced by multiple workflow jobs.",
+                "markdown": "**CRD103 — Credential used by multiple jobs**\n\nThe credential is structurally referenced by multiple workflow jobs."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD104",
+              "name": "Credential used by pull_request_target",
+              "shortDescription": {
+                "text": "Credential used by pull_request_target"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a workflow triggered by pull_request_target."
+              },
+              "help": {
+                "text": "The credential reaches a workflow triggered by pull_request_target.",
+                "markdown": "**CRD104 — Credential used by pull_request_target**\n\nThe credential reaches a workflow triggered by pull_request_target."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD201",
+              "name": "Workflow grants write permission",
+              "shortDescription": {
+                "text": "Workflow grants write permission"
+              },
+              "fullDescription": {
+                "text": "A reachable workflow or job explicitly grants a write-level permission."
+              },
+              "help": {
+                "text": "A reachable workflow or job explicitly grants a write-level permission.",
+                "markdown": "**CRD201 — Workflow grants write permission**\n\nA reachable workflow or job explicitly grants a write-level permission."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD202",
+              "name": "Workflow grants write-all",
+              "shortDescription": {
+                "text": "Workflow grants write-all"
+              },
+              "fullDescription": {
+                "text": "A reachable workflow or job explicitly grants write-all."
+              },
+              "help": {
+                "text": "A reachable workflow or job explicitly grants write-all.",
+                "markdown": "**CRD202 — Workflow grants write-all**\n\nA reachable workflow or job explicitly grants write-all."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD203",
+              "name": "Secret passed to shell",
+              "shortDescription": {
+                "text": "Secret passed to shell"
+              },
+              "fullDescription": {
+                "text": "A credential reference occurs in an inert workflow shell block."
+              },
+              "help": {
+                "text": "A credential reference occurs in an inert workflow shell block.",
+                "markdown": "**CRD203 — Secret passed to shell**\n\nA credential reference occurs in an inert workflow shell block."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD204",
+              "name": "Secret passed to third-party action",
+              "shortDescription": {
+                "text": "Secret passed to third-party action"
+              },
+              "fullDescription": {
+                "text": "A credential reaches a third-party action input or step scope; third-party does not imply malicious."
+              },
+              "help": {
+                "text": "A credential reaches a third-party action input or step scope; third-party does not imply malicious.",
+                "markdown": "**CRD204 — Secret passed to third-party action**\n\nA credential reaches a third-party action input or step scope; third-party does not imply malicious."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD205",
+              "name": "Third-party action uses mutable reference",
+              "shortDescription": {
+                "text": "Third-party action uses mutable reference"
+              },
+              "fullDescription": {
+                "text": "A reachable third-party action is pinned to a mutable revision rather than a full commit SHA."
+              },
+              "help": {
+                "text": "A reachable third-party action is pinned to a mutable revision rather than a full commit SHA.",
+                "markdown": "**CRD205 — Third-party action uses mutable reference**\n\nA reachable third-party action is pinned to a mutable revision rather than a full commit SHA."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD206",
+              "name": "Secret propagated through job output",
+              "shortDescription": {
+                "text": "Secret propagated through job output"
+              },
+              "fullDescription": {
+                "text": "A job output directly references the credential."
+              },
+              "help": {
+                "text": "A job output directly references the credential.",
+                "markdown": "**CRD206 — Secret propagated through job output**\n\nA job output directly references the credential."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD207",
+              "name": "Missing explicit workflow permissions",
+              "shortDescription": {
+                "text": "Missing explicit workflow permissions"
+              },
+              "fullDescription": {
+                "text": "A reachable workflow omits an explicit permissions declaration; effective defaults depend on repository settings."
+              },
+              "help": {
+                "text": "A reachable workflow omits an explicit permissions declaration; effective defaults depend on repository settings.",
+                "markdown": "**CRD207 — Missing explicit workflow permissions**\n\nA reachable workflow omits an explicit permissions declaration; effective defaults depend on repository settings."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD208",
+              "name": "Credential reaches production environment",
+              "shortDescription": {
+                "text": "Credential reaches production environment"
+              },
+              "fullDescription": {
+                "text": "The credential reaches an environment whose name appears production-like."
+              },
+              "help": {
+                "text": "The credential reaches an environment whose name appears production-like.",
+                "markdown": "**CRD208 — Credential reaches production environment**\n\nThe credential reaches an environment whose name appears production-like."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD301",
+              "name": "Credential passed to Compose service",
+              "shortDescription": {
+                "text": "Credential passed to Compose service"
+              },
+              "fullDescription": {
+                "text": "A Compose service directly receives the credential reference."
+              },
+              "help": {
+                "text": "A Compose service directly receives the credential reference.",
+                "markdown": "**CRD301 — Credential passed to Compose service**\n\nA Compose service directly receives the credential reference."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD302",
+              "name": "Credential reaches privileged service",
+              "shortDescription": {
+                "text": "Credential reaches privileged service"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service configured with privileged mode."
+              },
+              "help": {
+                "text": "The credential reaches a service configured with privileged mode.",
+                "markdown": "**CRD302 — Credential reaches privileged service**\n\nThe credential reaches a service configured with privileged mode."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD303",
+              "name": "Credential reaches published host port",
+              "shortDescription": {
+                "text": "Credential reaches published host port"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service publishing a host port; external reachability depends on runtime configuration."
+              },
+              "help": {
+                "text": "The credential reaches a service publishing a host port; external reachability depends on runtime configuration.",
+                "markdown": "**CRD303 — Credential reaches published host port**\n\nThe credential reaches a service publishing a host port; external reachability depends on runtime configuration."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD304",
+              "name": "Credential reaches Docker socket mount",
+              "shortDescription": {
+                "text": "Credential reaches Docker socket mount"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service mounting a Docker socket."
+              },
+              "help": {
+                "text": "The credential reaches a service mounting a Docker socket.",
+                "markdown": "**CRD304 — Credential reaches Docker socket mount**\n\nThe credential reaches a service mounting a Docker socket."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD305",
+              "name": "Credential reaches host-network service",
+              "shortDescription": {
+                "text": "Credential reaches host-network service"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service configured with host network mode."
+              },
+              "help": {
+                "text": "The credential reaches a service configured with host network mode.",
+                "markdown": "**CRD305 — Credential reaches host-network service**\n\nThe credential reaches a service configured with host network mode."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD306",
+              "name": "Credential shared across multiple services",
+              "shortDescription": {
+                "text": "Credential shared across multiple services"
+              },
+              "fullDescription": {
+                "text": "The same credential is directly passed to multiple Compose services."
+              },
+              "help": {
+                "text": "The same credential is directly passed to multiple Compose services.",
+                "markdown": "**CRD306 — Credential shared across multiple services**\n\nThe same credential is directly passed to multiple Compose services."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD307",
+              "name": "Credential reaches writable host bind mount",
+              "shortDescription": {
+                "text": "Credential reaches writable host bind mount"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service with a writable host bind mount."
+              },
+              "help": {
+                "text": "The credential reaches a service with a writable host bind mount.",
+                "markdown": "**CRD307 — Credential reaches writable host bind mount**\n\nThe credential reaches a service with a writable host bind mount."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD308",
+              "name": "Container user cannot be confirmed as non-root",
+              "shortDescription": {
+                "text": "Container user cannot be confirmed as non-root"
+              },
+              "fullDescription": {
+                "text": "No explicit non-root user can be confirmed for a reached service; this does not prove root execution."
+              },
+              "help": {
+                "text": "No explicit non-root user can be confirmed for a reached service; this does not prove root execution.",
+                "markdown": "**CRD308 — Container user cannot be confirmed as non-root**\n\nNo explicit non-root user can be confirmed for a reached service; this does not prove root execution."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD401",
+              "name": "Credential shared across CI and runtime",
+              "shortDescription": {
+                "text": "Credential shared across CI and runtime"
+              },
+              "fullDescription": {
+                "text": "The same credential is referenced by GitHub Actions and passed to a Compose service."
+              },
+              "help": {
+                "text": "The same credential is referenced by GitHub Actions and passed to a Compose service.",
+                "markdown": "**CRD401 — Credential shared across CI and runtime**\n\nThe same credential is referenced by GitHub Actions and passed to a Compose service."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD402",
+              "name": "Credential reaches multiple production components",
+              "shortDescription": {
+                "text": "Credential reaches multiple production components"
+              },
+              "fullDescription": {
+                "text": "The credential reaches multiple structurally production-like components."
+              },
+              "help": {
+                "text": "The credential reaches multiple structurally production-like components.",
+                "markdown": "**CRD402 — Credential reaches multiple production components**\n\nThe credential reaches multiple structurally production-like components."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD403",
+              "name": "Credential reaches write permission and deployment environment",
+              "shortDescription": {
+                "text": "Credential reaches write permission and deployment environment"
+              },
+              "fullDescription": {
+                "text": "The credential reaches both a write-level repository permission and a deployment environment."
+              },
+              "help": {
+                "text": "The credential reaches both a write-level repository permission and a deployment environment.",
+                "markdown": "**CRD403 — Credential reaches write permission and deployment environment**\n\nThe credential reaches both a write-level repository permission and a deployment environment."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD404",
+              "name": "Credential has multiple independent reachability paths",
+              "shortDescription": {
+                "text": "Credential has multiple independent reachability paths"
+              },
+              "fullDescription": {
+                "text": "The credential has multiple independent first-hop paths to affected components."
+              },
+              "help": {
+                "text": "The credential has multiple independent first-hop paths to affected components.",
+                "markdown": "**CRD404 — Credential has multiple independent reachability paths**\n\nThe credential has multiple independent first-hop paths to affected components."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD501",
+              "name": "Reusable workflow unresolved",
+              "shortDescription": {
+                "text": "Reusable workflow unresolved"
+              },
+              "fullDescription": {
+                "text": "A reachable reusable workflow was not resolved; no network lookup was attempted."
+              },
+              "help": {
+                "text": "A reachable reusable workflow was not resolved; no network lookup was attempted.",
+                "markdown": "**CRD501 — Reusable workflow unresolved**\n\nA reachable reusable workflow was not resolved; no network lookup was attempted."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD502",
+              "name": "Runtime permissions cannot be confirmed",
+              "shortDescription": {
+                "text": "Runtime permissions cannot be confirmed"
+              },
+              "fullDescription": {
+                "text": "Static Compose analysis cannot confirm the effective runtime permissions of a reached service."
+              },
+              "help": {
+                "text": "Static Compose analysis cannot confirm the effective runtime permissions of a reached service.",
+                "markdown": "**CRD502 — Runtime permissions cannot be confirmed**\n\nStatic Compose analysis cannot confirm the effective runtime permissions of a reached service."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD503",
+              "name": "External network exposure cannot be confirmed",
+              "shortDescription": {
+                "text": "External network exposure cannot be confirmed"
+              },
+              "fullDescription": {
+                "text": "A host port is published, but actual external reachability cannot be confirmed statically."
+              },
+              "help": {
+                "text": "A host port is published, but actual external reachability cannot be confirmed statically.",
+                "markdown": "**CRD503 — External network exposure cannot be confirmed**\n\nA host port is published, but actual external reachability cannot be confirmed statically."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CRD102",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "CRD102: Credential referenced by workflow for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            },
+            {
+              "id": 5,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 24
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "cef48e34dc562c9179d2a7dc9654d84b86bd9af175b842fe38d9d3909ce8e26b"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM007"
+          }
+        },
+        {
+          "ruleId": "CRD103",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "CRD103: Credential used by multiple jobs for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 22
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "5ae48f2999169f6cbc0d213760007d5adfb123bab36c00649a677cfa62d23f14"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "high",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM007"
+          }
+        },
+        {
+          "ruleId": "CRD104",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "CRD104: Credential used by pull_request_target for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Avoid checking out or executing pull-request head content in this workflow; separate untrusted validation from privileged operations."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "18342d0197b90bebd94215e92f5cb796454271b784be5b213a7a91e30a8bf4ca"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "high",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM005"
+          }
+        },
+        {
+          "ruleId": "CRD201",
+          "ruleIndex": 4,
+          "level": "error",
+          "message": {
+            "text": "CRD201: Workflow grants write permission for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Declare only the specific read or write scopes required by the affected job, preferring job-level least privilege."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "6dbf2b80f6a63de3eefa92c4021935de4dcbecf73ad9d2a3d2baa565d9dc2a43"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM003"
+          }
+        },
+        {
+          "ruleId": "CRD202",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "CRD202: Workflow grants write-all for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Declare only the specific read or write scopes required by the affected job, preferring job-level least privilege."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "373fc3f1e6bff7fa271d378fe04030db64ce1144827f9d5a4a8f8d64374ff705"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM003"
+          }
+        },
+        {
+          "ruleId": "CRD203",
+          "ruleIndex": 6,
+          "level": "error",
+          "message": {
+            "text": "CRD203: Secret passed to shell for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Pass the secret through the narrowest supported secret input or environment scope and prevent command tracing; do not interpolate it into command text."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "974126956cfe9a176b593ec9cbedbb7fa4d49bc2ed9b450231f6759ae8ede6ae"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM008"
+          }
+        },
+        {
+          "ruleId": "CRD204",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "CRD204: Secret passed to third-party action for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "ace184b0e3208d0a08d38647d02317871284f946bb44377c4fee261e89d24657"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM007"
+          }
+        },
+        {
+          "ruleId": "CRD205",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "CRD205: Third-party action uses mutable reference for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Replace the mutable revision with a reviewed full 40-character commit SHA and use dependency automation to track updates."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "5c75d5cd5376aa016118c1e7c0b74bc519d5b7f2992f9098dcf288888f469858"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM006"
+          }
+        },
+        {
+          "ruleId": "CRD208",
+          "ruleIndex": 11,
+          "level": "warning",
+          "message": {
+            "text": "CRD208: Credential reaches production environment for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Use environment-specific credentials and approval controls, with production access restricted to the deployment path."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "a4c97cfaf76557624a40ef93453d627fec7bfcfa8c18b19861010b6887306530"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "medium",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM017"
+          }
+        },
+        {
+          "ruleId": "CRD301",
+          "ruleIndex": 12,
+          "level": "note",
+          "message": {
+            "text": "CRD301: Credential passed to Compose service for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Use a Compose secret or an external secret injection mechanism supported by the deployment environment, scoped to the receiving service."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "29e06927d2afe70f8f0098707ba9f4449a6b46bdc71b2193d22b335c19021e27"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM011"
+          }
+        },
+        {
+          "ruleId": "CRD302",
+          "ruleIndex": 13,
+          "level": "error",
+          "message": {
+            "text": "CRD302: Credential reaches privileged service for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Set privileged to false and grant only the specific capabilities and devices the workload requires."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "ebba765224b52f7cf1f49a38db82757b48225da046e53ca48b6e2b342ef0eac7"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM013"
+          }
+        },
+        {
+          "ruleId": "CRD303",
+          "ruleIndex": 14,
+          "level": "warning",
+          "message": {
+            "text": "CRD303: Credential reaches published host port for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Remove unnecessary port publishing or bind it to an appropriate interface, then enforce host and network access controls."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "6da1ac5ec66f5d4892551658e357aa8a50942f997f0710c56e4434fe88607662"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "medium",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM012"
+          }
+        },
+        {
+          "ruleId": "CRD304",
+          "ruleIndex": 15,
+          "level": "error",
+          "message": {
+            "text": "CRD304: Credential reaches Docker socket mount for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Remove the socket mount; if an integration is unavoidable, use a narrowly authorized proxy and isolate the workload."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "eb857a824ca544e83c12d159440fa5a55dac2da54bab50ee9623f5c95b09acfb"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM014"
+          }
+        },
+        {
+          "ruleId": "CRD305",
+          "ruleIndex": 16,
+          "level": "error",
+          "message": {
+            "text": "CRD305: Credential reaches host-network service for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Use an isolated Compose network and explicitly publish only required ports."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "d813398cff840f7991c12f1213c956a9da0a0b3eba9f5c836bf802f672a3b7bf"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "confirmed",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM015"
+          }
+        },
+        {
+          "ruleId": "CRD307",
+          "ruleIndex": 18,
+          "level": "error",
+          "message": {
+            "text": "CRD307: Credential reaches writable host bind mount for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Remove the bind mount, make it read-only, or replace it with a narrowly scoped managed volume."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "41cf0fcea294c0fb1232bc28976d6ced371c7e36f824c7deecfeb7c0e7b2bbb7"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "high",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM018"
+          }
+        },
+        {
+          "ruleId": "CRD308",
+          "ruleIndex": 19,
+          "level": "note",
+          "message": {
+            "text": "CRD308: Container user cannot be confirmed as non-root for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Set and verify a dedicated numeric non-root user in the image and Compose service, with only required filesystem permissions."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "f38c1001947da87008799ad926356b15fada3df26f62a26517abb3a6036d39c5"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "low",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM016"
+          }
+        },
+        {
+          "ruleId": "CRD401",
+          "ruleIndex": 20,
+          "level": "error",
+          "message": {
+            "text": "CRD401: Credential shared across CI and runtime for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Issue separate least-privilege credentials for CI and runtime services, with independent rotation and revocation."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            },
+            {
+              "id": 5,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 24
+                }
+              }
+            },
+            {
+              "id": 6,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            },
+            {
+              "id": 7,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 8,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 9,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 10,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "1cd2f67d82ff9dc1234cc9b242da974009d10052ba200cf7d78394488dbf244a"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "high",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM010"
+          }
+        },
+        {
+          "ruleId": "CRD402",
+          "ruleIndex": 21,
+          "level": "error",
+          "message": {
+            "text": "CRD402: Credential reaches multiple production components for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Use environment-specific credentials and approval controls, with production access restricted to the deployment path."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 5,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "767b65f6c5cf20d7f1c4bf28e1cac784f4681150ac06443fe60e1a33ae19ecfa"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "medium",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM017"
+          }
+        },
+        {
+          "ruleId": "CRD403",
+          "ruleIndex": 22,
+          "level": "error",
+          "message": {
+            "text": "CRD403: Credential reaches write permission and deployment environment for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Declare only the specific read or write scopes required by the affected job, preferring job-level least privilege."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "84e2da8cce7c716a31d6246b61a1f811d44c7abb0eb2ee3b2eff4c366e3c222e"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "high",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM003"
+          }
+        },
+        {
+          "ruleId": "CRD404",
+          "ruleIndex": 23,
+          "level": "warning",
+          "message": {
+            "text": "CRD404: Credential has multiple independent reachability paths for CRITICAL_DEMO_TOKEN. Blast-radius score 100/100. Recommended action: Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 4
+                }
+              }
+            },
+            {
+              "id": 2,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 3,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 11
+                }
+              }
+            },
+            {
+              "id": 4,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            },
+            {
+              "id": 5,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17
+                }
+              }
+            },
+            {
+              "id": 6,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 19
+                }
+              }
+            },
+            {
+              "id": 7,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 22
+                }
+              }
+            },
+            {
+              "id": 8,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/critical.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 24
+                }
+              }
+            },
+            {
+              "id": 9,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3
+                }
+              }
+            },
+            {
+              "id": 10,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5
+                }
+              }
+            },
+            {
+              "id": 11,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7
+                }
+              }
+            },
+            {
+              "id": 12,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 9
+                }
+              }
+            },
+            {
+              "id": 13,
+              "message": {
+                "text": "Related static evidence"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "compose.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v1": "0cef130535860578eeb4a4822a0ffea37436a9799da4e02d05b3650d6ead312e"
+          },
+          "properties": {
+            "credentialId": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+            "credential": "CRITICAL_DEMO_TOKEN",
+            "blastRadiusScore": 100,
+            "confidence": "high",
+            "policyVersion": "v1",
+            "ruleCatalogVersion": "v1",
+            "remediationId": "REM007"
+          }
+        }
+      ]
+    }
+  ]
+}

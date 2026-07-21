@@ -1,17 +1,29 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 
+	"github.com/credscope/credscope/internal/analysis"
 	"github.com/credscope/credscope/internal/config"
 	"github.com/credscope/credscope/internal/discovery"
+	"github.com/credscope/credscope/internal/domain"
 	"github.com/credscope/credscope/internal/ingest"
+	"github.com/credscope/credscope/internal/reporters"
+	htmlreport "github.com/credscope/credscope/internal/reporters/html"
+	jsonreport "github.com/credscope/credscope/internal/reporters/jsonreport"
+	mermaidreport "github.com/credscope/credscope/internal/reporters/mermaid"
+	sarifreport "github.com/credscope/credscope/internal/reporters/sarif"
+	terminalreport "github.com/credscope/credscope/internal/reporters/terminal"
 	"github.com/credscope/credscope/internal/rules"
+	"github.com/credscope/credscope/internal/safefile"
 	"github.com/credscope/credscope/internal/sanitizer"
 	"github.com/spf13/cobra"
 )
@@ -29,11 +41,14 @@ type BuildInfo struct {
 func Execute(info BuildInfo) int {
 	cmd := NewRootCommand(info, os.Stdout, os.Stderr)
 	if err := cmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "credscope: %s\n", sanitizer.TerminalText(err.Error()))
 		var coded *codedError
 		if errors.As(err, &coded) {
+			if !coded.silent {
+				fmt.Fprintf(os.Stderr, "credscope: %s\n", sanitizer.TerminalText(err.Error()))
+			}
 			return coded.code
 		}
+		fmt.Fprintf(os.Stderr, "credscope: %s\n", sanitizer.TerminalText(err.Error()))
 		return ExitUsage
 	}
 	return ExitOK
@@ -42,6 +57,10 @@ func Execute(info BuildInfo) int {
 // NewRootCommand creates a command tree without global mutable state, which keeps
 // embedding and tests deterministic.
 func NewRootCommand(info BuildInfo, stdout, stderr io.Writer) *cobra.Command {
+	return newRootCommand(info, stdout, stderr, time.Now)
+}
+
+func newRootCommand(info BuildInfo, stdout, stderr io.Writer, clock func() time.Time) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "credscope",
 		Short:         "Map the blast radius of leaked credentials",
@@ -50,7 +69,7 @@ func NewRootCommand(info BuildInfo, stdout, stderr io.Writer) *cobra.Command {
 	}
 	root.SetOut(stdout)
 	root.SetErr(stderr)
-	root.AddCommand(newScanCommand(), newVersionCommand(info), newRulesCommand(), newExplainCommand())
+	root.AddCommand(newScanCommand(info, clock), newVersionCommand(info), newRulesCommand(), newExplainCommand())
 	return root
 }
 
@@ -68,25 +87,25 @@ type scanOptions struct {
 	verbose      bool
 }
 
-func newScanCommand() *cobra.Command {
+func newScanCommand(info BuildInfo, clock func() time.Time) *cobra.Command {
 	var opts scanOptions
 	cmd := &cobra.Command{
 		Use:   "scan [repository]",
-		Short: "Discover and validate supported security-analysis inputs",
+		Short: "Analyze credential blast radius and produce a report",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := "."
 			if len(args) == 1 {
 				root = args[0]
 			}
-			return runInputScan(cmd, root, opts)
+			return runScan(cmd, root, opts, info, clock)
 		},
 	}
 	f := cmd.Flags()
 	f.StringVar(&opts.gitleaksPath, "gitleaks-report", "", "path to a Gitleaks JSON report")
 	f.StringVarP(&opts.format, "format", "f", "terminal", "report format: terminal, json, sarif, html, or mermaid")
 	f.StringVarP(&opts.output, "output", "o", "", "write report to path")
-	f.StringVar(&opts.failOn, "fail-on", "none", "failure threshold: none, low, medium, high, or critical")
+	f.StringVar(&opts.failOn, "fail-on", "none", "failure threshold: none, informational, low, medium, high, or critical")
 	f.IntVar(&opts.minimumScore, "minimum-score", 0, "minimum score to report (0-100)")
 	f.StringSliceVar(&opts.include, "include", nil, "additional repository-relative include pattern")
 	f.StringSliceVar(&opts.exclude, "exclude", nil, "repository-relative exclude pattern")
@@ -97,7 +116,7 @@ func newScanCommand() *cobra.Command {
 	return cmd
 }
 
-func runInputScan(cmd *cobra.Command, root string, opts scanOptions) error {
+func runScan(cmd *cobra.Command, root string, opts scanOptions, info BuildInfo, clock func() time.Time) error {
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
 		return &codedError{code: ExitUsage, err: fmt.Errorf("resolve repository root: %w", err)}
@@ -121,9 +140,11 @@ func runInputScan(cmd *cobra.Command, root string, opts scanOptions) error {
 	if err := cfg.Validate(); err != nil {
 		return &codedError{code: ExitUsage, err: err}
 	}
-	if cfg.Output.Format != "terminal" || cfg.Output.Path != "" {
-		return &codedError{code: ExitUsage, err: fmt.Errorf("report output is not implemented in Phase 2; use terminal format without --output")}
+	selectedReporter, err := reporterFor(cfg.Output.Format)
+	if err != nil {
+		return &codedError{code: ExitUsage, err: err}
 	}
+	started := clock().UTC()
 
 	finder, err := discovery.New(absRoot, discovery.Options{
 		Includes: cfg.Scan.Include,
@@ -153,28 +174,84 @@ func runInputScan(cmd *cobra.Command, root string, opts scanOptions) error {
 		return &codedError{code: ExitMalformedInput, err: err}
 	}
 
-	if cfg.Output.Quiet {
-		return nil
-	}
-	writer := cmd.OutOrStdout()
-	fmt.Fprintf(writer, "%s %s\n", productName, sanitizer.TerminalText("inputs"))
-	fmt.Fprintf(writer, "Repository: %s\n", sanitizer.TerminalText(absRoot))
-	fmt.Fprintln(writer, "Discovered inputs:")
-	if len(files) == 0 {
-		fmt.Fprintln(writer, "  (none)")
-	}
-	for _, file := range files {
-		rel, relErr := filepath.Rel(absRoot, file.Path)
-		if relErr != nil {
-			rel = file.Path
+	disabledRules := make(map[string]bool)
+	disabledRuleIDs := make([]string, 0)
+	for id, ruleConfig := range cfg.Rules {
+		if !ruleConfig.Enabled {
+			disabledRules[id] = true
+			disabledRuleIDs = append(disabledRuleIDs, id)
 		}
-		fmt.Fprintf(writer, "  %s  %s\n", file.Kind, sanitizer.TerminalText(filepath.ToSlash(rel)))
 	}
-	if cfg.Output.Verbose {
-		fmt.Fprintf(writer, "Configuration: fail-on=%s minimum-score=%d format=%s\n", cfg.Risk.FailOn, cfg.Risk.MinimumScore, cfg.Output.Format)
-		fmt.Fprintf(writer, "Parsed inputs: findings=%d workflows=%d compose-projects=%d\n", len(parsed.Findings), len(parsed.Workflows), len(parsed.Compose))
+	sort.Strings(disabledRuleIDs)
+	analyzed, err := analysis.Analyze(cmd.Context(), parsed, analysis.Options{DisabledRules: disabledRules})
+	if err != nil {
+		return &codedError{code: ExitInternal, err: fmt.Errorf("analyze repository: %w", err)}
+	}
+	exceeded := reporters.ThresholdExceeded(analyzed, cfg.Risk.FailOn, cfg.Risk.MinimumScore)
+	completed := clock().UTC()
+	repositoryName := sanitizer.TerminalText(filepath.Base(absRoot))
+	if repositoryName == "" || repositoryName == "." {
+		repositoryName = "repository"
+	}
+	input := reporters.Input{
+		Tool:           reporters.Tool{Name: productName, Version: sanitizer.TerminalText(info.Version), Commit: sanitizer.TerminalText(info.Commit)},
+		Scan:           reporters.Scan{Repository: repositoryName, StartedAt: started, CompletedAt: completed, FailOn: cfg.Risk.FailOn, MinimumScore: cfg.Risk.MinimumScore, Format: cfg.Output.Format, ThresholdExceeded: exceeded, Includes: append([]string{}, cfg.Scan.Include...), Excludes: append([]string{}, cfg.Scan.Exclude...), DisabledRules: disabledRuleIDs, NoColor: cfg.Output.NoColor, Quiet: cfg.Output.Quiet, Verbose: cfg.Output.Verbose},
+		Analysis:       analyzed,
+		ParserWarnings: append([]domain.ParseWarning{}, parsed.Warnings...),
+	}
+	color := cfg.Output.Format == "terminal" && !cfg.Output.NoColor && writerIsTerminal(cmd.OutOrStdout())
+	reportOptions := reporters.Options{Verbose: cfg.Output.Verbose, Quiet: cfg.Output.Quiet, Color: color, Pretty: cfg.Output.Path != ""}
+	if err := selectedReporter.Validate(reportOptions); err != nil {
+		return &codedError{code: ExitUsage, err: fmt.Errorf("validate %s report options: %w", cfg.Output.Format, err)}
+	}
+	var rendered bytes.Buffer
+	if err := selectedReporter.Render(&rendered, input, reportOptions); err != nil {
+		return &codedError{code: ExitInternal, err: fmt.Errorf("render %s report: %w", cfg.Output.Format, err)}
+	}
+	if cfg.Output.Path == "" {
+		if _, err := cmd.OutOrStdout().Write(rendered.Bytes()); err != nil {
+			return &codedError{code: ExitInternal, err: fmt.Errorf("write %s report to stdout: %w", cfg.Output.Format, err)}
+		}
+	} else {
+		protected := make([]string, 0, len(files)+2)
+		for _, file := range files {
+			protected = append(protected, file.Path)
+		}
+		protected = append(protected, cfgPath, resolvedGitleaks)
+		if err := safefile.WriteReportProtected(absRoot, cfg.Output.Path, rendered.Bytes(), protected); err != nil {
+			return &codedError{code: ExitInternal, err: fmt.Errorf("write report: %w", err)}
+		}
+	}
+	if exceeded {
+		return &codedError{code: ExitThreshold, err: errors.New("configured risk threshold exceeded"), silent: true}
 	}
 	return nil
+}
+
+func reporterFor(format string) (reporters.Reporter, error) {
+	switch format {
+	case "terminal":
+		return terminalreport.New(), nil
+	case "json":
+		return jsonreport.New(), nil
+	case "sarif":
+		return sarifreport.New(), nil
+	case "html":
+		return htmlreport.New(), nil
+	case "mermaid":
+		return mermaidreport.New(), nil
+	default:
+		return nil, fmt.Errorf("unsupported report format %q", sanitizer.TerminalText(format))
+	}
+}
+
+func writerIsTerminal(writer io.Writer) bool {
+	file, ok := writer.(*os.File)
+	if !ok {
+		return false
+	}
+	info, err := file.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
 }
 
 func applyCLIOverrides(cmd *cobra.Command, cfg *config.Config, opts scanOptions) {
