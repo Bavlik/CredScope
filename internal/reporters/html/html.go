@@ -36,6 +36,7 @@ type credential struct {
 	Score                       int
 	Reachable                   domain.ReachableCounts
 	Paths                       []string
+	PathsOmitted                int
 	Contributions               []contribution
 	Remediations                []remediation
 	Warnings                    []string
@@ -54,7 +55,8 @@ type graphEdge struct{ ID, From, To, Relationship string }
 func (Reporter) Render(writer io.Writer, input reporters.Input, _ reporters.Options) error {
 	data := page{ToolName: safe(input.Tool.Name), ToolVersion: safe(input.Tool.Version), Repository: safe(input.Scan.Repository), Started: input.Scan.StartedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), Completed: input.Scan.CompletedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), Policy: safe(input.Analysis.PolicyVersion), Catalog: safe(input.Analysis.RuleCatalogVersion), Summary: reporters.Summarize(input)}
 	for _, item := range reporters.OrderedCredentials(input, false) {
-		view := credential{Label: safe(item.Credential.Label), Severity: strings.ToUpper(safe(string(item.Severity))), Confidence: title(string(item.Confidence.Overall)), Score: item.Score, Reachable: item.Reachable, Warnings: safeStrings(item.Warnings), Paths: htmlPaths(item.EvidencePaths)}
+		selection := reporters.SelectEvidencePaths(input.Analysis.Graph, item.EvidencePaths, reporters.HTMLEvidencePathLimit)
+		view := credential{Label: safe(item.Credential.Label), Severity: strings.ToUpper(safe(string(item.Severity))), Confidence: title(string(item.Confidence.Overall)), Score: item.Score, Reachable: item.Reachable, Warnings: safeStrings(item.Warnings), Paths: htmlPaths(selection.Paths), PathsOmitted: selection.Omitted}
 		for _, factor := range item.Contributions {
 			view.Contributions = append(view.Contributions, contribution{Points: factor.FinalContribution, RuleID: safe(factor.RuleID), Description: safe(factor.Description), Confidence: title(string(factor.Confidence))})
 		}
@@ -93,7 +95,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, _ reporters.Opti
 }
 
 func htmlPaths(paths []domain.EvidencePath) []string {
-	set := make(map[string]struct{})
+	result := make([]string, 0, len(paths))
 	for _, path := range paths {
 		if len(path.Nodes) < 2 {
 			continue
@@ -102,15 +104,7 @@ func htmlPaths(paths []domain.EvidencePath) []string {
 		for _, node := range path.Nodes {
 			labels = append(labels, safe(node.Label))
 		}
-		set[strings.Join(labels, " → ")] = struct{}{}
-	}
-	result := make([]string, 0, len(set))
-	for item := range set {
-		result = append(result, item)
-	}
-	sort.Strings(result)
-	if len(result) > 40 {
-		result = result[:40]
+		result = append(result, strings.Join(labels, " → "))
 	}
 	return result
 }
@@ -146,7 +140,7 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!doctype html>
 <header><h1>CredScope security analysis</h1><p class="muted">{{.ToolName}} {{.ToolVersion}} · Repository {{.Repository}} · Scoring {{.Policy}} · Rules {{.Catalog}}</p><p class="muted">Scan {{.Started}} – {{.Completed}}</p></header>
 <main>
 <section aria-labelledby="summary"><h2 id="summary">Summary</h2><div class="grid"><div class="card"><div class="metric">{{.Summary.CredentialCount}}</div>Credentials</div><div class="card"><div class="metric">{{.Summary.HighestScore}}</div>Highest score</div><div class="card"><div class="metric">{{.Summary.Critical}}</div>Critical</div><div class="card"><div class="metric">{{.Summary.High}}</div>High</div><div class="card"><div class="metric">{{.Summary.Medium}}</div>Medium</div></div></section>
-<section aria-labelledby="credentials"><h2 id="credentials">Credential analyses</h2>{{if not .Credentials}}<p>No credential blast-radius paths were identified from the available static evidence.</p>{{end}}{{range .Credentials}}<article class="credential"><h3>{{.Severity}} — {{.Label}}</h3><div class="score">{{.Score}}/100</div><p><span class="pill">Confidence {{.Confidence}}</span><span class="pill">Workflows {{.Reachable.Workflows}}</span><span class="pill">Jobs {{.Reachable.Jobs}}</span><span class="pill">Services {{.Reachable.Services}}</span></p><details><summary>Score breakdown</summary><table><thead><tr><th>Points</th><th>Rule</th><th>Description</th><th>Confidence</th></tr></thead><tbody>{{range .Contributions}}<tr><td>+{{.Points}}</td><td>{{.RuleID}}</td><td>{{.Description}}</td><td>{{.Confidence}}</td></tr>{{end}}</tbody></table></details><details><summary>Evidence paths</summary><ul>{{range .Paths}}<li><code>{{.}}</code></li>{{else}}<li>No reachable path details.</li>{{end}}</ul></details><details open><summary>Recommended actions</summary><ol>{{range .Remediations}}<li><strong>{{.Title}}</strong> ({{.ID}}, priority {{.Priority}}, {{.Confidence}})<br>{{.Why}}<br>{{.Action}}</li>{{else}}<li>No rule-based recommendation was triggered.</li>{{end}}</ol></details>{{if .Warnings}}<details><summary>Limitations</summary><ul>{{range .Warnings}}<li>{{.}}</li>{{end}}</ul></details>{{end}}</article>{{end}}</section>
+<section aria-labelledby="credentials"><h2 id="credentials">Credential analyses</h2>{{if not .Credentials}}<p>No credential blast-radius paths were identified from the available static evidence.</p>{{end}}{{range .Credentials}}<article class="credential"><h3>{{.Severity}} — {{.Label}}</h3><div class="score">{{.Score}}/100</div><p><span class="pill">Confidence {{.Confidence}}</span><span class="pill">Workflows {{.Reachable.Workflows}}</span><span class="pill">Jobs {{.Reachable.Jobs}}</span><span class="pill">Services {{.Reachable.Services}}</span></p><details><summary>Score breakdown</summary><table><thead><tr><th>Points</th><th>Rule</th><th>Description</th><th>Confidence</th></tr></thead><tbody>{{range .Contributions}}<tr><td>+{{.Points}}</td><td>{{.RuleID}}</td><td>{{.Description}}</td><td>{{.Confidence}}</td></tr>{{end}}</tbody></table></details><details><summary>Highest-value evidence paths</summary><ul>{{range .Paths}}<li><code>{{.}}</code></li>{{else}}<li>No reachable path details.</li>{{end}}</ul>{{if .PathsOmitted}}<p class="muted">{{.PathsOmitted}} additional relevant paths are omitted from this view. The bounded graph table below retains the corresponding components and relationships.</p>{{end}}</details><details open><summary>Recommended actions</summary><ol>{{range .Remediations}}<li><strong>{{.Title}}</strong> ({{.ID}}, priority {{.Priority}}, {{.Confidence}})<br>{{.Why}}<br>{{.Action}}</li>{{else}}<li>No rule-based recommendation was triggered.</li>{{end}}</ol></details>{{if .Warnings}}<details><summary>Limitations</summary><ul>{{range .Warnings}}<li>{{.}}</li>{{end}}</ul></details>{{end}}</article>{{end}}</section>
 <section aria-labelledby="graph"><h2 id="graph">Static reachability graph</h2>{{if .GraphNote}}<p>{{.GraphNote}}</p>{{end}}<details><summary>Nodes ({{len .Nodes}})</summary><table><thead><tr><th>ID</th><th>Type</th><th>Label</th></tr></thead><tbody>{{range .Nodes}}<tr><td><code>{{.ID}}</code></td><td>{{.Type}}</td><td>{{.Label}}</td></tr>{{end}}</tbody></table></details><details><summary>Edges ({{len .Edges}})</summary><table><thead><tr><th>From</th><th>Relationship</th><th>To</th></tr></thead><tbody>{{range .Edges}}<tr><td><code>{{.From}}</code></td><td>{{.Relationship}}</td><td><code>{{.To}}</code></td></tr>{{end}}</tbody></table></details></section>
 {{if .Warnings}}<section aria-labelledby="warnings"><h2 id="warnings">Repository warnings</h2><ul>{{range .Warnings}}<li>{{.}}</li>{{end}}</ul></section>{{end}}
 </main><footer><p>Static evidence only. CredScope does not validate credentials, inspect cloud IAM, or confirm external network exposure.</p></footer>

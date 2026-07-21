@@ -7,14 +7,27 @@ import (
 	"github.com/credscope/credscope/internal/domain"
 )
 
-const DefaultMaxDepth = 12
+const (
+	DefaultMaxDepth         = 12
+	DefaultMaxEvidencePaths = 10000
+)
 
 // Traverse returns every distinct path prefix reachable from start. A node may
 // occur only once in a path, so cyclic graphs terminate without losing distinct
 // acyclic evidence paths.
 func Traverse(input domain.Graph, start string, maxDepth int) []domain.EvidencePath {
+	paths, _ := TraverseLimited(input, start, maxDepth, DefaultMaxEvidencePaths)
+	return paths
+}
+
+// TraverseLimited additionally bounds the number of path prefixes retained.
+// The boolean result reports that the bound was reached.
+func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) ([]domain.EvidencePath, bool) {
 	if maxDepth <= 0 {
 		maxDepth = DefaultMaxDepth
+	}
+	if maxPaths <= 0 {
+		maxPaths = DefaultMaxEvidencePaths
 	}
 	nodes := make(map[string]domain.Node, len(input.Nodes))
 	adjacent := make(map[string][]domain.Edge)
@@ -22,7 +35,7 @@ func Traverse(input domain.Graph, start string, maxDepth int) []domain.EvidenceP
 		nodes[node.ID] = node
 	}
 	if _, ok := nodes[start]; !ok {
-		return []domain.EvidencePath{}
+		return []domain.EvidencePath{}, false
 	}
 	for _, edge := range input.Edges {
 		if _, fromOK := nodes[edge.From]; !fromOK {
@@ -38,9 +51,13 @@ func Traverse(input domain.Graph, start string, maxDepth int) []domain.EvidenceP
 	}
 	startNode := pathNode(nodes[start])
 	var paths []domain.EvidencePath
+	limitExceeded := false
 	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence)
 	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence) {
 		for _, edge := range adjacent[current] {
+			if limitExceeded {
+				return
+			}
 			if visited[edge.To] {
 				continue
 			}
@@ -51,6 +68,10 @@ func Traverse(input domain.Graph, start string, maxDepth int) []domain.EvidenceP
 			path := domain.EvidencePath{CredentialID: start, Nodes: nextNodes, Edges: nextEdges, Confidence: nextConfidence, Truncated: truncated}
 			path.ID = stableID("path", pathKey(path))
 			paths = append(paths, path)
+			if len(paths) >= maxPaths {
+				limitExceeded = true
+				return
+			}
 			if len(nextEdges) >= maxDepth {
 				continue
 			}
@@ -69,7 +90,7 @@ func Traverse(input domain.Graph, start string, maxDepth int) []domain.EvidenceP
 		paths = append(paths, path)
 	}
 	sort.Slice(paths, func(i, j int) bool { return paths[i].ID < paths[j].ID })
-	return paths
+	return paths, limitExceeded
 }
 
 func pathNode(node domain.Node) domain.PathNode {

@@ -87,7 +87,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 		Scan:               scan{Repository: input.Scan.Repository, StartedAt: timestamp(input.Scan.StartedAt), CompletedAt: timestamp(input.Scan.CompletedAt), DurationMillis: duration.Milliseconds(), Format: input.Scan.Format, FailOn: input.Scan.FailOn, MinimumScore: input.Scan.MinimumScore, ThresholdExceeded: input.Scan.ThresholdExceeded, Configuration: configuration{Includes: includes, Excludes: excludes, DisabledRules: disabledRules, NoColor: input.Scan.NoColor, Quiet: input.Scan.Quiet, Verbose: input.Scan.Verbose}},
 		Policies:           policies{ScoringPolicy: input.Analysis.PolicyVersion, RuleCatalog: input.Analysis.RuleCatalogVersion},
 		Summary:            reporters.Summarize(input),
-		Credentials:        reporters.OrderedCredentials(input, false),
+		Credentials:        compactCredentials(reporters.OrderedCredentials(input, false)),
 		Graph:              input.Analysis.Graph,
 		RepositoryWarnings: warnings,
 		ParserWarnings:     parserWarnings,

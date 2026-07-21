@@ -7,12 +7,13 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 )
 
 func TestArgumentsPreserveSpacesAndShellMetacharacters(t *testing.T) {
-	input := Inputs{Path: "repo with spaces;touch injected", GitleaksReport: "reports/gitleaks file.json", Config: "config files/safe.yml", Format: "sarif", Output: "reports/result file.sarif", FailOn: "high", MinimumScore: 40, Verbose: true, NoColor: true}
+	input := Inputs{Path: "repo with spaces;& $(touch) `quoted`", GitleaksReport: "reports/gitleaks file.json", Config: "config files/safe.yml", Format: "sarif", Output: "reports/result file.sarif", FailOn: "high", MinimumScore: 40, Verbose: true, NoColor: true}
 	want := []string{"scan", input.Path, "--gitleaks-report", input.GitleaksReport, "--config", input.Config, "--format", "sarif", "--fail-on", "high", "--minimum-score", "40", "--output", input.Output, "--verbose=true", "--no-color=true"}
 	if got := Arguments(input); !reflect.DeepEqual(got, want) {
 		t.Fatalf("arguments = %#v, want %#v", got, want)
@@ -58,6 +59,30 @@ func TestSummaryParsingAndArguments(t *testing.T) {
 	}
 	if summary.HighestSeverity != "critical" || summary.HighestScore != 100 || summary.Credentials != 3 {
 		t.Fatalf("summary = %#v", summary)
+	}
+}
+
+func TestSummaryParsingClassifiesCleanInformationalAndCriticalResults(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		document string
+		severity string
+		score    int
+		count    int
+	}{
+		{name: "clean", document: `{"summary":{"credential_count":0,"highest_score":0}}`, severity: "none"},
+		{name: "informational", document: `{"summary":{"credential_count":1,"informational":1,"highest_score":12}}`, severity: "informational", score: 12, count: 1},
+		{name: "critical", document: `{"summary":{"credential_count":2,"high":1,"critical":1,"highest_score":100}}`, severity: "critical", score: 100, count: 2},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			summary, err := parseSummary([]byte(test.document))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if summary.HighestSeverity != test.severity || summary.HighestScore != test.score || summary.Credentials != test.count {
+				t.Fatalf("summary = %#v", summary)
+			}
+		})
 	}
 }
 
@@ -146,9 +171,43 @@ func TestRunPreservesMalformedInputAndClassifiesBuildFailure(t *testing.T) {
 	if len(malformed.commands) != 2 {
 		t.Fatalf("malformed input unexpectedly triggered summary scan: %d commands", len(malformed.commands))
 	}
+	if data, err := os.ReadFile(outputFile); err != nil || string(data) != "report-path=\nhighest-score=0\nhighest-severity=none\ncredentials-analyzed=0\nthreshold-exceeded=false\n" {
+		t.Fatalf("malformed input outputs = %q, err=%v", data, err)
+	}
 	buildFailure := &fakeExecutor{codes: []int{1}}
 	if code := run(context.Background(), get, ioDiscard{}, ioDiscard{}, buildFailure); code != exitInternal {
 		t.Fatalf("build failure exit = %d, want %d", code, exitInternal)
+	}
+}
+
+func TestRunPropagatesEveryPrimaryExitClass(t *testing.T) {
+	for _, primaryCode := range []int{0, 1, 2, 3, 4} {
+		t.Run(strconv.Itoa(primaryCode), func(t *testing.T) {
+			root := t.TempDir()
+			outputFile := filepath.Join(root, "github-output")
+			if err := os.WriteFile(outputFile, nil, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			env := map[string]string{
+				"GITHUB_ACTION_PATH": root, "GITHUB_WORKSPACE": root, "RUNNER_TEMP": filepath.Join(root, "runner"), "GITHUB_OUTPUT": outputFile,
+				"INPUT_PATH": ".", "INPUT_FORMAT": "json", "INPUT_FAIL_ON": "none", "INPUT_MINIMUM_SCORE": "0", "INPUT_VERBOSE": "false", "INPUT_NO_COLOR": "true",
+			}
+			codes := []int{0, primaryCode}
+			if primaryCode == 0 || primaryCode == 1 {
+				codes = append(codes, 0)
+			}
+			fake := &fakeExecutor{codes: codes, summary: `{"summary":{"credential_count":0,"highest_score":0}}`}
+			if got := run(context.Background(), func(key string) string { return env[key] }, ioDiscard{}, ioDiscard{}, fake); got != primaryCode {
+				t.Fatalf("primary exit %d propagated as %d", primaryCode, got)
+			}
+			data, err := os.ReadFile(outputFile)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(data), "threshold-exceeded="+strconv.FormatBool(primaryCode == 1)) {
+				t.Fatalf("outputs for exit %d: %s", primaryCode, data)
+			}
+		})
 	}
 }
 

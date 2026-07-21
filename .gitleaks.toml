@@ -16,3 +16,14 @@ paths = [
   '''^docs/examples/credscope-report\.json$''',
   '''^docs/examples/credscope\.sarif$''',
 ]
+
+[[allowlists]]
+description = "Git-ignored local toolchains, build outputs, and temporary reports are never release inputs"
+paths = [
+  '''^\.tools/''',
+  '''^\.tmp-build/''',
+  '''^\.tmp-reports/''',
+  '''^dist/''',
+  '''^testdata/vulnerable/\.tmp/''',
+  '''^testdata/vulnerable/phase6/''',
+]

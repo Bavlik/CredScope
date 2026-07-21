@@ -2,14 +2,19 @@ package jsonreport
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/credscope/credscope/internal/analysis"
+	"github.com/credscope/credscope/internal/config"
 	"github.com/credscope/credscope/internal/domain"
+	"github.com/credscope/credscope/internal/ingest"
 	"github.com/credscope/credscope/internal/reporters"
 )
 
@@ -64,6 +69,60 @@ func TestJSONEmptyResultIsValid(t *testing.T) {
 	}
 	if decoded.Credentials == nil || decoded.Graph.Nodes == nil || decoded.Graph.Edges == nil {
 		t.Fatalf("empty arrays must be present: %s", output.String())
+	}
+}
+
+func TestVulnerableFixtureJSONIsCompactAndReferencesExistingPaths(t *testing.T) {
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", "testdata", "vulnerable"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := ingest.Repository(context.Background(), root, config.Default(), filepath.Join(root, "gitleaks.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := analysis.Analyze(context.Background(), parsed, analysis.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	input := reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: "vulnerable", StartedAt: time.Unix(10, 0), CompletedAt: time.Unix(11, 0), Format: "json"}, Analysis: result}
+	var output bytes.Buffer
+	if err := New().Render(&output, input, reporters.Options{Pretty: true}); err != nil {
+		t.Fatal(err)
+	}
+	const maximumFixtureBytes = 1_500_000
+	if output.Len() > maximumFixtureBytes {
+		t.Fatalf("vulnerable JSON = %d bytes, want <= %d", output.Len(), maximumFixtureBytes)
+	}
+	var decoded document
+	if err := json.Unmarshal(output.Bytes(), &decoded); err != nil {
+		t.Fatal(err)
+	}
+	for _, credential := range decoded.Credentials {
+		paths := make(map[string]bool, len(credential.EvidencePaths))
+		for _, path := range credential.EvidencePaths {
+			if paths[path.ID] {
+				t.Fatalf("duplicate path ID %s", path.ID)
+			}
+			paths[path.ID] = true
+			for _, edge := range path.Edges {
+				if len(edge.Evidence) != 0 {
+					t.Fatal("path repeats canonical graph edge evidence")
+				}
+			}
+		}
+		for _, match := range credential.MatchedRules {
+			for _, pathID := range match.PathIDs {
+				if !paths[pathID] {
+					t.Fatalf("rule %s references absent path %s", match.RuleID, pathID)
+				}
+			}
+		}
+	}
+	for _, raw := range []string{"FAKE_RAW_SECRET_FOR_TESTS_ONLY", "DEMO_DATABASE_PASSWORD_VALUE_FOR_TESTS_ONLY"} {
+		if strings.Contains(output.String(), raw) {
+			t.Fatalf("JSON leaked known synthetic raw secret %q", raw)
+		}
 	}
 }
 

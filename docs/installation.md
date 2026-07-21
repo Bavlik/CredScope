@@ -1,6 +1,6 @@
 # Installation
 
-CredScope is pre-release. No tag, GitHub Release, installer, package-manager entry, or container image exists yet.
+CredScope is a local `v0.1.0` release candidate. No tag, GitHub Release, installer, package-manager entry, or container image exists yet.
 
 ## Current supported method
 
@@ -28,7 +28,7 @@ go run ./cmd/credscope scan testdata/vulnerable --gitleaks-report gitleaks.json 
 
 ## After the first release
 
-GoReleaser is configured to produce archives for Linux amd64/arm64, macOS amd64/arm64, and Windows amd64, plus SHA-256 checksums. After Phase 6 verifies the release pipeline and the official repository identity, the project can document concrete download URLs and a tagged command of this form:
+GoReleaser is configured and locally snapshot-tested for Linux amd64/arm64, macOS amd64/arm64, and Windows amd64, plus SHA-256 checksums. After the official repository identity and remote release workflow are verified, the project can document concrete download URLs and a tagged command of this form:
 
 ```text
 go install <verified-module>/cmd/credscope@v0.1.0

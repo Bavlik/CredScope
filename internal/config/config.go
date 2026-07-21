@@ -128,6 +128,11 @@ func (c Config) Validate() error {
 	if c.Output.Quiet && c.Output.Verbose {
 		return fmt.Errorf("output.quiet and output.verbose cannot both be true")
 	}
+	if c.Output.Path != "" {
+		if err := validateOutputPath(c.Output.Path); err != nil {
+			return fmt.Errorf("output.path %q: %w", c.Output.Path, err)
+		}
+	}
 	for _, set := range []struct {
 		name   string
 		values []string
@@ -161,6 +166,22 @@ func validatePattern(pattern string) error {
 	normalized := filepath.ToSlash(pattern)
 	if filepath.IsAbs(pattern) || filepath.VolumeName(pattern) != "" || normalized == ".." || strings.HasPrefix(normalized, "../") {
 		return errors.New("must be repository-relative and cannot traverse parents")
+	}
+	return nil
+}
+
+func validateOutputPath(value string) error {
+	if strings.ContainsRune(value, 0) {
+		return errors.New("contains a NUL byte")
+	}
+	portable := strings.ReplaceAll(value, "\\", "/")
+	cleaned := filepath.ToSlash(filepath.Clean(value))
+	windowsDrive := len(portable) >= 2 && portable[1] == ':'
+	if filepath.IsAbs(value) || filepath.VolumeName(value) != "" || windowsDrive || strings.HasPrefix(portable, "/") {
+		return errors.New("must be relative to the analyzed repository root")
+	}
+	if cleaned == ".." || strings.HasPrefix(cleaned, "../") {
+		return errors.New("must name a file beneath the analyzed repository root")
 	}
 	return nil
 }

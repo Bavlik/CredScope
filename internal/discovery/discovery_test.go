@@ -129,6 +129,19 @@ func TestFindRejectsOversizedSupportedInput(t *testing.T) {
 	}
 }
 
+func TestFindRejectsExcessiveSupportedInputCount(t *testing.T) {
+	root := t.TempDir()
+	writeFixture(t, root, ".github/workflows/a.yml", "name: a")
+	writeFixture(t, root, ".github/workflows/b.yml", "name: b")
+	finder, err := New(root, Options{Includes: defaultIncludes, MaxFiles: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.Find(); err == nil || !strings.Contains(err.Error(), "maximum of 1 files") {
+		t.Fatalf("expected input-count limit, got %v", err)
+	}
+}
+
 func TestNewRejectsUnsafePattern(t *testing.T) {
 	if _, err := New(t.TempDir(), Options{Includes: []string{"../*.yml"}}); err == nil {
 		t.Fatal("expected unsafe pattern error")

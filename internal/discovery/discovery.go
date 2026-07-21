@@ -13,7 +13,10 @@ import (
 	"strings"
 )
 
-const DefaultMaxFileSize int64 = 10 << 20
+const (
+	DefaultMaxFileSize int64 = 10 << 20
+	DefaultMaxFiles          = 10000
+)
 
 type Kind string
 
@@ -33,6 +36,7 @@ type Options struct {
 	Includes    []string
 	Excludes    []string
 	MaxFileSize int64
+	MaxFiles    int
 }
 
 type Finder struct {
@@ -40,6 +44,7 @@ type Finder struct {
 	includes    []matcher
 	excludes    []matcher
 	maxFileSize int64
+	maxFiles    int
 }
 
 type matcher struct {
@@ -59,8 +64,12 @@ func New(root string, opts Options) (*Finder, error) {
 	if err != nil {
 		return nil, fmt.Errorf("inspect repository root %q: %w", abs, err)
 	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		return nil, fmt.Errorf("repository root %q must not be a symbolic link", abs)
+	unsafeRoot, err := isUnsafeLink(abs, info)
+	if err != nil {
+		return nil, fmt.Errorf("inspect repository root link state: %w", err)
+	}
+	if unsafeRoot {
+		return nil, fmt.Errorf("repository root %q must not be a symbolic link or reparse point", abs)
 	}
 	if !info.IsDir() {
 		return nil, fmt.Errorf("repository root %q is not a directory", abs)
@@ -77,6 +86,13 @@ func New(root string, opts Options) (*Finder, error) {
 	if maxSize < 1 {
 		return nil, errors.New("maximum file size must be positive")
 	}
+	maxFiles := opts.MaxFiles
+	if maxFiles == 0 {
+		maxFiles = DefaultMaxFiles
+	}
+	if maxFiles < 1 {
+		return nil, errors.New("maximum discovered file count must be positive")
+	}
 	includes, err := compilePatterns(opts.Includes)
 	if err != nil {
 		return nil, fmt.Errorf("include patterns: %w", err)
@@ -85,7 +101,7 @@ func New(root string, opts Options) (*Finder, error) {
 	if err != nil {
 		return nil, fmt.Errorf("exclude patterns: %w", err)
 	}
-	return &Finder{root: realRoot, includes: includes, excludes: excludes, maxFileSize: maxSize}, nil
+	return &Finder{root: realRoot, includes: includes, excludes: excludes, maxFileSize: maxSize, maxFiles: maxFiles}, nil
 }
 
 // Find walks without following directory symlinks and returns stable ordering.
@@ -107,7 +123,15 @@ func (f *Finder) Find() ([]File, error) {
 			return fmt.Errorf("discovered path escapes repository root: %q", rel)
 		}
 
-		if entry.Type()&os.ModeSymlink != 0 {
+		entryInfo, infoErr := os.Lstat(path)
+		if infoErr != nil {
+			return fmt.Errorf("inspect discovered path %q: %w", rel, infoErr)
+		}
+		unsafeLink, linkErr := isUnsafeLink(path, entryInfo)
+		if linkErr != nil {
+			return fmt.Errorf("inspect discovered path %q link state: %w", rel, linkErr)
+		}
+		if unsafeLink {
 			if entry.IsDir() {
 				return filepath.SkipDir
 			}
@@ -135,6 +159,9 @@ func (f *Finder) Find() ([]File, error) {
 		kind, ok := classify(rel)
 		if !ok {
 			return nil
+		}
+		if len(files) >= f.maxFiles {
+			return fmt.Errorf("supported input count exceeds maximum of %d files", f.maxFiles)
 		}
 		files = append(files, File{Path: path, Kind: kind, Size: info.Size()})
 		return nil
@@ -176,8 +203,12 @@ func (f *Finder) ResolveFile(input string) (string, error) {
 		if statErr != nil {
 			return "", fmt.Errorf("inspect %q: %w", input, statErr)
 		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return "", fmt.Errorf("path %q contains a symbolic link", input)
+		unsafeLink, linkErr := isUnsafeLink(current, info)
+		if linkErr != nil {
+			return "", fmt.Errorf("inspect %q link state: %w", input, linkErr)
+		}
+		if unsafeLink {
+			return "", fmt.Errorf("path %q contains a symbolic link or reparse point", input)
 		}
 	}
 	info, err := os.Stat(abs)
@@ -314,4 +345,11 @@ func isSafeRelative(rel string) bool {
 func withinRoot(root, candidate string) bool {
 	rel, err := filepath.Rel(root, candidate)
 	return err == nil && isSafeRelative(filepath.ToSlash(rel))
+}
+
+func isUnsafeLink(path string, info os.FileInfo) (bool, error) {
+	if info.Mode()&os.ModeSymlink != 0 {
+		return true, nil
+	}
+	return isReparsePoint(path)
 }

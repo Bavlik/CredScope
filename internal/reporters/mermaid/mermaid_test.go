@@ -23,7 +23,7 @@ func TestMermaidStableSanitizedAndNoDirectives(t *testing.T) {
 	if first.String() != second.String() {
 		t.Fatal("Mermaid differs")
 	}
-	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "484b4e581d8c2a20dd82a5cce3b71f27f9788d4530816ffa31e49c179a7dd0a2" {
+	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "2dade3186ecbbcbe343a00dffc06fb2fdfda825b7fe6e5485de730305f7412f6" {
 		t.Fatalf("Mermaid golden hash = %s", got)
 	}
 	output := first.String()
@@ -54,4 +54,36 @@ func TestMermaidEmptyAndBounded(t *testing.T) {
 	if !strings.Contains(bounded.String(), "Graph summarized at 250 nodes") {
 		t.Fatal("missing bound warning")
 	}
+}
+
+func TestMermaidDeduplicatesEquivalentRelationships(t *testing.T) {
+	input := reporters.Input{Analysis: domain.AnalysisResult{Graph: domain.Graph{
+		Nodes: []domain.Node{{ID: "a", Type: domain.NodeCredential, Label: "TOKEN"}, {ID: "b", Type: domain.NodeWorkflow, Label: "workflow"}},
+		Edges: []domain.Edge{{ID: "edge:one", From: "a", To: "b", Type: domain.EdgeReferencedBy}, {ID: "edge:two", From: "a", To: "b", Type: domain.EdgeReferencedBy}},
+	}}}
+	var output bytes.Buffer
+	if err := New().Render(&output, input, reporters.Options{}); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Count(output.String(), "-->|REFERENCED_BY|"); got != 1 {
+		t.Fatalf("equivalent edges emitted %d times:\n%s", got, output.String())
+	}
+}
+
+func FuzzMermaidLabelDoesNotCreateDirectives(f *testing.F) {
+	for _, seed := range []string{`safe`, `"]\nclick x "https://example.invalid"`, `%%{init: {}}`, "```mermaid", `</script>`} {
+		f.Add(seed)
+	}
+	f.Fuzz(func(t *testing.T, value string) {
+		if len(value) > 1<<16 {
+			t.Skip()
+		}
+		got := label(value)
+		lower := strings.ToLower(got)
+		for _, forbidden := range []string{"%%{", "click", "http://", "https://", "\n", "\r"} {
+			if strings.Contains(lower, forbidden) {
+				t.Fatalf("unsafe Mermaid token %q survived in %q", forbidden, got)
+			}
+		}
+	})
 }

@@ -20,11 +20,11 @@ builds:
         goarch: arm64
     flags:
       - -trimpath
-    mod_timestamp: "{{ .CommitTimestamp }}"
+    mod_timestamp: '{{ if index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ else }}{{ .CommitTimestamp }}{{ end }}'
     ldflags:
       - -s -w -buildid=
       - -X main.version=v{{ .Version }}
-      - -X main.commit={{ .FullCommit }}
+      - -X main.commit={{ if index .Env "CREDSCOPE_BUILD_COMMIT" }}{{ index .Env "CREDSCOPE_BUILD_COMMIT" }}{{ else }}{{ .FullCommit }}{{ end }}
       - -X main.date={{ .Env.BUILD_DATE }}
 
 archives:
@@ -35,21 +35,33 @@ archives:
       - goos: windows
         formats: [zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    builds_info:
+      owner: root
+      group: root
+      mode: 0755
+      mtime: "{{ .Env.BUILD_DATE }}"
     files:
-      - LICENSE
-      - README.md
-      - CHANGELOG.md
+      - src: LICENSE
+        info: &archive_file_info
+          owner: root
+          group: root
+          mode: 0644
+          mtime: "{{ .Env.BUILD_DATE }}"
+      - src: README.md
+        info: *archive_file_info
+      - src: CHANGELOG.md
+        info: *archive_file_info
     wrap_in_directory: true
 
 metadata:
-  mod_timestamp: "{{ .CommitTimestamp }}"
+  mod_timestamp: '{{ if index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ else }}{{ .CommitTimestamp }}{{ end }}'
 
 checksum:
   name_template: checksums.txt
   algorithm: sha256
 
 snapshot:
-  version_template: "{{ incpatch .Version }}-next"
+  version_template: '{{ if index .Env "CREDSCOPE_SNAPSHOT_VERSION" }}{{ index .Env "CREDSCOPE_SNAPSHOT_VERSION" }}{{ else }}{{ .Version }}-snapshot{{ end }}'
 
 changelog:
   sort: asc

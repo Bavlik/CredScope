@@ -6,14 +6,14 @@ Repository paths, filenames, configuration, scanner reports, and YAML inputs are
 
 The implementation provides these controls:
 
-- Directory walking remains under a canonical repository root and does not follow symbolic links.
+- Directory walking remains under a canonical repository root and does not follow symbolic links or Windows reparse points.
 - Explicit input files are checked component by component for symlinks and must resolve beneath the root.
 - Recognized inputs are regular files no larger than 10 MiB by default.
-- Common high-volume directories are skipped even when broad include patterns are supplied.
+- Common high-volume directories are skipped even when broad include patterns are supplied, and discovery fails above 10,000 supported inputs.
 - Configuration is limited to 1 MiB, rejects symlinks and non-regular files, accepts one YAML document, and enables strict known-field decoding.
 - Secret values have no field in the scanner-neutral domain model. Identity uses a full, domain-separated SHA-256 fingerprint for correlation, not authentication.
-- Repository-controlled terminal strings have ANSI escapes and control characters removed.
-- Report output uses a root-confined writer that rejects symlink destinations and writes with owner-only permissions.
+- Repository-controlled terminal strings have ANSI, OSC introducers, control characters, and bidirectional/format controls removed. Sanitized display text is bounded to 4,096 runes and identifiers to 256 runes.
+- Report output uses a root-confined writer that rejects symbolic-link and reparse-point components, safely creates confined owner-only parent directories, and writes owner-only staged files.
 - Gitleaks `Secret` and `Match` fields exist only in a private adapter input structure. They are converted immediately to a domain-separated SHA-256 fingerprint and cannot be represented by the public finding model.
 - Gitleaks metadata is checked against the known raw input value before it enters domain models, preventing the same value from being copied through descriptions, tags, paths, or commit metadata.
 - Workflow and Compose YAML is limited to one document, 10 MiB, 64 levels, 100,000 nodes, 50 aliases, and 1 MiB per scalar. Duplicate and complex mapping keys are rejected.
@@ -22,7 +22,7 @@ The implementation provides these controls:
 - YAML syntax errors are converted to typed errors that do not include source snippets.
 - Graph identities are domain-separated hashes of safe structural keys and never contain credential values.
 - Graph edges retain typed, source-located evidence and explicit confidence; missing evidence is not fabricated.
-- Traversal uses per-path cycle detection and a configurable maximum depth (12 by default).
+- Graph construction is bounded to 100,000 nodes and 250,000 edges. Traversal uses per-path cycle detection, a configurable maximum depth (12 by default), at most 10,000 paths per credential, and at most 50,000 paths per repository. Limit exhaustion fails closed rather than silently lowering risk.
 - Rule matching and scoring consume only scanner-neutral parsed models and do not reopen files, execute content, or access the network.
 - Scoring is integer-only, versioned, bounded at 100, and suppresses duplicate rule inflation.
 - Unknown runtime conditions contribute zero points and remain explicit warnings.
@@ -30,7 +30,7 @@ The implementation provides these controls:
 - Reporters operate only on the secret-safe analysis model and a supplied writer; they cannot open repository paths, run processes, or make network requests.
 - Machine-readable stdout contains report data only. Diagnostics are written to stderr.
 - HTML uses contextual escaping, no JavaScript or external resources, and a restrictive Content Security Policy.
-- Mermaid labels remove directives, external URLs, control characters, and graph-breaking syntax; click directives are never emitted.
+- Mermaid labels remove directives, external URLs, control characters, and graph-breaking syntax; click directives are never emitted, labels are bounded, and equivalent source/type/target edges are emitted once.
 - SARIF locations are repository-relative and include a line only when evidence provides one.
 - Reports are completely rendered before owner-only staged publication, and detected analysis inputs cannot be overwritten.
 

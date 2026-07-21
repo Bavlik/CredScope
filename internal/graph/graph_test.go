@@ -67,6 +67,24 @@ func TestMutableGraphDeduplicatesEquivalentNodesAndEdges(t *testing.T) {
 	}
 }
 
+func TestMutableGraphEnforcesNodeAndEdgeLimits(t *testing.T) {
+	g := newMutableWithLimits(2, 1)
+	a := g.addNode(domain.NodeCredential, "a", "a", nil, nil, nil, domain.ConfidenceConfirmed)
+	b := g.addNode(domain.NodeJob, "b", "b", nil, nil, nil, domain.ConfidenceConfirmed)
+	if id := g.addNode(domain.NodeJob, "c", "c", nil, nil, nil, domain.ConfidenceConfirmed); id != "" {
+		t.Fatalf("node beyond limit received ID %q", id)
+	}
+	if id := g.addEdge(a, b, domain.EdgePassedTo, nil, domain.ConfidenceConfirmed); id == "" {
+		t.Fatal("first edge was rejected")
+	}
+	if id := g.addEdge(b, a, domain.EdgeDependsOn, nil, domain.ConfidenceConfirmed); id != "" {
+		t.Fatalf("edge beyond limit received ID %q", id)
+	}
+	if !g.limitExceeded || len(g.finish().Nodes) != 2 || len(g.finish().Edges) != 1 {
+		t.Fatalf("limits not enforced: %#v", g)
+	}
+}
+
 func TestTraverseCycleSafeDistinctPathsAndDepth(t *testing.T) {
 	nodes := []domain.Node{
 		{ID: "cred", Type: domain.NodeCredential, Label: "TOKEN", Confidence: domain.ConfidenceConfirmed},
@@ -100,6 +118,20 @@ func TestTraverseCycleSafeDistinctPathsAndDepth(t *testing.T) {
 	limited := Traverse(domain.Graph{Nodes: nodes, Edges: edges}, "cred", 1)
 	if len(limited) != 2 || !limited[0].Truncated || !limited[1].Truncated {
 		t.Fatalf("depth-limited paths = %#v", limited)
+	}
+}
+
+func TestTraverseEnforcesPathCountLimit(t *testing.T) {
+	nodes := []domain.Node{{ID: "credential", Type: domain.NodeCredential, Confidence: domain.ConfidenceConfirmed}}
+	var edges []domain.Edge
+	for index := 0; index < 5; index++ {
+		id := string(rune('a' + index))
+		nodes = append(nodes, domain.Node{ID: id, Type: domain.NodeJob, Confidence: domain.ConfidenceConfirmed})
+		edges = append(edges, domain.Edge{ID: "edge:" + id, From: "credential", To: id, Type: domain.EdgePassedTo, Confidence: domain.ConfidenceConfirmed})
+	}
+	paths, limited := TraverseLimited(domain.Graph{Nodes: nodes, Edges: edges}, "credential", 4, 3)
+	if !limited || len(paths) != 3 {
+		t.Fatalf("paths=%d limited=%t, want 3/true", len(paths), limited)
 	}
 }
 

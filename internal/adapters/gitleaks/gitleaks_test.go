@@ -16,6 +16,22 @@ import (
 
 const knownRawSecret = "FAKE_RAW_SECRET_FOR_TESTS_ONLY"
 
+func FuzzDecodeNeverReturnsInputInErrors(f *testing.F) {
+	f.Add([]byte(`{"RuleID":"demo","File":"demo.env","Secret":"SYNTHETIC_FUZZ_SECRET"}`))
+	f.Add([]byte(`[{"RuleID":"demo"}]`))
+	f.Add([]byte(`{"broken":`))
+	f.Add([]byte(`{"Secret":"SYNTHETIC_FUZZ_SECRET","broken":`))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		if len(data) > 1<<20 {
+			t.Skip()
+		}
+		_, err := decode(data, "report.json")
+		if err != nil && bytes.Contains(data, []byte("SYNTHETIC_FUZZ_SECRET")) && strings.Contains(err.Error(), "SYNTHETIC_FUZZ_SECRET") {
+			t.Fatal("error reflected synthetic secret marker")
+		}
+	})
+}
+
 func vulnerableRoot() string { return filepath.Join("..", "..", "..", "testdata", "vulnerable") }
 
 func TestAdapterImportsDeduplicatesAndNormalizes(t *testing.T) {

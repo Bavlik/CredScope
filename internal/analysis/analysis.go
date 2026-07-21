@@ -16,15 +16,23 @@ import (
 
 type Options struct {
 	MaxTraversalDepth int
+	MaxEvidencePaths  int
+	MaxTotalPaths     int
 	DisabledRules     map[string]bool
 }
+
+const DefaultMaxTotalEvidencePaths = 50000
 
 func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Options) (domain.AnalysisResult, error) {
 	if err := ctx.Err(); err != nil {
 		return domain.AnalysisResult{}, err
 	}
 	built := graph.Build(parsed)
+	if built.LimitExceeded {
+		return domain.AnalysisResult{}, fmt.Errorf("analysis graph exceeded the safety limit of %d nodes or %d edges", graph.DefaultMaxGraphNodes, graph.DefaultMaxGraphEdges)
+	}
 	result := domain.AnalysisResult{PolicyVersion: scoring.PolicyVersion, RuleCatalogVersion: rules.CatalogVersion, Graph: built.Graph, Warnings: append([]string{}, built.Warnings...), Credentials: []domain.CredentialAnalysis{}}
+	totalPaths := 0
 	for _, warning := range parsed.Warnings {
 		message := warning.Code + ": " + warning.Message
 		if warning.Location.Path != "" {
@@ -40,7 +48,14 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 		if err := ctx.Err(); err != nil {
 			return domain.AnalysisResult{}, err
 		}
-		paths := graph.Traverse(built.Graph, credential.ID, options.MaxTraversalDepth)
+		paths, pathLimitExceeded := graph.TraverseLimited(built.Graph, credential.ID, options.MaxTraversalDepth, options.MaxEvidencePaths)
+		if pathLimitExceeded {
+			return domain.AnalysisResult{}, fmt.Errorf("credential %s exceeded the safety limit of %d evidence paths", credential.ID, effectivePathLimit(options.MaxEvidencePaths))
+		}
+		totalPaths += len(paths)
+		if totalPaths > effectiveTotalPathLimit(options.MaxTotalPaths) {
+			return domain.AnalysisResult{}, fmt.Errorf("repository exceeded the safety limit of %d total evidence paths", effectiveTotalPathLimit(options.MaxTotalPaths))
+		}
 		matches := rules.Evaluate(built.Graph, credential.ID, paths)
 		if len(options.DisabledRules) > 0 {
 			filtered := matches[:0]
@@ -76,6 +91,20 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	sort.Slice(result.Credentials, func(i, j int) bool { return result.Credentials[i].Credential.ID < result.Credentials[j].Credential.ID })
 	result.Warnings = uniqueStrings(result.Warnings)
 	return result, nil
+}
+
+func effectivePathLimit(configured int) int {
+	if configured > 0 {
+		return configured
+	}
+	return graph.DefaultMaxEvidencePaths
+}
+
+func effectiveTotalPathLimit(configured int) int {
+	if configured > 0 {
+		return configured
+	}
+	return DefaultMaxTotalEvidencePaths
 }
 
 func reachableCounts(input domain.Graph, paths []domain.EvidencePath) domain.ReachableCounts {

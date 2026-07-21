@@ -109,3 +109,20 @@ func TestLoadRejectsOversizedConfiguration(t *testing.T) {
 		t.Fatalf("expected size error, got %v", err)
 	}
 }
+
+func TestValidateOutputPathIsRepositoryRelative(t *testing.T) {
+	valid := Default()
+	valid.Output.Path = filepath.FromSlash("reports/nested/report.json")
+	if err := valid.Validate(); err != nil {
+		t.Fatalf("valid nested output: %v", err)
+	}
+	for _, path := range []string{"../outside.json", "reports/../../outside.json", "/tmp/report.json", `C:\outside\report.json`, `\\server\share\report.json`, "bad\x00name"} {
+		t.Run(strings.ReplaceAll(path, "\\", "_"), func(t *testing.T) {
+			cfg := Default()
+			cfg.Output.Path = path
+			if err := cfg.Validate(); err == nil {
+				t.Fatalf("unsafe output path %q was accepted", path)
+			}
+		})
+	}
+}

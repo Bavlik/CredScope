@@ -19,6 +19,7 @@ Discovery and explicit inputs remain inside a canonical repository root, reject 
 - Phase 3: stable directed graph and evidence paths, catalog v1, scoring policy v1, confidence model, cross-component rules, remediation catalog, and embedding API.
 - Phase 4: complete `scan` orchestration plus terminal, JSON schema v1, SARIF 2.1.0, standalone HTML, and bounded Mermaid reporters with threshold exit behavior.
 - Phase 5: source-built composite GitHub Action, least-privilege CI and security workflows, pinned third-party Actions, deterministic GoReleaser packaging, Apache-2.0 governance files, and pre-release installation/release documentation.
+- Phase 6 release candidate: secure nested report publication, ranked bounded human evidence, compact schema-v1 JSON paths, Mermaid edge normalization, explicit resource ceilings, fuzz coverage, and final local release verification.
 
 The pipeline is discovery → parsing/ingestion → graph construction → evidence traversal → rule matching → scoring → remediation → selected reporter.
 
@@ -38,9 +39,9 @@ The composite Action supports GitHub-hosted Linux runners, validates all documen
 
 CI runs formatting, tests, Linux race detection, vet, module verification, CLI/report validation, native platform smoke builds, and the five required cross-compilation targets. Separate workflows provide CodeQL, govulncheck, Gitleaks history scanning, and dependency review. GoReleaser is configured for tag-only archive and checksum publication with commit-derived version metadata.
 
-## Remaining scope
+## Release-candidate status
 
-Phase 6 is the final audit: run all checks in the intended release environment, inspect generated artifacts and leakage, exercise the documented demo, validate the public repository identity and release paths, and decide whether `v0.1.0` is publishable. No release tag, GitHub Release, installer, container, SBOM, or attestation exists yet.
+The repository is prepared as a local `v0.1.0` release candidate. Local tests, report validation, cross-compilation, dependency and secret scanning, clean-room verification, and archive inspection are recorded in [RELEASE_CANDIDATE.md](RELEASE_CANDIDATE.md). Public release remains blocked on a real GitHub owner/remote and the first successful remote Linux race, Action, CodeQL, dependency-review, Gitleaks, and tag-workflow checks. No release tag, GitHub Release, installer, container, SBOM, or attestation exists yet.
 
 ## Explicit exclusions for v0.1.0
 
@@ -48,4 +49,4 @@ Kubernetes, Terraform, cloud IAM API analysis, Azure, GitLab CI, secret validity
 
 ## Definition of done for v0.1.0
 
-The CLI and five formats must build and pass unit, integration, parser, security, leakage, deterministic, and cross-platform checks; the reusable Action and least-privilege CI/security/release workflows must exist; documentation, fixtures, community files, license, changelog, and roadmap must be complete; release artifacts must be reproducible and contain no secret material; and all final Phase 6 checks must be factually reported. Phase 5 prepares these controls but does not itself approve or publish `v0.1.0`.
+The CLI and five formats must build and pass unit, integration, parser, security, leakage, deterministic, and cross-platform checks; the reusable Action and least-privilege CI/security/release workflows must exist; documentation, fixtures, community files, license, changelog, and roadmap must be complete; release artifacts must be reproducible and contain no secret material; and all local and remote checks must be factually reported. Local release-candidate readiness is distinct from public publication approval.

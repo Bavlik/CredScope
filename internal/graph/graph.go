@@ -13,12 +13,25 @@ import (
 )
 
 type mutableGraph struct {
-	nodes map[string]domain.Node
-	edges map[string]domain.Edge
+	nodes         map[string]domain.Node
+	edges         map[string]domain.Edge
+	maxNodes      int
+	maxEdges      int
+	limitExceeded bool
 }
 
+const (
+	DefaultMaxGraphNodes = 100000
+	DefaultMaxGraphEdges = 250000
+)
+
 func newMutable() *mutableGraph {
-	return &mutableGraph{nodes: make(map[string]domain.Node), edges: make(map[string]domain.Edge)}
+	return newMutableWithLimits(DefaultMaxGraphNodes, DefaultMaxGraphEdges)
+
+}
+
+func newMutableWithLimits(maxNodes, maxEdges int) *mutableGraph {
+	return &mutableGraph{nodes: make(map[string]domain.Node), edges: make(map[string]domain.Edge), maxNodes: maxNodes, maxEdges: maxEdges}
 }
 
 func stableID(kind, key string) string {
@@ -35,14 +48,28 @@ func (g *mutableGraph) addNode(kind domain.NodeType, key, label string, location
 		g.nodes[id] = current
 		return id
 	}
+	if len(g.nodes) >= g.maxNodes {
+		g.limitExceeded = true
+		return ""
+	}
 	g.nodes[id] = node
 	return id
 }
 
 func (g *mutableGraph) addEdge(from, to string, kind domain.EdgeType, evidence []domain.Evidence, confidence domain.Confidence) string {
+	if from == "" || to == "" {
+		return ""
+	}
 	evidence = uniqueEvidence(evidence)
 	key := from + "\x00" + to + "\x00" + string(kind) + "\x00" + evidenceKey(evidence)
 	id := stableID("edge", key)
+	if _, ok := g.edges[id]; ok {
+		return id
+	}
+	if len(g.edges) >= g.maxEdges {
+		g.limitExceeded = true
+		return ""
+	}
 	if _, ok := g.edges[id]; !ok {
 		g.edges[id] = domain.Edge{ID: id, From: from, To: to, Type: kind, Evidence: evidence, Confidence: confidence}
 	}

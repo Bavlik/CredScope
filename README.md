@@ -14,7 +14,7 @@ CredScope is an offline-first security analysis tool that connects detected cred
 
 AI may be used as a development aid, but CredScope has zero AI runtime dependency.
 
-CredScope is pre-release. Phase 5 automation is configured, but no `v0.1.0` tag or public release has been created.
+CredScope is a locally verified `v0.1.0` release candidate. No tag or public release has been created, and the [release-candidate audit](docs/RELEASE_CANDIDATE.md) records the remote-only checks still required after the official repository owner is known.
 
 ## What the output looks like
 
@@ -25,8 +25,8 @@ Scoring policy: v1
 Rule catalog: v1
 
 Summary
-  Credentials analyzed: 3
-  Critical: 2
+  Credentials analyzed: 4
+  Critical: 4
 
 CRITICAL - FAKE_PRODUCTION_TOKEN
 Blast-radius score: 100/100
@@ -86,7 +86,7 @@ See [input behavior and limitations](docs/inputs.md).
 | `html` | Standalone offline, accessible report with no external assets |
 | `mermaid` | Bounded Markdown graph with sanitized labels and stable node IDs |
 
-All formats write to stdout unless `--output` is supplied. See [reporting](docs/reporting.md).
+All formats write to stdout unless `--output` is supplied. Relative output paths resolve from the analyzed repository root, and safe missing parent directories are created automatically. See [reporting](docs/reporting.md).
 
 ## Installation
 
@@ -126,7 +126,7 @@ Generate reports:
 ```bash
 go run ./cmd/credscope scan . --format json --output credscope.json
 go run ./cmd/credscope scan . --format sarif --output credscope.sarif --fail-on high
-go run ./cmd/credscope scan . --format html --output credscope-report.html
+go run ./cmd/credscope scan . --format html --output reports/credscope-report.html
 go run ./cmd/credscope scan . --format mermaid --output blast-radius.md
 ```
 
@@ -200,7 +200,7 @@ The GitHub Action and repository CI naturally use GitHub-hosted infrastructure t
 
 ## Roadmap
 
-Phase 6 is the final release audit: execute all GitHub-hosted checks, validate GoReleaser artifacts, inspect leakage and reproducibility, confirm public repository identity, and decide whether `v0.1.0` is publishable. See [ROADMAP.md](ROADMAP.md) and [the release checklist](docs/RELEASE_CHECKLIST.md).
+The local Phase 6 release-candidate audit covers reports, security boundaries, deterministic builds, cross-platform compilation, GoReleaser archives, leakage, and documentation. Public release still requires a real owner/remote plus successful GitHub-hosted race, Action, CodeQL, dependency-review, Gitleaks, and tag-workflow checks. See [ROADMAP.md](ROADMAP.md) and [the release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## Contributing
 

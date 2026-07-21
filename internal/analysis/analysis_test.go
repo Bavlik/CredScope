@@ -129,6 +129,30 @@ func TestAnalyzeHonorsCancellation(t *testing.T) {
 	}
 }
 
+func TestAnalyzeFailsClosedAtEvidencePathLimit(t *testing.T) {
+	evidence := func(line int) domain.Evidence {
+		return domain.Evidence{Location: domain.Location{Path: ".github/workflows/bounded.yml", Line: line}, Confidence: domain.ConfidenceConfirmed}
+	}
+	reference := func() domain.Reference {
+		return domain.Reference{Kind: domain.ReferenceSecret, Name: "BOUNDED_TOKEN", Evidence: evidence(4)}
+	}
+	parsed := domain.ParsedRepository{Workflows: []domain.Workflow{{
+		Name: "bounded", File: ".github/workflows/bounded.yml", Evidence: evidence(1),
+		Jobs: []domain.WorkflowJob{
+			{ID: "one", Evidence: evidence(2), References: []domain.Reference{reference()}},
+			{ID: "two", Evidence: evidence(3), References: []domain.Reference{reference()}},
+		},
+	}}}
+	_, err := Analyze(context.Background(), parsed, Options{MaxEvidencePaths: 1})
+	if err == nil || !strings.Contains(err.Error(), "safety limit of 1 evidence paths") {
+		t.Fatalf("expected fail-closed path limit, got %v", err)
+	}
+	_, err = Analyze(context.Background(), parsed, Options{MaxEvidencePaths: 10, MaxTotalPaths: 1})
+	if err == nil || !strings.Contains(err.Error(), "safety limit of 1 total evidence paths") {
+		t.Fatalf("expected fail-closed total path limit, got %v", err)
+	}
+}
+
 func TestDisabledRuleIsRemovedBeforeScoringAndRemediation(t *testing.T) {
 	parsed := domain.ParsedRepository{Findings: []domain.Finding{{ID: "finding:safe", RuleID: "demo", Credential: domain.CredentialIdentity{Label: "DEMO_TOKEN", Fingerprint: "sha256:safe"}, Source: "test"}}}
 	result, err := Analyze(context.Background(), parsed, Options{DisabledRules: map[string]bool{"CRD101": true}})

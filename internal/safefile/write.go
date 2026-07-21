@@ -56,12 +56,23 @@ func WriteReportProtected(root, destination string, data []byte, protected []str
 	}
 
 	parent := filepath.Dir(absDestination)
-	if err := rejectSymlinks(absRoot, parent); err != nil {
+	createdParents, err := ensureSafeParents(absRoot, parent)
+	if err != nil {
 		return err
 	}
+	published := false
+	defer func() {
+		if !published {
+			cleanupCreatedDirectories(createdParents)
+		}
+	}()
 	if info, statErr := os.Lstat(absDestination); statErr == nil {
-		if info.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("output path %q is a symbolic link", destination)
+		unsafe, unsafeErr := isUnsafeLink(absDestination, info)
+		if unsafeErr != nil {
+			return fmt.Errorf("inspect output path %q: %w", destination, unsafeErr)
+		}
+		if unsafe {
+			return fmt.Errorf("output path %q is a symbolic link or reparse point", destination)
 		}
 		if !info.Mode().IsRegular() {
 			return fmt.Errorf("output path %q is not a regular file", destination)
@@ -100,6 +111,7 @@ func WriteReportProtected(root, destination string, data []byte, protected []str
 		return fmt.Errorf("publish report: %w", err)
 	}
 	keep = true
+	published = true
 	return nil
 }
 
@@ -122,7 +134,11 @@ func publish(staged, destination string) error {
 	} else if err != nil {
 		return err
 	}
-	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+	unsafe, unsafeErr := isUnsafeLink(destination, info)
+	if unsafeErr != nil {
+		return unsafeErr
+	}
+	if unsafe || !info.Mode().IsRegular() {
 		return errors.New("existing report is not a regular non-symlink file")
 	}
 
@@ -153,27 +169,73 @@ func publish(staged, destination string) error {
 	return nil
 }
 
-func rejectSymlinks(root, parent string) error {
+func ensureSafeParents(root, parent string) ([]string, error) {
 	rel, err := filepath.Rel(root, parent)
 	if err != nil || rel == ".." || strings.HasPrefix(filepath.ToSlash(rel), "../") {
-		return errors.New("output parent is outside repository root")
+		return nil, errors.New("output parent is outside repository root")
+	}
+	rootInfo, err := os.Lstat(root)
+	if err != nil {
+		return nil, fmt.Errorf("inspect output root: %w", err)
+	}
+	unsafe, err := isUnsafeLink(root, rootInfo)
+	if err != nil {
+		return nil, fmt.Errorf("inspect output root: %w", err)
+	}
+	if unsafe || !rootInfo.IsDir() {
+		return nil, errors.New("output root must be a non-link directory")
 	}
 	current := root
+	var created []string
 	for _, part := range strings.Split(filepath.Clean(rel), string(filepath.Separator)) {
 		if part == "." || part == "" {
 			continue
 		}
 		current = filepath.Join(current, part)
 		info, statErr := os.Lstat(current)
-		if statErr != nil {
-			return fmt.Errorf("inspect output parent %q: %w", current, statErr)
+		if errors.Is(statErr, os.ErrNotExist) {
+			mkdirErr := os.Mkdir(current, 0o700)
+			if mkdirErr != nil && !errors.Is(mkdirErr, os.ErrExist) {
+				cleanupCreatedDirectories(created)
+				return nil, fmt.Errorf("create output parent %q: %w", current, mkdirErr)
+			}
+			if mkdirErr == nil {
+				created = append(created, current)
+			}
+			info, statErr = os.Lstat(current)
 		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("output parent %q is a symbolic link", current)
+		if statErr != nil {
+			cleanupCreatedDirectories(created)
+			return nil, fmt.Errorf("inspect output parent %q: %w", current, statErr)
+		}
+		unsafe, unsafeErr := isUnsafeLink(current, info)
+		if unsafeErr != nil {
+			cleanupCreatedDirectories(created)
+			return nil, fmt.Errorf("inspect output parent %q: %w", current, unsafeErr)
+		}
+		if unsafe {
+			cleanupCreatedDirectories(created)
+			return nil, fmt.Errorf("output parent %q is a symbolic link or reparse point", current)
 		}
 		if !info.IsDir() {
-			return fmt.Errorf("output parent %q is not a directory", current)
+			cleanupCreatedDirectories(created)
+			return nil, fmt.Errorf("output parent %q is not a directory", current)
 		}
 	}
-	return nil
+	return created, nil
+}
+
+func cleanupCreatedDirectories(paths []string) {
+	for index := len(paths) - 1; index >= 0; index-- {
+		// Remove only succeeds for an empty directory. Never recursively remove a
+		// path that another process may have populated.
+		_ = os.Remove(paths[index])
+	}
+}
+
+func isUnsafeLink(path string, info os.FileInfo) (bool, error) {
+	if info.Mode()&os.ModeSymlink != 0 {
+		return true, nil
+	}
+	return isReparsePoint(path)
 }

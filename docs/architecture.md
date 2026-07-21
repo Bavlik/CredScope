@@ -44,7 +44,9 @@ Workflow-level credential environment bindings propagate to ordinary jobs and th
 
 Traversal starts at each credential and returns every distinct reachable path prefix. Each path contains node IDs and labels, edge IDs and relationship types, source locations, evidence type, parser source, and confidence. Missing line information remains missing.
 
-Traversal uses a per-path visited set, so cycles such as Compose service-sharing edges terminate. The default maximum depth is 12. A path at the limit is marked `truncated` when unvisited successors remain. Path IDs are stable hashes of their ordered node and edge IDs, and final paths are deduplicated and sorted.
+Traversal uses a per-path visited set, so cycles such as Compose service-sharing edges terminate. The default maximum depth is 12. A path at the limit is marked `truncated` when unvisited successors remain. Path IDs are stable hashes of their ordered node and edge IDs, and final paths are deduplicated and sorted. Analysis fails closed above 10,000 paths for one credential or 50,000 paths for one repository rather than returning an understated score.
+
+Human reporters rank and bound a presentation-only subset; this does not change scoring. JSON schema v1 serializes one shortest representative path per reachable endpoint and relies on the included normalized graph for complete relationships and canonical edge evidence. This removes redundant prefixes while preserving IDs, reachable components, rules, and evidence.
 
 ## Determinism
 
@@ -61,7 +63,7 @@ Both operations remain offline and inert.
 
 ## Report publication
 
-Reporters do not open paths. The CLI renders to memory first, then either writes stdout or invokes the root-confined staged writer. The writer rejects symlinks, directories, root escape, and known input-file destinations. This keeps presentation failures from partially replacing an existing report.
+Reporters do not open paths. The CLI renders to memory first, then either writes stdout or invokes the root-confined staged writer. Relative destinations resolve from the analyzed root. The writer safely creates missing parent directories inside that root, rejects symbolic links and Windows reparse points component by component, rejects directories, root escape, and known input-file destinations, and uses atomic staged replacement. This keeps presentation failures from partially replacing an existing report.
 
 ## Repository automation
 

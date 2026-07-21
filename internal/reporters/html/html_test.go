@@ -24,7 +24,7 @@ func TestHTMLStandaloneEscapedAccessibleAndDeterministic(t *testing.T) {
 	if first.String() != second.String() {
 		t.Fatal("HTML differs")
 	}
-	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "6257b0d48215614f5d94ce31b8fc96fae135684176021ca01d0352c498dfdc88" {
+	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "fe44c32d311427874c0d388c19ed675a9ff3cc2614e370b051d9fe3ff535adae" {
 		t.Fatalf("HTML golden hash = %s", got)
 	}
 	output := first.String()
@@ -49,6 +49,25 @@ func TestHTMLGraphIsBounded(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "Graph table was bounded") {
 		t.Fatal("missing graph bound warning")
+	}
+}
+
+func TestHTMLEvidenceIsPrioritizedAndBounded(t *testing.T) {
+	input := htmlInput()
+	credential := &input.Analysis.Credentials[0]
+	for index := 0; index < reporters.HTMLEvidencePathLimit+7; index++ {
+		id := fmt.Sprintf("permission:%02d", index)
+		credential.EvidencePaths = append(credential.EvidencePaths, domain.EvidencePath{ID: fmt.Sprintf("path:%02d", index), Nodes: []domain.PathNode{{ID: "credential", Type: domain.NodeCredential, Label: "TOKEN"}, {ID: id, Type: domain.NodePermission, Label: fmt.Sprintf("permission-%02d", index)}}, Edges: []domain.PathEdge{{ID: "edge:" + id}}})
+	}
+	var output bytes.Buffer
+	if err := New().Render(&output, input, reporters.Options{}); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Count(output.String(), "TOKEN → permission-"); got != reporters.HTMLEvidencePathLimit {
+		t.Fatalf("HTML paths = %d, want %d", got, reporters.HTMLEvidencePathLimit)
+	}
+	if !strings.Contains(output.String(), "7 additional relevant paths") {
+		t.Fatal("missing accurate omitted count")
 	}
 }
 

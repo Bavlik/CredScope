@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -9,9 +10,10 @@ import (
 )
 
 type BuildResult struct {
-	Graph       domain.Graph
-	Credentials []domain.CredentialSubject
-	Warnings    []string
+	Graph         domain.Graph
+	Credentials   []domain.CredentialSubject
+	Warnings      []string
+	LimitExceeded bool
 }
 
 type builder struct {
@@ -304,7 +306,10 @@ func (b *builder) service(fileID string, project domain.ComposeProject, serviceI
 }
 
 func (b *builder) finish() BuildResult {
-	result := BuildResult{Graph: b.graph.finish(), Credentials: make([]domain.CredentialSubject, 0, len(b.credentials))}
+	result := BuildResult{Graph: b.graph.finish(), Credentials: make([]domain.CredentialSubject, 0, len(b.credentials)), LimitExceeded: b.graph.limitExceeded}
+	if b.graph.limitExceeded {
+		b.warnings[fmt.Sprintf("Graph construction exceeded the safety limit of %d nodes or %d edges.", DefaultMaxGraphNodes, DefaultMaxGraphEdges)] = struct{}{}
+	}
 	for _, state := range b.credentials {
 		fingerprints := make([]string, 0, len(state.fingerprints))
 		for fingerprint := range state.fingerprints {

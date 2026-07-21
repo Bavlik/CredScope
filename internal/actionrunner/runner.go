@@ -163,10 +163,10 @@ func ParseInputs(getenv func(string) string) (Inputs, error) {
 		}
 	}
 	if !oneOf(result.Format, "terminal", "json", "sarif", "html", "mermaid") {
-		return Inputs{}, fmt.Errorf("unsupported format %q", result.Format)
+		return Inputs{}, errors.New("unsupported report format")
 	}
 	if !oneOf(result.FailOn, "none", "informational", "low", "medium", "high", "critical") {
-		return Inputs{}, fmt.Errorf("unsupported fail-on threshold %q", result.FailOn)
+		return Inputs{}, errors.New("unsupported fail-on threshold")
 	}
 	minimum := valueOr(getenv("INPUT_MINIMUM_SCORE"), "0")
 	parsedMinimum, err := strconv.Atoi(minimum)

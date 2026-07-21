@@ -17,7 +17,7 @@ graph TD
     n_aab579635d96681b["CRITICAL_DEMO_TOKEN"]
     n_e55716109c33a6c4["production-api"]
     n_c67f312f0811ecfb["production"]
-    n_613d080783560c8c["example-vendor/deploy-action@v1"]
+    n_613d080783560c8c["example-vendor/deploy-operation@v1"]
     n_4acb388e661caccf[".github/workflows/critical.yml"]
     n_e8433fd79890fee4["compose.yml"]
     n_d8da89e9f5954e27["call-reusable"]
@@ -45,18 +45,15 @@ graph TD
     n_b3b421dc7f878995 -->|DETECTED_IN| n_4acb388e661caccf
     n_e55716109c33a6c4 -->|PUBLISHES_PORT| n_f51c7948bac77987
     n_aab579635d96681b -->|PASSED_TO| n_d8da89e9f5954e27
-    n_aab579635d96681b -->|REFERENCED_BY| n_b3b421dc7f878995
     n_aab579635d96681b -->|PASSED_TO| n_36fb9c0b350c20a4
     n_e8433fd79890fee4 -->|DETECTED_IN| n_cff4cc313e5121bf
     n_b3b421dc7f878995 -->|TRIGGERED_BY| n_275cb672aee69d22
     n_8afd0c9ae716ad5e -->|EXECUTED_BY| n_31b159bf66ecad27
     n_4acb388e661caccf -->|DETECTED_IN| n_cff4cc313e5121bf
-    n_aab579635d96681b -->|PASSED_TO| n_31b159bf66ecad27
     n_d8da89e9f5954e27 -->|REFERENCED_BY| n_b3b421dc7f878995
     n_e55716109c33a6c4 -->|MOUNTS| n_cb4c759ca6aaeeb6
     n_36fb9c0b350c20a4 -->|EXECUTED_BY| n_31b159bf66ecad27
     n_d8da89e9f5954e27 -->|CALLS_WORKFLOW| n_e4e9f75f3e9fb39b
     n_aab579635d96681b -->|PASSED_TO| n_8afd0c9ae716ad5e
-    n_aab579635d96681b -->|REFERENCED_BY| n_b3b421dc7f878995
     n_31b159bf66ecad27 -->|REFERENCED_BY| n_b3b421dc7f878995
 ```

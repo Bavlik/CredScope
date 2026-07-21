@@ -2,7 +2,7 @@ GO ?= go
 BINARY := .tmp-build/credscope
 REPORT_DIR := .tmp-reports
 
-.PHONY: fmt test test-race vet vuln lint build smoke reports verify release-snapshot clean
+.PHONY: fmt test test-race vet vuln lint build smoke reports examples verify release-snapshot clean
 
 fmt:
 	gofmt -w $$(find cmd internal pkg scripts -name '*.go' -type f)
@@ -39,6 +39,9 @@ reports: build
 	$(BINARY) scan testdata/vulnerable --gitleaks-report gitleaks.json --format html >$(REPORT_DIR)/credscope.html
 	$(BINARY) scan testdata/vulnerable --gitleaks-report gitleaks.json --format mermaid >$(REPORT_DIR)/blast-radius.md
 	$(GO) run ./scripts/verify-reports.go $(REPORT_DIR)
+
+examples:
+	$(GO) run ./scripts/generate-examples
 
 verify: lint test vet build smoke reports
 	$(GO) mod verify

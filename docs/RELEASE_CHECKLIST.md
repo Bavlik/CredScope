@@ -1,38 +1,38 @@
 # v0.1.0 release checklist
 
-This checklist is intentionally incomplete until every item is verified in Phase 6.
+Local Phase 6 evidence is recorded in [RELEASE_CANDIDATE.md](RELEASE_CANDIDATE.md). Unchecked remote items remain publication blockers.
 
 ## Source and policy
 
 - [ ] Worktree and index are clean.
-- [ ] Version and changelog are correct.
-- [ ] Rule catalog v1, scoring policy v1, JSON schema v1, and documented exit codes are unchanged or deliberately versioned.
-- [ ] All third-party Action commit pins are re-verified against official tags.
+- [x] Version and changelog are correct for an untagged release candidate.
+- [x] Rule catalog v1, scoring policy v1, JSON schema v1, and documented exit codes are unchanged.
+- [x] All third-party Action commit pins are re-verified against official tags.
 - [ ] Public repository owner, module path, security reporting, and installation URLs are confirmed.
 
 ## Quality and security
 
-- [ ] `gofmt` verification passes.
-- [ ] `go test -count=1 ./...` passes.
+- [x] `gofmt` verification passes.
+- [ ] `go test -count=1 ./...` passes without local execution-policy intervention. All test assertions pass, but Windows Application Control blocks one temporary test executable; its fixed-path equivalent passes.
 - [ ] Linux `go test -race -count=1 ./...` passes.
-- [ ] `go vet ./...` and `go mod verify` pass.
-- [ ] govulncheck passes.
+- [x] `go vet ./...` and `go mod verify` pass.
+- [x] govulncheck passes.
 - [ ] CodeQL completes without unresolved release-blocking findings.
-- [ ] Gitleaks history scan passes with only narrowly scoped synthetic-fixture allowances.
+- [x] Gitleaks worktree and history scans pass with only narrowly scoped ignored-output and synthetic-fixture allowances.
 - [ ] Dependency review is enabled and passing.
-- [ ] Complete Action smoke test passes, including threshold exit code 1.
+- [x] Local Action runner tests pass for exits 0 through 4, spaces, metacharacters, empty inputs, and safe outputs. The real GitHub-hosted Action job remains unchecked.
 
 ## Reports and artifacts
 
-- [ ] All five report formats parse or render correctly.
-- [ ] Repeat scans preserve scores, rule IDs, graph IDs, and normalized security data.
-- [ ] Known synthetic raw values are absent from reports, logs, errors, archives, binaries, and checksums.
-- [ ] Linux amd64/arm64, macOS amd64/arm64, and Windows amd64 binaries build.
-- [ ] GoReleaser snapshot completes and every archive has the expected files and names.
-- [ ] Release binary version, full commit, and commit-derived build date are correct.
-- [ ] SHA-256 checksums verify for every archive.
-- [ ] Reproducibility expectations are tested and documented.
-- [ ] SBOMs and attestations are verified if enabled; otherwise their absence is documented.
+- [x] All five report formats parse or render correctly.
+- [x] Repeat scans preserve scores, rule IDs, graph IDs, and normalized security data.
+- [x] Known synthetic raw values are absent from generated reports, release archives, extracted binaries, and checksums; intentional test fixtures remain clearly synthetic.
+- [x] Linux amd64/arm64, macOS amd64/arm64, and Windows amd64 binaries build.
+- [x] GoReleaser snapshot completes and every archive has the expected files and names.
+- [x] Release binary version, full commit, and commit-derived build date are correct in the local snapshot.
+- [x] SHA-256 checksums verify for every archive.
+- [x] Reproducibility expectations are tested and documented; two local snapshot runs produced byte-identical archive checksums.
+- [x] SBOMs and attestations are not enabled; their absence and status are documented.
 
 ## Publication
 

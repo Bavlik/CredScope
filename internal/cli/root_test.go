@@ -233,6 +233,13 @@ func TestSecureOutputFileAndInputOverwriteProtection(t *testing.T) {
 	if !json.Valid(data) {
 		t.Fatal("output is not JSON")
 	}
+	_, _, err = executeCommandSeparate(t, "scan", root, "--format", "html", "--output", filepath.ToSlash(filepath.Join("reports", "nested", "report.html")))
+	if err != nil {
+		t.Fatalf("create nested output: %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "reports", "nested", "report.html")); statErr != nil {
+		t.Fatal(statErr)
+	}
 	_, _, overwriteErr := executeCommandSeparate(t, "scan", root, "--output", filepath.ToSlash(filepath.Join(".github", "workflows", "ci.yml")))
 	var coded *codedError
 	if !errors.As(overwriteErr, &coded) || coded.code != ExitInternal {

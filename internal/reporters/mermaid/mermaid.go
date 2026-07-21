@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -58,11 +59,18 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, _ reporters.Opti
 	for _, node := range nodes {
 		included[node.ID] = true
 	}
-	var edges []domain.Edge
+	edgesByRelationship := make(map[string]domain.Edge)
 	for _, edge := range input.Analysis.Graph.Edges {
 		if included[edge.From] && included[edge.To] {
-			edges = append(edges, edge)
+			key := edge.From + "\x00" + string(edge.Type) + "\x00" + edge.To
+			if current, exists := edgesByRelationship[key]; !exists || edge.ID < current.ID {
+				edgesByRelationship[key] = edge
+			}
 		}
+	}
+	edges := make([]domain.Edge, 0, len(edgesByRelationship))
+	for _, edge := range edgesByRelationship {
+		edges = append(edges, edge)
 	}
 	sort.Slice(edges, func(i, j int) bool { return edges[i].ID < edges[j].ID })
 	truncatedEdges := len(edges) > MaxEdges
@@ -98,19 +106,36 @@ func nodeID(value string) string {
 
 func label(value string) string {
 	value = sanitizer.TerminalText(value)
-	value = stripDirectives(value)
+	value = truncateRunes(value, 240)
 	replacer := strings.NewReplacer("&", "&amp;", "\"", "&quot;", "<", "&lt;", ">", "&gt;", "`", "'", "%", "&#37;", "{", "&#123;", "}", "&#125;", "[", "&#91;", "]", "&#93;", "\\", "/", "-->", "—")
-	return replacer.Replace(value)
+	return stripDirectives(replacer.Replace(value))
+}
+
+func truncateRunes(value string, limit int) string {
+	runes := []rune(value)
+	if len(runes) <= limit {
+		return value
+	}
+	return string(runes[:limit-1]) + "…"
 }
 
 func markdown(value string) string {
 	value = sanitizer.TerminalText(value)
-	value = stripDirectives(value)
 	replacer := strings.NewReplacer("`", "'", "[", "(", "]", ")", "<", "(", ">", ")", "\\", "/", "%", "", "|", "/")
-	return replacer.Replace(value)
+	return stripDirectives(replacer.Replace(value))
 }
 
 func stripDirectives(value string) string {
-	replacer := strings.NewReplacer("https://", "redacted-url/", "http://", "redacted-url/", "click", "action", "Click", "Action", "CLICK", "ACTION")
-	return replacer.Replace(value)
+	return directivePattern.ReplaceAllStringFunc(value, func(match string) string {
+		lower := strings.ToLower(match)
+		if strings.HasSuffix(lower, "://") {
+			return "redacted-url/"
+		}
+		if lower == "click" {
+			return "directive"
+		}
+		return "operation"
+	})
 }
+
+var directivePattern = regexp.MustCompile(`(?i)https?://|click|action`)

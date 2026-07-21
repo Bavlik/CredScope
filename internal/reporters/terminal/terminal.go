@@ -38,7 +38,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 		}
 	} else {
 		for _, credential := range credentials {
-			renderCredential(writer, credential, options)
+			renderCredential(writer, input.Analysis.Graph, credential, options)
 		}
 	}
 	renderWarnings(writer, input, options)
@@ -48,7 +48,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 	return nil
 }
 
-func renderCredential(writer io.Writer, item domain.CredentialAnalysis, options reporters.Options) {
+func renderCredential(writer io.Writer, graph domain.Graph, item domain.CredentialAnalysis, options reporters.Options) {
 	severity := strings.ToUpper(string(item.Severity))
 	if options.Color {
 		severity = colorSeverity(item.Severity, severity)
@@ -59,19 +59,18 @@ func renderCredential(writer io.Writer, item domain.CredentialAnalysis, options 
 		item.Reachable.Workflows, item.Reachable.Jobs, item.Reachable.Services, item.Reachable.Permissions,
 		item.Reachable.Environments, item.Reachable.ExternalActions, item.Reachable.PublishedPorts, item.Reachable.VolumeMounts)
 
-	paths := humanPaths(item.EvidencePaths)
-	limit := 6
+	limit := reporters.DefaultEvidencePathLimit
 	if options.Verbose {
-		limit = 30
+		limit = reporters.VerboseEvidencePathLimit
 	}
-	if len(paths) > 0 {
+	selection := reporters.SelectEvidencePaths(graph, item.EvidencePaths, limit)
+	if len(selection.Paths) > 0 {
 		fmt.Fprintln(writer, "Evidence paths:")
-		for index, path := range paths {
-			if index >= limit {
-				fmt.Fprintf(writer, "  ... %d additional paths omitted from terminal display\n", len(paths)-limit)
-				break
-			}
-			fmt.Fprintf(writer, "  - %s\n", path)
+		for _, path := range selection.Paths {
+			fmt.Fprintf(writer, "  - %s\n", humanPath(path))
+		}
+		if selection.Omitted > 0 {
+			fmt.Fprintf(writer, "  ... %d additional relevant paths omitted (complete graph remains available in JSON and HTML)\n", selection.Omitted)
 		}
 	}
 
@@ -129,25 +128,12 @@ func renderWarnings(writer io.Writer, input reporters.Input, options reporters.O
 	}
 }
 
-func humanPaths(paths []domain.EvidencePath) []string {
-	interesting := map[domain.NodeType]bool{domain.NodeWorkflow: true, domain.NodeJob: true, domain.NodePermission: true, domain.NodeEnvironment: true, domain.NodeExternalAction: true, domain.NodeReusableWorkflow: true, domain.NodeComposeService: true, domain.NodePortExposure: true, domain.NodeVolumeMount: true}
-	set := make(map[string]struct{})
-	for _, path := range paths {
-		if len(path.Nodes) < 2 || !interesting[path.Nodes[len(path.Nodes)-1].Type] {
-			continue
-		}
-		labels := make([]string, 0, len(path.Nodes))
-		for _, node := range path.Nodes {
-			labels = append(labels, truncate(safe(node.Label), 120))
-		}
-		set[strings.Join(labels, " -> ")] = struct{}{}
+func humanPath(path domain.EvidencePath) string {
+	labels := make([]string, 0, len(path.Nodes))
+	for _, node := range path.Nodes {
+		labels = append(labels, truncate(safe(node.Label), 120))
 	}
-	result := make([]string, 0, len(set))
-	for item := range set {
-		result = append(result, item)
-	}
-	sort.Strings(result)
-	return result
+	return strings.Join(labels, " -> ")
 }
 
 func evidenceLocation(item domain.Evidence) string {

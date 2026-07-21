@@ -2,6 +2,7 @@ package terminal
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -54,6 +55,33 @@ func TestTerminalColorAndMinimumScore(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "\x1b[1;31m") {
 		t.Fatal("expected severity color")
+	}
+}
+
+func TestTerminalEvidenceIsRelevantAndBounded(t *testing.T) {
+	input := terminalInput()
+	credential := &input.Analysis.Credentials[0]
+	credential.EvidencePaths = nil
+	for index := 0; index < 50; index++ {
+		id := fmt.Sprintf("permission:%02d", index)
+		credential.EvidencePaths = append(credential.EvidencePaths, domain.EvidencePath{ID: fmt.Sprintf("path:%02d", index), Nodes: []domain.PathNode{{ID: "c", Type: domain.NodeCredential, Label: "TOKEN"}, {ID: id, Type: domain.NodePermission, Label: fmt.Sprintf("scope-%02d:write", index)}}, Edges: []domain.PathEdge{{ID: "edge:" + id}}})
+	}
+	var concise bytes.Buffer
+	if err := New().Render(&concise, input, reporters.Options{}); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Count(concise.String(), "  - TOKEN -> scope-"); got != reporters.DefaultEvidencePathLimit {
+		t.Fatalf("concise paths = %d, want %d", got, reporters.DefaultEvidencePathLimit)
+	}
+	if !strings.Contains(concise.String(), "40 additional relevant paths omitted") {
+		t.Fatal(concise.String())
+	}
+	var verbose bytes.Buffer
+	if err := New().Render(&verbose, input, reporters.Options{Verbose: true}); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Count(verbose.String(), "  - TOKEN -> scope-"); got != reporters.VerboseEvidencePathLimit {
+		t.Fatalf("verbose paths = %d, want %d", got, reporters.VerboseEvidencePathLimit)
 	}
 }
 

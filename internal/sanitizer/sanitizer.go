@@ -12,6 +12,11 @@ import (
 
 const fingerprintDomain = "credscope:fingerprint:v1\x00"
 
+const (
+	MaxTerminalTextRunes = 4096
+	MaxIdentifierRunes   = 256
+)
+
 // Fingerprint produces a domain-separated irreversible identifier and never
 // returns any substring of the input.
 func Fingerprint(secret string) string {
@@ -32,7 +37,11 @@ func RedactedReference(label, secret string) string {
 func Identifier(value string) string {
 	value = TerminalText(value)
 	var b strings.Builder
+	written := 0
 	for _, r := range value {
+		if written >= MaxIdentifierRunes {
+			break
+		}
 		switch {
 		case unicode.IsLetter(r), unicode.IsDigit(r), strings.ContainsRune("._:/@+-", r):
 			b.WriteRune(r)
@@ -41,6 +50,7 @@ func Identifier(value string) string {
 		default:
 			b.WriteByte('_')
 		}
+		written++
 	}
 	return strings.Trim(b.String(), "_")
 }
@@ -49,6 +59,7 @@ func Identifier(value string) string {
 // keeps ordinary Unicode and converts line-breaking controls to spaces.
 func TerminalText(value string) string {
 	var b strings.Builder
+	written := 0
 	for i := 0; i < len(value); {
 		if value[i] == 0x1b {
 			i++
@@ -67,13 +78,21 @@ func TerminalText(value string) string {
 		r, size := utf8.DecodeRuneInString(value[i:])
 		i += size
 		if r == '\n' || r == '\r' || r == '\t' {
+			if written >= MaxTerminalTextRunes {
+				break
+			}
 			b.WriteByte(' ')
+			written++
 			continue
 		}
-		if unicode.IsControl(r) || r == unicode.ReplacementChar {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == unicode.ReplacementChar {
 			continue
+		}
+		if written >= MaxTerminalTextRunes {
+			break
 		}
 		b.WriteRune(r)
+		written++
 	}
 	return strings.TrimSpace(b.String())
 }

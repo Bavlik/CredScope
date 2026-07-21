@@ -1,12 +1,35 @@
 package yamlsafe
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"go.yaml.in/yaml/v3"
 )
+
+func FuzzBoundedYAMLValidation(f *testing.F) {
+	f.Add([]byte("name: demo\njobs:\n  test:\n    runs-on: ubuntu-latest\n"))
+	f.Add([]byte("a: &a [1, 2]\nb: *a\n"))
+	f.Add([]byte("a: ["))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		if len(data) > 1<<20 {
+			t.Skip()
+		}
+		var document yaml.Node
+		if err := yaml.NewDecoder(bytes.NewReader(data)).Decode(&document); err != nil {
+			return
+		}
+		state := validationState{active: make(map[*yaml.Node]bool)}
+		_ = state.validate(&document, 0)
+		if state.nodes > MaxNodes+1 || state.aliases > MaxAliases+1 {
+			t.Fatalf("validator exceeded its stop boundary: nodes=%d aliases=%d", state.nodes, state.aliases)
+		}
+	})
+}
 
 func TestParseRejectsExcessiveDepth(t *testing.T) {
 	root := t.TempDir()
