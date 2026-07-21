@@ -1,0 +1,24 @@
+name: Synthetic critical scenario
+
+on:
+  pull_request_target:
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Inert credential demonstration
+        run: demo-deploy --token "${{ secrets.CRITICAL_DEMO_TOKEN }}"
+      - name: Mutable third-party demonstration
+        uses: example-vendor/deploy-action@v1
+        with:
+          token: ${{ secrets.CRITICAL_DEMO_TOKEN }}
+
+  call-reusable:
+    uses: example-vendor/reusable/.github/workflows/deploy.yml@v1
+    secrets:
+      deploy_token: ${{ secrets.CRITICAL_DEMO_TOKEN }}

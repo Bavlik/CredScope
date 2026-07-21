@@ -6,12 +6,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/credscope/credscope/internal/config"
 	"github.com/credscope/credscope/internal/discovery"
 	"github.com/credscope/credscope/internal/ingest"
+	"github.com/credscope/credscope/internal/rules"
 	"github.com/credscope/credscope/internal/sanitizer"
 	"github.com/spf13/cobra"
 )
@@ -66,14 +66,6 @@ type scanOptions struct {
 	noColor      bool
 	quiet        bool
 	verbose      bool
-}
-
-var phaseOneRuleTitles = map[string]string{
-	"CRD101": "Credential finding imported",
-	"CRD102": "Credential referenced by workflow",
-	"CRD201": "Workflow has write permission",
-	"CRD301": "Credential passed to Compose service",
-	"CRD401": "Credential shared across CI and runtime service",
 }
 
 func newScanCommand() *cobra.Command {
@@ -233,13 +225,8 @@ func newRulesCommand() *cobra.Command {
 	parent.AddCommand(&cobra.Command{
 		Use: "list", Short: "List stable rule identifiers", Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			ids := make([]string, 0, len(phaseOneRuleTitles))
-			for id := range phaseOneRuleTitles {
-				ids = append(ids, id)
-			}
-			sort.Strings(ids)
-			for _, id := range ids {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s  %s\n", id, phaseOneRuleTitles[id])
+			for _, item := range rules.Catalog() {
+				fmt.Fprintf(cmd.OutOrStdout(), "%s  %s\n", item.ID, item.Title)
 			}
 			return nil
 		},
@@ -254,10 +241,11 @@ func newExplainCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := strings.ToUpper(args[0])
-			title, ok := phaseOneRuleTitles[id]
+			item, ok := rules.ByID(id)
 			if !ok {
 				return &codedError{code: ExitUsage, err: fmt.Errorf("unknown rule %q", sanitizer.TerminalText(args[0]))}
 			}
+			title := item.Title
 			fmt.Fprintf(cmd.OutOrStdout(), "%s — %s\n", id, title)
 			return nil
 		},

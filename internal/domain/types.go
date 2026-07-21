@@ -39,6 +39,7 @@ type Location struct {
 
 type Evidence struct {
 	RuleID      string     `json:"rule_id"`
+	Type        string     `json:"type,omitempty"`
 	Description string     `json:"description"`
 	Location    Location   `json:"location"`
 	Field       string     `json:"field,omitempty"`
@@ -80,20 +81,23 @@ type CommitMetadata struct {
 type NodeType string
 
 const (
-	NodeCredential     NodeType = "credential"
-	NodeFinding        NodeType = "finding"
-	NodeFile           NodeType = "file"
-	NodeWorkflow       NodeType = "workflow"
-	NodeTrigger        NodeType = "trigger"
-	NodeJob            NodeType = "job"
-	NodeStep           NodeType = "step"
-	NodePermission     NodeType = "permission"
-	NodeEnvironment    NodeType = "environment"
-	NodeComposeService NodeType = "compose_service"
-	NodePortExposure   NodeType = "port_exposure"
-	NodeVolumeMount    NodeType = "volume_mount"
-	NodeExternalAction NodeType = "external_action"
-	NodeRepository     NodeType = "repository"
+	NodeCredential       NodeType = "credential"
+	NodeFinding          NodeType = "finding"
+	NodeFile             NodeType = "file"
+	NodeWorkflow         NodeType = "workflow"
+	NodeTrigger          NodeType = "trigger"
+	NodeJob              NodeType = "job"
+	NodeStep             NodeType = "step"
+	NodePermission       NodeType = "permission"
+	NodeEnvironment      NodeType = "environment"
+	NodeComposeService   NodeType = "compose_service"
+	NodePortExposure     NodeType = "port_exposure"
+	NodeVolumeMount      NodeType = "volume_mount"
+	NodeExternalAction   NodeType = "external_action"
+	NodeReusableWorkflow NodeType = "reusable_workflow"
+	NodeComposeSecret    NodeType = "compose_secret"
+	NodeEnvFile          NodeType = "env_file"
+	NodeRepository       NodeType = "repository"
 )
 
 type EdgeType string
@@ -112,17 +116,25 @@ const (
 	EdgePublishesPort   EdgeType = "PUBLISHES_PORT"
 	EdgeMounts          EdgeType = "MOUNTS"
 	EdgeUsesEnvironment EdgeType = "USES_ENVIRONMENT"
+	EdgeCallsWorkflow   EdgeType = "CALLS_WORKFLOW"
+	EdgeUsesSecret      EdgeType = "USES_SECRET"
+	EdgeLoadsEnvFile    EdgeType = "LOADS_ENV_FILE"
+	EdgeSharedWith      EdgeType = "SHARED_WITH"
+	EdgePropagatesTo    EdgeType = "PROPAGATES_TO"
 )
 
 type Node struct {
-	ID       string            `json:"id"`
-	Type     NodeType          `json:"type"`
-	Label    string            `json:"label"`
-	Location *Location         `json:"location,omitempty"`
-	Metadata map[string]string `json:"metadata,omitempty"`
+	ID         string            `json:"id"`
+	Type       NodeType          `json:"type"`
+	Label      string            `json:"label"`
+	Location   *Location         `json:"location,omitempty"`
+	Metadata   map[string]string `json:"metadata,omitempty"`
+	Evidence   []Evidence        `json:"evidence,omitempty"`
+	Confidence Confidence        `json:"confidence"`
 }
 
 type Edge struct {
+	ID         string     `json:"id"`
 	From       string     `json:"from"`
 	To         string     `json:"to"`
 	Type       EdgeType   `json:"type"`

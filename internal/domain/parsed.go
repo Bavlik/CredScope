@@ -91,19 +91,20 @@ type WorkflowStep struct {
 }
 
 type WorkflowJob struct {
-	ID               string               `json:"id"`
-	Name             string               `json:"name,omitempty"`
-	Needs            []string             `json:"needs"`
-	Permissions      []Permission         `json:"permissions"`
-	Environment      []EnvironmentBinding `json:"environment"`
-	EnvironmentName  string               `json:"environment_name,omitempty"`
-	ReusableWorkflow *ActionReference     `json:"reusable_workflow,omitempty"`
-	ReusableResolved bool                 `json:"reusable_resolved"`
-	Steps            []WorkflowStep       `json:"steps"`
-	Outputs          []WorkflowOutput     `json:"outputs"`
-	References       []Reference          `json:"references"`
-	Signals          []StructuralSignal   `json:"signals"`
-	Evidence         Evidence             `json:"evidence"`
+	ID                  string               `json:"id"`
+	Name                string               `json:"name,omitempty"`
+	Needs               []string             `json:"needs"`
+	Permissions         []Permission         `json:"permissions"`
+	Environment         []EnvironmentBinding `json:"environment"`
+	EnvironmentName     string               `json:"environment_name,omitempty"`
+	EnvironmentEvidence *Evidence            `json:"environment_evidence,omitempty"`
+	ReusableWorkflow    *ActionReference     `json:"reusable_workflow,omitempty"`
+	ReusableResolved    bool                 `json:"reusable_resolved"`
+	Steps               []WorkflowStep       `json:"steps"`
+	Outputs             []WorkflowOutput     `json:"outputs"`
+	References          []Reference          `json:"references"`
+	Signals             []StructuralSignal   `json:"signals"`
+	Evidence            Evidence             `json:"evidence"`
 }
 
 type Workflow struct {

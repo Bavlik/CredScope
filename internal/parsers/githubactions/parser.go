@@ -281,6 +281,8 @@ func parseJob(file, id string, node *yaml.Node) (domain.WorkflowJob, error) {
 		if err != nil {
 			return job, &ParseError{Path: file, Line: environment.Line, Field: "jobs." + id + ".environment", Msg: err.Error()}
 		}
+		environmentEvidence := evidence(file, environment, "jobs."+id+".environment", "GitHub deployment environment", domain.ConfidenceConfirmed)
+		job.EnvironmentEvidence = &environmentEvidence
 	}
 	if uses, ok, err := yamlsafe.MappingValue(node, "uses"); err != nil {
 		return job, structuralError(file, node, "jobs."+id+".uses", err)

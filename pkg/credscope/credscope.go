@@ -4,6 +4,7 @@ package credscope
 import (
 	"context"
 
+	"github.com/credscope/credscope/internal/analysis"
 	"github.com/credscope/credscope/internal/config"
 	"github.com/credscope/credscope/internal/discovery"
 	"github.com/credscope/credscope/internal/domain"
@@ -24,6 +25,8 @@ type (
 	ParsedRepository   = domain.ParsedRepository
 	Workflow           = domain.Workflow
 	ComposeProject     = domain.ComposeProject
+	AnalysisResult     = domain.AnalysisResult
+	AnalysisOptions    = analysis.Options
 )
 
 func DefaultConfig() Config { return config.Default() }
@@ -44,4 +47,10 @@ func Discover(repositoryRoot string, cfg Config) ([]DiscoveredFile, error) {
 // It performs no graph construction, scoring, remediation, or reporting.
 func ParseRepository(ctx context.Context, repositoryRoot string, cfg Config, gitleaksReport string) (ParsedRepository, error) {
 	return ingest.Repository(ctx, repositoryRoot, cfg, gitleaksReport)
+}
+
+// Analyze builds deterministic graph, rule, score, confidence, and remediation
+// models. It performs no reporting, network access, or repository execution.
+func Analyze(ctx context.Context, parsed ParsedRepository, options AnalysisOptions) (AnalysisResult, error) {
+	return analysis.Analyze(ctx, parsed, options)
 }

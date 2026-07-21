@@ -8,7 +8,7 @@ CredScope is a deterministic security analysis tool that maps detected credentia
 
 ## Development status
 
-The repository currently contains the completed Phase 1 foundation and Phase 2 input layer for `v0.1.0`: the Cobra CLI, stable domain model, strict configuration, root-confined discovery, sanitization, a Gitleaks JSON adapter, GitHub Actions parsing, Docker Compose parsing, safe fixtures, and focused security tests. Graph analysis, scoring, remediation, and security report formats belong to subsequent phases and are not represented as complete here.
+The repository currently contains the completed Phase 1 foundation, Phase 2 input layer, and Phase 3 deterministic analysis core for `v0.1.0`: secure discovery and parsing, a credential reachability graph, evidence-path traversal, rule catalog v1, scoring policy v1, explicit confidence, and rule-based remediation. Security report formats remain a later phase and are not represented as complete here.
 
 ## Current commands
 
@@ -19,7 +19,7 @@ credscope rules list
 credscope explain CRD101
 ```
 
-At this phase, `scan` securely discovers and validates supported repository inputs, then prints an input inventory. With `--verbose`, it also prints parser counts. It does not build a blast-radius graph, score findings, or produce security reports.
+At this phase, `scan` securely discovers and validates supported repository inputs, then prints an input inventory. With `--verbose`, it also prints parser counts. The analysis core is available to Go embedders through `pkg/credscope`; CLI reporting is intentionally deferred to Phase 4.
 
 ```bash
 credscope scan testdata/vulnerable \
@@ -28,6 +28,15 @@ credscope scan testdata/vulnerable \
 ```
 
 Only terminal inventory output is currently available. The reserved JSON, SARIF, HTML, and Mermaid formats return an explicit unsupported-format error until the reporting phase is implemented.
+
+Embedding example:
+
+```go
+parsed, err := credscope.ParseRepository(ctx, root, credscope.DefaultConfig(), gitleaksReport)
+result, err := credscope.Analyze(ctx, parsed, credscope.AnalysisOptions{})
+```
+
+The result contains stable graph nodes and edges, credential evidence paths, matched rules, score breakdowns, confidence summaries, reachability counts, warnings, and deduplicated remediations. See [architecture](docs/architecture.md), [scoring policy v1](docs/scoring.md), and [rule catalog v1](docs/rules.md).
 
 ## Supported inputs
 
@@ -64,6 +73,9 @@ Copy `.credscope.yml.example` to `.credscope.yml` and adjust it as needed. CLI f
 - YAML inputs are single-document and bounded by file size, scalar size, depth, node count, alias count, and duplicate-key checks.
 - Shell commands, workflows, reusable workflows, Compose services, env files, and containers are never executed or resolved over the network.
 - Literal environment values and shell bodies are represented by fingerprints and redacted structure rather than retained verbatim.
+- Graph and path traversal is deterministic, cycle-safe, and depth-limited.
+- Scores use documented rule weights and confidence multipliers; Unknown runtime conditions contribute no points.
+- Recommendations are advisory and never modify analyzed files.
 
 See [configuration documentation](docs/configuration.md) and the [foundation security model](docs/security-model.md).
 

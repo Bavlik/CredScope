@@ -1,0 +1,15 @@
+name: Development-only example
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DEMO_TOKEN: ${{ secrets.DEVELOPMENT_ONLY_TOKEN }}
+    steps:
+      - name: Use a first-party action
+        uses: actions/checkout@v4

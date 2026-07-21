@@ -1,0 +1,13 @@
+services:
+  production-api:
+    image: example.invalid/credscope/demo:1
+    environment:
+      DEPLOY_TOKEN: ${CRITICAL_DEMO_TOKEN:?synthetic fixture only}
+    ports:
+      - "127.0.0.1:9443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./demo-config:/app/config
+    privileged: true
+    network_mode: host
+    profiles: [production]

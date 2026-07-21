@@ -1,6 +1,6 @@
 # Security model
 
-## Phase 1 and Phase 2 trust boundary
+## Phase 1 through Phase 3 trust boundary
 
 Repository paths, filenames, configuration, future scanner reports, and future YAML inputs are untrusted. The selected repository root and CLI arguments are operator-controlled. CredScope does not execute analyzed files, workflows, containers, hooks, or repository scripts.
 
@@ -20,10 +20,17 @@ The implementation provides these controls:
 - Shell bodies are never retained verbatim. The model contains an irreversible fingerprint, line count, canonical expression references, and a redacted marker.
 - Environment literals are represented by an irreversible fingerprint. Environment and secret expressions retain reference names, not resolved values.
 - YAML syntax errors are converted to typed errors that do not include source snippets.
+- Graph identities are domain-separated hashes of safe structural keys and never contain credential values.
+- Graph edges retain typed, source-located evidence and explicit confidence; missing evidence is not fabricated.
+- Traversal uses per-path cycle detection and a configurable maximum depth (12 by default).
+- Rule matching and scoring consume only scanner-neutral parsed models and do not reopen files, execute content, or access the network.
+- Scoring is integer-only, versioned, bounded at 100, and suppresses duplicate rule inflation.
+- Unknown runtime conditions contribute zero points and remain explicit warnings.
+- Remediation is advisory only and never rewrites workflows or Compose files.
 
-## Non-goals through Phase 2
+## Phase 3 analysis boundary
 
-Phase 2 parses Gitleaks, GitHub Actions, and Docker Compose into scanner-neutral structural models. It does not infer graph reachability, calculate risk scores, generate remediation, generate security reports, authenticate to cloud providers, inspect running containers, validate credentials, resolve remote workflows, or make claims about effective cloud permissions. Those features belong to later phases.
+Phase 3 builds static reachability, matches rule catalog v1, applies scoring policy v1, and returns rule-based recommendations. It does not generate terminal, JSON, SARIF, HTML, or Mermaid reports. It does not authenticate to cloud providers, inspect running containers, validate credentials, resolve remote workflows, prove exploitability, or claim effective cloud permissions or definite internet exposure.
 
 ## Residual risks
 
