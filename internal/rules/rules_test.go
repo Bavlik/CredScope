@@ -4,17 +4,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/graph"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/graph"
 )
 
-func TestCatalogV1IsStableAndComplete(t *testing.T) {
+func TestCatalogV2IsStableAndComplete(t *testing.T) {
 	wantIDs := []string{"CRD101", "CRD102", "CRD103", "CRD104", "CRD201", "CRD202", "CRD203", "CRD204", "CRD205", "CRD206", "CRD207", "CRD208", "CRD301", "CRD302", "CRD303", "CRD304", "CRD305", "CRD306", "CRD307", "CRD308", "CRD401", "CRD402", "CRD403", "CRD404", "CRD501", "CRD502", "CRD503"}
 	items := Catalog()
 	gotIDs := make([]string, len(items))
 	for index, item := range items {
 		gotIDs[index] = item.ID
-		if item.PolicyVersion != "v1" || !item.Enabled || item.RemediationID == "" || len(item.EvidenceRequirements) == 0 {
+		if item.PolicyVersion != "v2" || !item.Enabled || item.RemediationID == "" || len(item.EvidenceRequirements) == 0 {
 			t.Fatalf("incomplete catalog entry: %#v", item)
 		}
 	}
@@ -63,6 +63,23 @@ func TestEvaluateMatchesStructuralRulesAndOmitsAbsentRules(t *testing.T) {
 func TestEvaluateEmptyGraphDoesNotMatch(t *testing.T) {
 	if got := Evaluate(domain.Graph{}, "missing", nil); len(got) != 0 {
 		t.Fatalf("matches = %#v", got)
+	}
+}
+
+func TestLoopbackPublishedPortRemainsContextWithoutExposureRiskRule(t *testing.T) {
+	cred := domain.Node{ID: "cred", Type: domain.NodeCredential, Label: "TOKEN", Confidence: domain.ConfidenceConfirmed}
+	service := domain.Node{ID: "service", Type: domain.NodeComposeService, Label: "api", Metadata: map[string]string{"user_specified": "true", "user": "1000"}, Confidence: domain.ConfidenceConfirmed}
+	port := domain.Node{ID: "port", Type: domain.NodePortExposure, Label: "8080", Metadata: map[string]string{"host_ip": "127.0.0.1"}, Confidence: domain.ConfidenceMedium}
+	input := domain.Graph{Nodes: []domain.Node{cred, service, port}, Edges: []domain.Edge{
+		{ID: "e1", From: "cred", To: "service", Type: domain.EdgeAvailableToService, EvidenceKind: domain.EvidenceConfirmedDataFlow, Confidence: domain.ConfidenceConfirmed},
+		{ID: "e2", From: "service", To: "port", Type: domain.EdgeExposesPort, EvidenceKind: domain.EvidenceExposureContext, Confidence: domain.ConfidenceMedium},
+	}}
+	ids := matchIDs(Evaluate(input, "cred", graph.Traverse(input, "cred", 12)))
+	if contains(ids, "CRD303") {
+		t.Fatalf("loopback port received exposure risk rule: %v", ids)
+	}
+	if !contains(ids, "CRD503") {
+		t.Fatalf("loopback port lost topology limitation context: %v", ids)
 	}
 }
 

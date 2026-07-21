@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/credscope/credscope/internal/cli"
+	"github.com/Bavlik/CredScope/internal/cli"
 )
 
 var (

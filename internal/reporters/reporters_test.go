@@ -3,7 +3,7 @@ package reporters
 import (
 	"testing"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 func TestThresholdInteractionAndSeverityBoundaries(t *testing.T) {

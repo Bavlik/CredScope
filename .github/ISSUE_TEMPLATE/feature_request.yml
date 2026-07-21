@@ -26,5 +26,5 @@ body:
     attributes:
       label: Scope confirmation
       options:
-        - label: This proposal does not require telemetry, cloud authentication, runtime AI, or executing analyzed repository content.
+        - label: This proposal does not require telemetry, cloud authentication, or executing analyzed repository content.
           required: true

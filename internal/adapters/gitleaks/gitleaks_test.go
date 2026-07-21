@@ -32,6 +32,37 @@ func FuzzDecodeNeverReturnsInputInErrors(f *testing.F) {
 	})
 }
 
+func TestNormalizeFindingPathWithExactContainerPrefix(t *testing.T) {
+	got, err := normalizeFindingPath("/repo/services/api/.env", "/repo")
+	if err != nil || got != "services/api/.env" {
+		t.Fatalf("got %q, %v", got, err)
+	}
+	for _, unsafe := range []string{"/repository/secret.env", "/repo/../outside", "/outside/secret.env"} {
+		if _, err := normalizeFindingPath(unsafe, "/repo"); err == nil {
+			t.Fatalf("unsafe path accepted: %s", unsafe)
+		}
+	}
+	if _, err := normalizeFindingPath("/repo/file", ""); err == nil {
+		t.Fatal("absolute path accepted without prefix")
+	}
+	for _, prefix := range []string{"/", "/repo/..", "relative", "C:/"} {
+		if _, err := normalizeFindingPath("/repo/file", prefix); err == nil {
+			t.Fatalf("unsafe configured prefix accepted: %q", prefix)
+		}
+	}
+}
+
+func TestTestFixtureCandidateIsOnlyMetadata(t *testing.T) {
+	raw := rawFinding{RuleID: "generic", File: "tests/fixtures/example.env", StartLine: 1, Secret: "test-only"}
+	got, err := convert(raw, "gitleaks.json", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !got.TestFixtureCandidate {
+		t.Fatal("test fixture candidate hint missing")
+	}
+}
+
 func vulnerableRoot() string { return filepath.Join("..", "..", "..", "testdata", "vulnerable") }
 
 func TestAdapterImportsDeduplicatesAndNormalizes(t *testing.T) {

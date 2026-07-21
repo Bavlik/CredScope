@@ -11,9 +11,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/parsers/yamlsafe"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/parsers/yamlsafe"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 	"go.yaml.in/yaml/v3"
 )
 

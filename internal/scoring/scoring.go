@@ -1,4 +1,4 @@
-// Package scoring implements deterministic scoring policy v1.
+// Package scoring implements deterministic scoring policy v2.
 package scoring
 
 import (
@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/rules"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/rules"
 )
 
-const PolicyVersion = "v1"
+const PolicyVersion = "v2"
 
 type Result struct {
 	Score          int
@@ -21,8 +21,9 @@ type Result struct {
 	RemediationIDs []string
 }
 
-// ConfidenceMultiplier returns the policy-v1 integer percentage.
-func ConfidenceMultiplier(confidence domain.Confidence) int {
+// ConfidenceWeight maps evidence confidence to an integer used only when
+// summarizing confidence. It never changes risk points.
+func ConfidenceWeight(confidence domain.Confidence) int {
 	switch confidence {
 	case domain.ConfidenceConfirmed:
 		return 100
@@ -37,7 +38,7 @@ func ConfidenceMultiplier(confidence domain.Confidence) int {
 	}
 }
 
-// SeverityForScore applies the documented inclusive policy-v1 boundaries.
+// SeverityForScore applies the documented inclusive policy-v2 boundaries.
 func SeverityForScore(score int) domain.Severity {
 	switch {
 	case score >= 80:
@@ -54,9 +55,15 @@ func SeverityForScore(score int) domain.Severity {
 }
 
 // Calculate scores each rule at most once. An affected-component adjustment of
-// 10% per additional node is bounded at 30%; both adjustment and confidence
-// multiplication use integer half-up rounding.
+// 10% per additional node is bounded at 30%. Risk and evidence confidence are
+// calculated independently with deterministic integer half-up rounding.
 func Calculate(matches []domain.RuleMatch) Result {
+	return CalculateForProfile(matches, domain.ProfileSelection{Selected: domain.ProfileAuto}, true)
+}
+
+// CalculateForProfile keeps evidence confidence independent from risk points.
+// Profile adjustments affect risk only and are recorded explicitly.
+func CalculateForProfile(matches []domain.RuleMatch, profile domain.ProfileSelection, expectedSecret bool) Result {
 	catalog := make(map[string]rules.Rule)
 	for _, item := range rules.Catalog() {
 		catalog[item.ID] = item
@@ -67,7 +74,7 @@ func Calculate(matches []domain.RuleMatch) Result {
 			current.AffectedNodeIDs = uniqueStrings(append(current.AffectedNodeIDs, match.AffectedNodeIDs...))
 			current.PathIDs = uniqueStrings(append(current.PathIDs, match.PathIDs...))
 			current.Evidence = uniqueEvidence(append(current.Evidence, match.Evidence...))
-			if ConfidenceMultiplier(match.Confidence) > ConfidenceMultiplier(current.Confidence) {
+			if ConfidenceWeight(match.Confidence) > ConfidenceWeight(current.Confidence) {
 				current.Confidence = match.Confidence
 			}
 			byRule[match.RuleID] = current
@@ -101,19 +108,37 @@ func Calculate(matches []domain.RuleMatch) Result {
 		}
 		adjustmentPercent := increment * 10
 		adjusted := roundDiv(item.Weight*(100+adjustmentPercent), 100)
-		multiplier := ConfidenceMultiplier(match.Confidence)
-		contribution := roundDiv(adjusted*multiplier, 100)
+		confidenceWeightPercent := ConfidenceWeight(match.Confidence)
+		profilePercent := profileAdjustment(id, profile.Selected)
+		profileChanged := profilePercent != 0
+		if profileChanged {
+			adjusted = roundDiv(adjusted*(100+profilePercent), 100)
+		}
 		adjustments := []domain.ScoreAdjustment{}
 		if adjustmentPercent > 0 {
-			adjustments = append(adjustments, domain.ScoreAdjustment{Kind: "affected_components", Percent: adjustmentPercent, Description: "Bounded 10% increase for each additional independently affected node (maximum 30%)."})
+			adjustments = append(adjustments, domain.ScoreAdjustment{Kind: "affected_components", Percent: adjustmentPercent, Description: "Bounded 10% increase for each additional independently affected node (maximum 30%).", RiskOrConfidence: "risk"})
 		}
-		result.Contributions = append(result.Contributions, domain.ScoreContribution{RuleID: id, Description: item.Title, BaseWeight: item.Weight, Adjustments: adjustments, AdjustedWeight: adjusted, ConfidenceMultiplier: multiplier, FinalContribution: contribution, Confidence: match.Confidence, Evidence: match.Evidence})
+		if profileChanged {
+			adjustments = append(adjustments, domain.ScoreAdjustment{Kind: "environment_profile", Percent: profilePercent, Description: "Selected environment profile changed this risk contribution.", RiskOrConfidence: "risk", ProfileChanged: true})
+		}
+		if !expectedSecret {
+			adjusted = 0
+			adjustments = append(adjustments, domain.ScoreAdjustment{Kind: "classification_gate", Percent: -100, Description: "The item is not expected to be secret, so credential-exposure risk points are not applied.", RiskOrConfidence: "risk"})
+		}
+		contribution := adjusted
+		status := "confirmed"
+		if match.Confidence != domain.ConfidenceConfirmed {
+			status = "inferred"
+		}
+		result.Contributions = append(result.Contributions, domain.ScoreContribution{RuleID: id, Description: item.Title, BaseWeight: item.Weight, Adjustments: adjustments, AdjustedWeight: adjusted, ConfidenceWeight: confidenceWeightPercent, FinalContribution: contribution, Confidence: match.Confidence, ConditionStatus: status, RiskOrConfidence: "risk", ProfileChanged: profileChanged, Evidence: match.Evidence})
 		result.Score += contribution
 		addConfidence(&result.Confidence, match.Confidence)
-		if contribution > 0 {
-			weightedConfidence += multiplier * contribution
-			confidenceWeight += contribution
+		evidenceWeight := item.Weight
+		if evidenceWeight <= 0 {
+			evidenceWeight = 1
 		}
+		weightedConfidence += confidenceWeightPercent * evidenceWeight
+		confidenceWeight += evidenceWeight
 		if item.Weight == 0 {
 			result.Warnings = append(result.Warnings, id+": "+item.Title)
 		}
@@ -132,6 +157,33 @@ func Calculate(matches []domain.RuleMatch) Result {
 	sort.Strings(result.RemediationIDs)
 	sort.Strings(result.Warnings)
 	return result
+}
+
+func profileAdjustment(ruleID string, selected domain.Profile) int {
+	switch selected {
+	case domain.ProfileLocal:
+		if ruleID == "CRD303" {
+			return -60
+		}
+	case domain.ProfileCI:
+		if ruleID == "CRD303" {
+			return -50
+		}
+	case domain.ProfileProduction:
+		switch ruleID {
+		case "CRD303":
+			return 30
+		case "CRD103", "CRD306", "CRD401", "CRD402", "CRD404":
+			return 15
+		case "CRD302", "CRD304", "CRD305", "CRD307":
+			return 20
+		}
+	case domain.ProfileAuto:
+		if ruleID == "CRD303" {
+			return -25
+		}
+	}
+	return 0
 }
 
 func roundDiv(value, divisor int) int {

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/credscope/credscope/internal/config"
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/ingest"
+	"github.com/Bavlik/CredScope/internal/config"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/ingest"
 )
 
 const (
@@ -108,7 +108,7 @@ func TestEmptyAndIncompleteParsedRepository(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(empty.Credentials) != 0 || len(empty.Graph.Nodes) != 1 || empty.PolicyVersion != "v1" || empty.RuleCatalogVersion != "v1" {
+	if len(empty.Credentials) != 0 || len(empty.Graph.Nodes) != 1 || empty.PolicyVersion != "v2" || empty.RuleCatalogVersion != "v2" {
 		t.Fatalf("empty result = %#v", empty)
 	}
 	incomplete := domain.ParsedRepository{Findings: []domain.Finding{{ID: "finding:empty", Credential: domain.CredentialIdentity{}, Source: "test"}}}
@@ -126,6 +126,25 @@ func TestAnalyzeHonorsCancellation(t *testing.T) {
 	cancel()
 	if _, err := Analyze(ctx, domain.ParsedRepository{}, Options{}); err == nil {
 		t.Fatal("expected cancellation error")
+	}
+}
+
+func TestNonSecretClassificationAndReasonedIgnore(t *testing.T) {
+	ev := domain.Evidence{Location: domain.Location{Path: "compose.yml", Line: 3}, Field: "services.api.environment.REGISTRATION_MODE", Confidence: domain.ConfidenceConfirmed}
+	parsed := domain.ParsedRepository{Compose: []domain.ComposeProject{{File: "compose.yml", Services: []domain.ComposeService{{Name: "api", References: []domain.Reference{{Kind: domain.ReferenceComposeVariable, Name: "REGISTRATION_MODE", Evidence: ev}, {Kind: domain.ReferenceComposeVariable, Name: "POSTGRES_PASSWORD", Evidence: ev}}}}}}}
+	result, err := Analyze(context.Background(), parsed, Options{Profile: domain.ProfileProduction, IgnoreVariables: []IgnoreDirective{{Value: "POSTGRES_PASSWORD", Reason: "managed by an external test fixture"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	item := findCredential(result, "REGISTRATION_MODE")
+	if item == nil {
+		t.Fatal("operational setting missing")
+	}
+	if item.Credential.Classification != domain.ClassificationOperationalSetting || item.Credential.ExpectedSecret || item.Score != 0 {
+		t.Fatalf("unexpected operational item: %+v", item)
+	}
+	if result.IgnoredCount != 1 || len(result.IgnoredItems) != 1 || result.IgnoredItems[0].Reason == "" {
+		t.Fatalf("ignored metadata missing: %+v", result.IgnoredItems)
 	}
 }
 

@@ -1,4 +1,4 @@
-// Package jsonreport renders the stable CredScope report schema version 1.
+// Package jsonreport renders the stable CredScope report schema version 2.
 package jsonreport
 
 import (
@@ -7,8 +7,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
 )
 
 type Reporter struct{}
@@ -28,18 +28,21 @@ type document struct {
 	RepositoryWarnings []string                    `json:"repository_warnings"`
 	ParserWarnings     []domain.ParseWarning       `json:"parser_warnings"`
 	NonFatalErrors     []string                    `json:"non_fatal_errors"`
+	IgnoredCount       int                         `json:"ignored_count"`
+	IgnoredItems       []domain.IgnoredItem        `json:"ignored_items"`
 }
 
 type scan struct {
-	Repository        string        `json:"repository"`
-	StartedAt         string        `json:"started_at"`
-	CompletedAt       string        `json:"completed_at"`
-	DurationMillis    int64         `json:"duration_ms"`
-	Format            string        `json:"format"`
-	FailOn            string        `json:"fail_on"`
-	MinimumScore      int           `json:"minimum_score"`
-	ThresholdExceeded bool          `json:"threshold_exceeded"`
-	Configuration     configuration `json:"configuration"`
+	Repository        string                  `json:"repository"`
+	StartedAt         string                  `json:"started_at"`
+	CompletedAt       string                  `json:"completed_at"`
+	DurationMillis    int64                   `json:"duration_ms"`
+	Format            string                  `json:"format"`
+	FailOn            string                  `json:"fail_on"`
+	MinimumScore      int                     `json:"minimum_score"`
+	ThresholdExceeded bool                    `json:"threshold_exceeded"`
+	Configuration     configuration           `json:"configuration"`
+	Profile           domain.ProfileSelection `json:"profile"`
 }
 
 type configuration struct {
@@ -84,7 +87,7 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 	doc := document{
 		SchemaVersion:      reporters.SchemaVersion,
 		Tool:               input.Tool,
-		Scan:               scan{Repository: input.Scan.Repository, StartedAt: timestamp(input.Scan.StartedAt), CompletedAt: timestamp(input.Scan.CompletedAt), DurationMillis: duration.Milliseconds(), Format: input.Scan.Format, FailOn: input.Scan.FailOn, MinimumScore: input.Scan.MinimumScore, ThresholdExceeded: input.Scan.ThresholdExceeded, Configuration: configuration{Includes: includes, Excludes: excludes, DisabledRules: disabledRules, NoColor: input.Scan.NoColor, Quiet: input.Scan.Quiet, Verbose: input.Scan.Verbose}},
+		Scan:               scan{Repository: input.Scan.Repository, StartedAt: timestamp(input.Scan.StartedAt), CompletedAt: timestamp(input.Scan.CompletedAt), DurationMillis: duration.Milliseconds(), Format: input.Scan.Format, FailOn: input.Scan.FailOn, MinimumScore: input.Scan.MinimumScore, ThresholdExceeded: input.Scan.ThresholdExceeded, Configuration: configuration{Includes: includes, Excludes: excludes, DisabledRules: disabledRules, NoColor: input.Scan.NoColor, Quiet: input.Scan.Quiet, Verbose: input.Scan.Verbose}, Profile: input.Analysis.Profile},
 		Policies:           policies{ScoringPolicy: input.Analysis.PolicyVersion, RuleCatalog: input.Analysis.RuleCatalogVersion},
 		Summary:            reporters.Summarize(input),
 		Credentials:        compactCredentials(reporters.OrderedCredentials(input, false)),
@@ -92,6 +95,8 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 		RepositoryWarnings: warnings,
 		ParserWarnings:     parserWarnings,
 		NonFatalErrors:     errors,
+		IgnoredCount:       input.Analysis.IgnoredCount,
+		IgnoredItems:       append([]domain.IgnoredItem{}, input.Analysis.IgnoredItems...),
 	}
 	encoder := json.NewEncoder(writer)
 	encoder.SetEscapeHTML(true)

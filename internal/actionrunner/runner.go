@@ -1,4 +1,4 @@
-// Package actionrunner implements the pre-release GitHub Action entrypoint.
+// Package actionrunner implements the GitHub Action entrypoint.
 // It converts untrusted Action inputs directly to argv entries and never asks a
 // shell to interpret them.
 package actionrunner
@@ -26,15 +26,17 @@ const (
 
 // Inputs is the validated GitHub Action input set.
 type Inputs struct {
-	Path           string
-	GitleaksReport string
-	Config         string
-	Format         string
-	Output         string
-	FailOn         string
-	MinimumScore   int
-	Verbose        bool
-	NoColor        bool
+	Path               string
+	GitleaksReport     string
+	GitleaksPathPrefix string
+	Profile            string
+	Config             string
+	Format             string
+	Output             string
+	FailOn             string
+	MinimumScore       int
+	Verbose            bool
+	NoColor            bool
 }
 
 type command struct {
@@ -147,15 +149,17 @@ func run(ctx context.Context, getenv func(string) string, stdout, stderr io.Writ
 // ParseInputs validates all user-controllable Action inputs.
 func ParseInputs(getenv func(string) string) (Inputs, error) {
 	result := Inputs{
-		Path:           valueOr(getenv("INPUT_PATH"), "."),
-		GitleaksReport: getenv("INPUT_GITLEAKS_REPORT"),
-		Config:         getenv("INPUT_CONFIG"),
-		Format:         valueOr(getenv("INPUT_FORMAT"), "sarif"),
-		Output:         getenv("INPUT_OUTPUT"),
-		FailOn:         valueOr(getenv("INPUT_FAIL_ON"), "high"),
+		Path:               valueOr(getenv("INPUT_PATH"), "."),
+		GitleaksReport:     getenv("INPUT_GITLEAKS_REPORT"),
+		GitleaksPathPrefix: getenv("INPUT_GITLEAKS_PATH_PREFIX"),
+		Profile:            valueOr(getenv("INPUT_PROFILE"), "auto"),
+		Config:             getenv("INPUT_CONFIG"),
+		Format:             valueOr(getenv("INPUT_FORMAT"), "sarif"),
+		Output:             getenv("INPUT_OUTPUT"),
+		FailOn:             valueOr(getenv("INPUT_FAIL_ON"), "high"),
 	}
 	for name, value := range map[string]string{
-		"path": result.Path, "gitleaks-report": result.GitleaksReport, "config": result.Config,
+		"path": result.Path, "gitleaks-report": result.GitleaksReport, "gitleaks-path-prefix": result.GitleaksPathPrefix, "profile": result.Profile, "config": result.Config,
 		"format": result.Format, "output": result.Output, "fail-on": result.FailOn,
 	} {
 		if hasControl(value) {
@@ -167,6 +171,9 @@ func ParseInputs(getenv func(string) string) (Inputs, error) {
 	}
 	if !oneOf(result.FailOn, "none", "informational", "low", "medium", "high", "critical") {
 		return Inputs{}, errors.New("unsupported fail-on threshold")
+	}
+	if !oneOf(result.Profile, "auto", "local", "ci", "staging", "production") {
+		return Inputs{}, errors.New("unsupported environment profile")
 	}
 	minimum := valueOr(getenv("INPUT_MINIMUM_SCORE"), "0")
 	parsedMinimum, err := strconv.Atoi(minimum)
@@ -189,8 +196,9 @@ func ParseInputs(getenv func(string) string) (Inputs, error) {
 func Arguments(input Inputs) []string {
 	args := []string{"scan", input.Path}
 	args = appendOptional(args, "--gitleaks-report", input.GitleaksReport)
+	args = appendOptional(args, "--gitleaks-path-prefix", input.GitleaksPathPrefix)
 	args = appendOptional(args, "--config", input.Config)
-	args = append(args, "--format", input.Format, "--fail-on", input.FailOn, "--minimum-score", strconv.Itoa(input.MinimumScore))
+	args = append(args, "--profile", valueOr(input.Profile, "auto"), "--format", input.Format, "--fail-on", input.FailOn, "--minimum-score", strconv.Itoa(input.MinimumScore))
 	args = appendOptional(args, "--output", input.Output)
 	args = append(args, "--verbose="+strconv.FormatBool(input.Verbose), "--no-color="+strconv.FormatBool(input.NoColor))
 	return args
@@ -202,8 +210,9 @@ func Arguments(input Inputs) []string {
 func SummaryArguments(input Inputs) []string {
 	args := []string{"scan", input.Path}
 	args = appendOptional(args, "--gitleaks-report", input.GitleaksReport)
+	args = appendOptional(args, "--gitleaks-path-prefix", input.GitleaksPathPrefix)
 	args = appendOptional(args, "--config", input.Config)
-	return append(args, "--format=json", "--output=", "--fail-on=none", "--minimum-score=0", "--no-color", "--quiet=false", "--verbose=false")
+	return append(args, "--profile", valueOr(input.Profile, "auto"), "--format=json", "--output=", "--fail-on=none", "--minimum-score=0", "--no-color", "--quiet=false", "--verbose=false")
 }
 
 type actionOutputs struct {

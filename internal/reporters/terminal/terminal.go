@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
 
 type Reporter struct{}
@@ -25,14 +25,17 @@ func (Reporter) Render(writer io.Writer, input reporters.Input, options reporter
 	if !options.Quiet {
 		fmt.Fprintf(writer, "%s %s\n", safe(input.Tool.Name), safe(input.Tool.Version))
 		fmt.Fprintf(writer, "Repository: %s\n", safe(input.Scan.Repository))
+		fmt.Fprintf(writer, "Environment profile: %s (%s)\n", safe(string(input.Analysis.Profile.Selected)), safe(input.Analysis.Profile.Reason))
+		fmt.Fprintf(writer, "Profile assumptions: %s\n", strings.Join(safeStrings(input.Analysis.Profile.Assumptions), "; "))
 		fmt.Fprintf(writer, "Scoring policy: %s\nRule catalog: %s\n\n", safe(input.Analysis.PolicyVersion), safe(input.Analysis.RuleCatalogVersion))
 	}
 	fmt.Fprintln(writer, "Summary")
-	fmt.Fprintf(writer, "  Credentials analyzed: %d\n", summary.CredentialCount)
+	fmt.Fprintf(writer, "  Items analyzed: %d\n", summary.CredentialCount)
 	fmt.Fprintf(writer, "  Critical: %d  High: %d  Medium: %d  Low: %d  Informational: %d\n", summary.Critical, summary.High, summary.Medium, summary.Low, summary.Informational)
 	fmt.Fprintf(writer, "  Highest score: %d/100\n", summary.HighestScore)
+	fmt.Fprintf(writer, "  Ignored findings/items: %d\n", input.Analysis.IgnoredCount)
 	if len(credentials) == 0 {
-		fmt.Fprintln(writer, "\nNo credential blast-radius paths were identified from the available static evidence.")
+		fmt.Fprintln(writer, "\nNo credential or configuration exposure paths were identified from the available static evidence.")
 		if input.Scan.MinimumScore > 0 && summary.CredentialCount > 0 {
 			fmt.Fprintf(writer, "No credential met the display minimum score of %d; complete machine reports retain all analyses.\n", input.Scan.MinimumScore)
 		}
@@ -54,7 +57,8 @@ func renderCredential(writer io.Writer, graph domain.Graph, item domain.Credenti
 		severity = colorSeverity(item.Severity, severity)
 	}
 	fmt.Fprintf(writer, "\n%s - %s\n", severity, safe(item.Credential.Label))
-	fmt.Fprintf(writer, "Blast-radius score: %d/100\nConfidence: %s\n", item.Score, displayConfidence(item.Confidence.Overall))
+	fmt.Fprintf(writer, "Classification: %s (confidence: %s; source: %s)\n", safe(string(item.Credential.Classification)), displayConfidence(item.Credential.ClassificationConfidence), safe(item.Credential.ClassificationSource))
+	fmt.Fprintf(writer, "Risk score: %d/100\nEvidence confidence: %s\n", item.Score, displayConfidence(item.Confidence.Overall))
 	fmt.Fprintf(writer, "Reachable: workflows=%d jobs=%d services=%d permissions=%d environments=%d external-actions=%d ports=%d mounts=%d\n",
 		item.Reachable.Workflows, item.Reachable.Jobs, item.Reachable.Services, item.Reachable.Permissions,
 		item.Reachable.Environments, item.Reachable.ExternalActions, item.Reachable.PublishedPorts, item.Reachable.VolumeMounts)
@@ -79,7 +83,7 @@ func renderCredential(writer io.Writer, graph domain.Graph, item domain.Credenti
 		if contribution.FinalContribution == 0 && !options.Verbose {
 			continue
 		}
-		fmt.Fprintf(writer, "  +%d %s %s (base=%d confidence=%s/%d%%)\n", contribution.FinalContribution, safe(contribution.RuleID), safe(contribution.Description), contribution.BaseWeight, displayConfidence(contribution.Confidence), contribution.ConfidenceMultiplier)
+		fmt.Fprintf(writer, "  +%d %s %s (affects=%s; condition=%s; evidence-confidence=%s; profile-changed=%t)\n", contribution.FinalContribution, safe(contribution.RuleID), safe(contribution.Description), safe(contribution.RiskOrConfidence), safe(contribution.ConditionStatus), displayConfidence(contribution.Confidence), contribution.ProfileChanged)
 		if options.Verbose {
 			for _, evidence := range contribution.Evidence {
 				fmt.Fprintf(writer, "      %s\n", evidenceLocation(evidence))
@@ -133,7 +137,11 @@ func humanPath(path domain.EvidencePath) string {
 	for _, node := range path.Nodes {
 		labels = append(labels, truncate(safe(node.Label), 120))
 	}
-	return strings.Join(labels, " -> ")
+	kind := path.EvidenceKind
+	if kind == "" {
+		kind = domain.EvidenceUnknownRuntime
+	}
+	return strings.Join(labels, " -> ") + " [" + safe(string(kind)) + "]"
 }
 
 func evidenceLocation(item domain.Evidence) string {
@@ -176,6 +184,14 @@ func displayConfidence(value domain.Confidence) string {
 }
 
 func safe(value string) string { return sanitizer.TerminalText(value) }
+
+func safeStrings(items []string) []string {
+	result := make([]string, len(items))
+	for index, item := range items {
+		result[index] = safe(item)
+	}
+	return result
+}
 
 func truncate(value string, length int) string {
 	runes := []rune(value)

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 type Definition struct {

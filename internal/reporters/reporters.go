@@ -8,10 +8,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
-const SchemaVersion = "1"
+const SchemaVersion = "2"
 
 type Tool struct {
 	Name    string `json:"name"`
@@ -20,19 +20,20 @@ type Tool struct {
 }
 
 type Scan struct {
-	Repository        string    `json:"repository"`
-	StartedAt         time.Time `json:"started_at"`
-	CompletedAt       time.Time `json:"completed_at"`
-	FailOn            string    `json:"fail_on"`
-	MinimumScore      int       `json:"minimum_score"`
-	Format            string    `json:"format"`
-	ThresholdExceeded bool      `json:"threshold_exceeded"`
-	Includes          []string  `json:"includes,omitempty"`
-	Excludes          []string  `json:"excludes,omitempty"`
-	DisabledRules     []string  `json:"disabled_rules,omitempty"`
-	NoColor           bool      `json:"no_color"`
-	Quiet             bool      `json:"quiet"`
-	Verbose           bool      `json:"verbose"`
+	Repository        string                  `json:"repository"`
+	StartedAt         time.Time               `json:"started_at"`
+	CompletedAt       time.Time               `json:"completed_at"`
+	FailOn            string                  `json:"fail_on"`
+	MinimumScore      int                     `json:"minimum_score"`
+	Format            string                  `json:"format"`
+	ThresholdExceeded bool                    `json:"threshold_exceeded"`
+	Includes          []string                `json:"includes,omitempty"`
+	Excludes          []string                `json:"excludes,omitempty"`
+	DisabledRules     []string                `json:"disabled_rules,omitempty"`
+	NoColor           bool                    `json:"no_color"`
+	Quiet             bool                    `json:"quiet"`
+	Verbose           bool                    `json:"verbose"`
+	Profile           domain.ProfileSelection `json:"profile"`
 }
 
 type Input struct {

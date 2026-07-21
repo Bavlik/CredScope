@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/credscope/credscope/internal/config"
+	"github.com/Bavlik/CredScope/internal/config"
 )
 
 func TestRepositoryIntegrationAndSecretNonDisclosure(t *testing.T) {

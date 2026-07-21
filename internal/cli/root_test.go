@@ -79,7 +79,7 @@ func TestDefaultScanRunsCompleteEmptyPipeline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output, "Credentials analyzed: 0") || !strings.Contains(output, "No credential blast-radius paths were identified") {
+	if !strings.Contains(output, "Items analyzed: 0") || !strings.Contains(output, "No credential or configuration exposure paths were identified") {
 		t.Fatalf("analysis summary missing: %s", output)
 	}
 }
@@ -166,7 +166,7 @@ func TestAllFormatsUseCompleteCriticalAnalysisAndCleanStdout(t *testing.T) {
 						Critical int `json:"critical"`
 					} `json:"summary"`
 				}
-				if json.Unmarshal([]byte(stdout), &doc) != nil || doc.Schema != "1" || doc.Summary.Critical == 0 {
+				if json.Unmarshal([]byte(stdout), &doc) != nil || doc.Schema != "2" || doc.Summary.Critical == 0 {
 					t.Fatal(stdout)
 				}
 			case "sarif":

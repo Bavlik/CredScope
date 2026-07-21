@@ -1,5 +1,5 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "tool": {
     "name": "CredScope",
     "version": "dev",
@@ -21,11 +21,21 @@
       "no_color": false,
       "quiet": false,
       "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "production",
+      "source": "repository_context",
+      "reason": "A Docker Compose service or profile name contains a production marker.",
+      "assumptions": [
+        "Published services, broad credential sharing, and privileged runtime settings receive stricter risk weighting.",
+        "Internet exposure is not assumed without direct evidence."
+      ]
     }
   },
   "policies": {
-    "scoring_policy": "v1",
-    "rule_catalog": "v1"
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
   },
   "summary": {
     "credential_count": 1,
@@ -42,12 +52,19 @@
       "credential": {
         "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
         "label": "CRITICAL_DEMO_TOKEN",
-        "type": "secret"
+        "type": "secret",
+        "classification": "secret",
+        "classification_confidence": "high",
+        "classification_reason": "The source syntax explicitly identifies a secret reference; static analysis does not prove its value.",
+        "classification_source": "source_syntax",
+        "expected_secret": true,
+        "rotation_remediation_applicable": false,
+        "test_fixture_candidate": false
       },
       "score": 100,
       "severity": "critical",
-      "policy_version": "v1",
-      "rule_catalog_version": "v1",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
       "matched_rules": [
         {
           "rule_id": "CRD102",
@@ -137,7 +154,7 @@
             "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7"
           ],
           "path_ids": [
-            "path:2e8bb45435fd3056b7cf89062e907adced4100222294e67a810ecc0f95edac0d"
+            "path:7b5bdd51c27d68cc4afdeb66196e66395b4d6ad4da423e7341b3bba9f0f663ef"
           ],
           "remediation_id": "REM007"
         },
@@ -230,8 +247,8 @@
             "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c"
           ],
           "path_ids": [
-            "path:190e6d3c096b5232aa139c13605fc008fda2cc8e7332a3994a2c809819dd8903",
-            "path:2f9a0ec02f9c47ec99e015cf63f78441036d0f6b3336d06c1731630a4d30c81d"
+            "path:430d2352e3201d7c16fee60e77c6d9fa2f5bdd281c6260561ec9f45aa7c63062",
+            "path:b01644d038c2f11cd6aabdb5928142961525acf1b00a42313aa370fbd9f20950"
           ],
           "remediation_id": "REM007"
         },
@@ -259,7 +276,7 @@
             "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3"
           ],
           "path_ids": [
-            "path:23b40e71125903f04d437fc0e10d1b6bba658172b35736148e5770caa20d11fc"
+            "path:2b3f9687b429da7b26585fc368b459922c9f156816ef9cda59d45464e99426b9"
           ],
           "remediation_id": "REM005"
         },
@@ -287,7 +304,7 @@
             "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4"
           ],
           "path_ids": [
-            "path:34a6ce5869e9bd99e3f0f95c234c97fe7611e126c3e57507e3d2170c32226c8b"
+            "path:7423a448bcc519b692e724c39144e679f092b8586c3b9f84ec3d9012fca7eb26"
           ],
           "remediation_id": "REM003"
         },
@@ -315,7 +332,7 @@
             "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4"
           ],
           "path_ids": [
-            "path:34a6ce5869e9bd99e3f0f95c234c97fe7611e126c3e57507e3d2170c32226c8b"
+            "path:7423a448bcc519b692e724c39144e679f092b8586c3b9f84ec3d9012fca7eb26"
           ],
           "remediation_id": "REM003"
         },
@@ -329,7 +346,7 @@
             {
               "rule_id": "",
               "type": "shell_credential_reference",
-              "description": "Credential is passed to a workflow step.",
+              "description": "Reference is used by this workflow step.",
               "location": {
                 "path": ".github/workflows/critical.yml",
                 "line": 15,
@@ -344,7 +361,7 @@
             "node:step:d4bc888ecc5ae6e0b5cd02d727c656434d21e558077223ca3f29efffd2450855"
           ],
           "path_ids": [
-            "path:ada1bbb18e7a1b42d19084d85034037ced7a66eecf33ce7d33ebd9d9e9459ad9"
+            "path:9b0fc4d7cae971aab6b1183f6cfdbedddcf2d155be38bdcbbc18023f2e519842"
           ],
           "remediation_id": "REM008"
         },
@@ -372,7 +389,7 @@
             "node:external_action:ff8b36c215aad21e5af602ab78f773cb8a7573b37fb3db8d7bacf3697597740e"
           ],
           "path_ids": [
-            "path:28976198415e457b64017045898d1a7ad9044a37b29b6c7ab2ae351a26c8d773"
+            "path:052b0b5f0c89cc04647951d4a446de226a639827419670c96cd3864b95ad6456"
           ],
           "remediation_id": "REM007"
         },
@@ -400,7 +417,7 @@
             "node:external_action:ff8b36c215aad21e5af602ab78f773cb8a7573b37fb3db8d7bacf3697597740e"
           ],
           "path_ids": [
-            "path:28976198415e457b64017045898d1a7ad9044a37b29b6c7ab2ae351a26c8d773"
+            "path:052b0b5f0c89cc04647951d4a446de226a639827419670c96cd3864b95ad6456"
           ],
           "remediation_id": "REM006"
         },
@@ -428,7 +445,7 @@
             "node:environment:ea1a2796d9793dd6aa36c31afba575a47f804ddcf6d57a31ec418599e9c9cae6"
           ],
           "path_ids": [
-            "path:ab155000ade2e00b2e62b63020d5aef294154d0bccb3c62a5859e5ccd0293aef"
+            "path:58ab00b8205e09c66d79ae88eb179ac3adea21cbd53ac52432567d1a97a788d5"
           ],
           "remediation_id": "REM017"
         },
@@ -573,7 +590,7 @@
             "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3"
           ],
           "path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "remediation_id": "REM011"
         },
@@ -718,37 +735,9 @@
             "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3"
           ],
           "path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "remediation_id": "REM013"
-        },
-        {
-          "rule_id": "CRD303",
-          "title": "Credential reaches published host port",
-          "category": "docker_compose",
-          "severity": "medium",
-          "confidence": "medium",
-          "evidence": [
-            {
-              "rule_id": "",
-              "description": "Compose port mapping",
-              "location": {
-                "path": "compose.yml",
-                "line": 7,
-                "column": 9
-              },
-              "field": "services.production-api.ports[0]",
-              "source": "docker-compose",
-              "confidence": "confirmed"
-            }
-          ],
-          "affected_node_ids": [
-            "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e"
-          ],
-          "path_ids": [
-            "path:02bd76dc5964e0030b88ba79528a6b48e6987cfc5f9474d267d0d69d05c25e4b"
-          ],
-          "remediation_id": "REM012"
         },
         {
           "rule_id": "CRD304",
@@ -774,7 +763,7 @@
             "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13"
           ],
           "path_ids": [
-            "path:216951a9fed22ef6dda487da04d2deb23befb14909bae5348e2e043bfa12aa46"
+            "path:627c165b5346950ffb98e7833a275c778cb5f5f29ed372b849a199c689b365e4"
           ],
           "remediation_id": "REM014"
         },
@@ -919,7 +908,7 @@
             "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3"
           ],
           "path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "remediation_id": "REM015"
         },
@@ -960,8 +949,8 @@
             "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13"
           ],
           "path_ids": [
-            "path:216951a9fed22ef6dda487da04d2deb23befb14909bae5348e2e043bfa12aa46",
-            "path:d021e5c7668de21e4b2a006dbac6bf92e210b3b6bbd62bfb8a18e4cee494540e"
+            "path:627c165b5346950ffb98e7833a275c778cb5f5f29ed372b849a199c689b365e4",
+            "path:d1bba92ba53047071133f30ddd10ff63510e4f496a9d93469faec6472fb0fcff"
           ],
           "remediation_id": "REM018"
         },
@@ -1106,7 +1095,7 @@
             "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3"
           ],
           "path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "remediation_id": "REM016"
         },
@@ -1328,8 +1317,8 @@
             "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7"
           ],
           "path_ids": [
-            "path:2e8bb45435fd3056b7cf89062e907adced4100222294e67a810ecc0f95edac0d",
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:7b5bdd51c27d68cc4afdeb66196e66395b4d6ad4da423e7341b3bba9f0f663ef"
           ],
           "remediation_id": "REM010"
         },
@@ -1487,8 +1476,8 @@
             "node:environment:ea1a2796d9793dd6aa36c31afba575a47f804ddcf6d57a31ec418599e9c9cae6"
           ],
           "path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de",
-            "path:ab155000ade2e00b2e62b63020d5aef294154d0bccb3c62a5859e5ccd0293aef"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:58ab00b8205e09c66d79ae88eb179ac3adea21cbd53ac52432567d1a97a788d5"
           ],
           "remediation_id": "REM017"
         },
@@ -1529,8 +1518,8 @@
             "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4"
           ],
           "path_ids": [
-            "path:34a6ce5869e9bd99e3f0f95c234c97fe7611e126c3e57507e3d2170c32226c8b",
-            "path:ab155000ade2e00b2e62b63020d5aef294154d0bccb3c62a5859e5ccd0293aef"
+            "path:58ab00b8205e09c66d79ae88eb179ac3adea21cbd53ac52432567d1a97a788d5",
+            "path:7423a448bcc519b692e724c39144e679f092b8586c3b9f84ec3d9012fca7eb26"
           ],
           "remediation_id": "REM003"
         },
@@ -1830,10 +1819,10 @@
             "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7"
           ],
           "path_ids": [
-            "path:190e6d3c096b5232aa139c13605fc008fda2cc8e7332a3994a2c809819dd8903",
-            "path:2e8bb45435fd3056b7cf89062e907adced4100222294e67a810ecc0f95edac0d",
-            "path:2f9a0ec02f9c47ec99e015cf63f78441036d0f6b3336d06c1731630a4d30c81d",
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:430d2352e3201d7c16fee60e77c6d9fa2f5bdd281c6260561ec9f45aa7c63062",
+            "path:7b5bdd51c27d68cc4afdeb66196e66395b4d6ad4da423e7341b3bba9f0f663ef",
+            "path:b01644d038c2f11cd6aabdb5928142961525acf1b00a42313aa370fbd9f20950"
           ],
           "remediation_id": "REM007"
         },
@@ -1861,7 +1850,7 @@
             "node:reusable_workflow:c98ce71cb4417b29c26dc99cf766194be9d05c4d26cf933b189d76eac3d2b474"
           ],
           "path_ids": [
-            "path:c263e3dbb4cecf684a0ce1f04ca9c39d8971ee7765379573328c8fdd7fee3963"
+            "path:03b127b47dc485f464f1d9c54677952e51c25f03c33ef9b276e659d42c370e09"
           ],
           "remediation_id": "REM019"
         },
@@ -2006,7 +1995,7 @@
             "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3"
           ],
           "path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "remediation_id": "REM020"
         },
@@ -2034,7 +2023,7 @@
             "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e"
           ],
           "path_ids": [
-            "path:02bd76dc5964e0030b88ba79528a6b48e6987cfc5f9474d267d0d69d05c25e4b"
+            "path:ce5f30c41413793aada8f873009787e1466126f9fa901fcb8925f8b0d20e0750"
           ],
           "remediation_id": "REM020"
         }
@@ -2046,9 +2035,12 @@
           "base_weight": 8,
           "adjustments": [],
           "adjusted_weight": 8,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 8,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2136,13 +2128,25 @@
             {
               "kind": "affected_components",
               "percent": 10,
-              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%)."
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            },
+            {
+              "kind": "environment_profile",
+              "percent": 15,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
             }
           ],
-          "adjusted_weight": 9,
-          "confidence_multiplier_percent": 90,
-          "final_contribution": 8,
+          "adjusted_weight": 10,
+          "confidence_weight_percent": 90,
+          "final_contribution": 10,
           "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -2228,9 +2232,12 @@
           "base_weight": 16,
           "adjustments": [],
           "adjusted_weight": 16,
-          "confidence_multiplier_percent": 90,
-          "final_contribution": 14,
+          "confidence_weight_percent": 90,
+          "final_contribution": 16,
           "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2252,9 +2259,12 @@
           "base_weight": 12,
           "adjustments": [],
           "adjusted_weight": 12,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 12,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2276,9 +2286,12 @@
           "base_weight": 20,
           "adjustments": [],
           "adjusted_weight": 20,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 20,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2300,14 +2313,17 @@
           "base_weight": 12,
           "adjustments": [],
           "adjusted_weight": 12,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 12,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
               "type": "shell_credential_reference",
-              "description": "Credential is passed to a workflow step.",
+              "description": "Reference is used by this workflow step.",
               "location": {
                 "path": ".github/workflows/critical.yml",
                 "line": 15,
@@ -2325,9 +2341,12 @@
           "base_weight": 10,
           "adjustments": [],
           "adjusted_weight": 10,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 10,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2349,9 +2368,12 @@
           "base_weight": 7,
           "adjustments": [],
           "adjusted_weight": 7,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 7,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2373,9 +2395,12 @@
           "base_weight": 12,
           "adjustments": [],
           "adjusted_weight": 12,
-          "confidence_multiplier_percent": 70,
-          "final_contribution": 8,
+          "confidence_weight_percent": 70,
+          "final_contribution": 12,
           "confidence": "medium",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2397,9 +2422,12 @@
           "base_weight": 8,
           "adjustments": [],
           "adjusted_weight": 8,
-          "confidence_multiplier_percent": 100,
+          "confidence_weight_percent": 100,
           "final_contribution": 8,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -2536,11 +2564,22 @@
           "rule_id": "CRD302",
           "description": "Credential reaches privileged service",
           "base_weight": 18,
-          "adjustments": [],
-          "adjusted_weight": 18,
-          "confidence_multiplier_percent": 100,
-          "final_contribution": 18,
+          "adjustments": [
+            {
+              "kind": "environment_profile",
+              "percent": 20,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
+            }
+          ],
+          "adjusted_weight": 22,
+          "confidence_weight_percent": 100,
+          "final_contribution": 22,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -2674,38 +2713,25 @@
           ]
         },
         {
-          "rule_id": "CRD303",
-          "description": "Credential reaches published host port",
-          "base_weight": 8,
-          "adjustments": [],
-          "adjusted_weight": 8,
-          "confidence_multiplier_percent": 70,
-          "final_contribution": 6,
-          "confidence": "medium",
-          "evidence": [
-            {
-              "rule_id": "",
-              "description": "Compose port mapping",
-              "location": {
-                "path": "compose.yml",
-                "line": 7,
-                "column": 9
-              },
-              "field": "services.production-api.ports[0]",
-              "source": "docker-compose",
-              "confidence": "confirmed"
-            }
-          ]
-        },
-        {
           "rule_id": "CRD304",
           "description": "Credential reaches Docker socket mount",
           "base_weight": 20,
-          "adjustments": [],
-          "adjusted_weight": 20,
-          "confidence_multiplier_percent": 100,
-          "final_contribution": 20,
+          "adjustments": [
+            {
+              "kind": "environment_profile",
+              "percent": 20,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
+            }
+          ],
+          "adjusted_weight": 24,
+          "confidence_weight_percent": 100,
+          "final_contribution": 24,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -2725,11 +2751,22 @@
           "rule_id": "CRD305",
           "description": "Credential reaches host-network service",
           "base_weight": 12,
-          "adjustments": [],
-          "adjusted_weight": 12,
-          "confidence_multiplier_percent": 100,
-          "final_contribution": 12,
+          "adjustments": [
+            {
+              "kind": "environment_profile",
+              "percent": 20,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
+            }
+          ],
+          "adjusted_weight": 14,
+          "confidence_weight_percent": 100,
+          "final_contribution": 14,
           "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -2870,13 +2907,25 @@
             {
               "kind": "affected_components",
               "percent": 10,
-              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%)."
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            },
+            {
+              "kind": "environment_profile",
+              "percent": 20,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
             }
           ],
-          "adjusted_weight": 11,
-          "confidence_multiplier_percent": 90,
-          "final_contribution": 10,
+          "adjusted_weight": 13,
+          "confidence_weight_percent": 90,
+          "final_contribution": 13,
           "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -2910,9 +2959,12 @@
           "base_weight": 3,
           "adjustments": [],
           "adjusted_weight": 3,
-          "confidence_multiplier_percent": 40,
-          "final_contribution": 1,
+          "confidence_weight_percent": 40,
+          "final_contribution": 3,
           "confidence": "low",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -3053,13 +3105,25 @@
             {
               "kind": "affected_components",
               "percent": 10,
-              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%)."
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            },
+            {
+              "kind": "environment_profile",
+              "percent": 15,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
             }
           ],
-          "adjusted_weight": 17,
-          "confidence_multiplier_percent": 90,
-          "final_contribution": 15,
+          "adjusted_weight": 20,
+          "confidence_weight_percent": 90,
+          "final_contribution": 20,
           "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -3276,13 +3340,25 @@
             {
               "kind": "affected_components",
               "percent": 10,
-              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%)."
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            },
+            {
+              "kind": "environment_profile",
+              "percent": 15,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
             }
           ],
-          "adjusted_weight": 11,
-          "confidence_multiplier_percent": 70,
-          "final_contribution": 8,
+          "adjusted_weight": 13,
+          "confidence_weight_percent": 70,
+          "final_contribution": 13,
           "confidence": "medium",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -3435,13 +3511,18 @@
             {
               "kind": "affected_components",
               "percent": 10,
-              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%)."
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
             }
           ],
           "adjusted_weight": 15,
-          "confidence_multiplier_percent": 90,
-          "final_contribution": 14,
+          "confidence_weight_percent": 90,
+          "final_contribution": 15,
           "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -3477,13 +3558,25 @@
             {
               "kind": "affected_components",
               "percent": 30,
-              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%)."
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            },
+            {
+              "kind": "environment_profile",
+              "percent": 15,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
             }
           ],
-          "adjusted_weight": 10,
-          "confidence_multiplier_percent": 90,
-          "final_contribution": 9,
+          "adjusted_weight": 12,
+          "confidence_weight_percent": 90,
+          "final_contribution": 12,
           "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
           "evidence": [
             {
               "rule_id": "",
@@ -3774,9 +3867,12 @@
           "base_weight": 0,
           "adjustments": [],
           "adjusted_weight": 0,
-          "confidence_multiplier_percent": 0,
+          "confidence_weight_percent": 0,
           "final_contribution": 0,
           "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -3798,9 +3894,12 @@
           "base_weight": 0,
           "adjustments": [],
           "adjusted_weight": 0,
-          "confidence_multiplier_percent": 0,
+          "confidence_weight_percent": 0,
           "final_contribution": 0,
           "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -3939,9 +4038,12 @@
           "base_weight": 0,
           "adjustments": [],
           "adjusted_weight": 0,
-          "confidence_multiplier_percent": 0,
+          "confidence_weight_percent": 0,
           "final_contribution": 0,
           "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
           "evidence": [
             {
               "rule_id": "",
@@ -3961,7 +4063,7 @@
       "confidence": {
         "confirmed": 10,
         "high": 6,
-        "medium": 3,
+        "medium": 2,
         "low": 1,
         "unknown": 3,
         "overall": "high"
@@ -3978,107 +4080,7 @@
       },
       "evidence_paths": [
         {
-          "id": "path:02bd76dc5964e0030b88ba79528a6b48e6987cfc5f9474d267d0d69d05c25e4b",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "type": "compose_service",
-              "label": "production-api",
-              "location": {
-                "path": "compose.yml",
-                "line": 3,
-                "column": 5
-              },
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e",
-              "type": "port_exposure",
-              "label": "published 9443 -\u003e 443",
-              "location": {
-                "path": "compose.yml",
-                "line": 7,
-                "column": 9
-              },
-              "confidence": "medium"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:1e4fcf9f2ddaf25fe3fff224d84a7224b3c939e6f01734de4112c8f02c91b524",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "relationship": "PASSED_TO",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "edge:6c5fe3a3a1d7b0ba80f362936afd6d42e64d0a78b8307cdff56307ed35984e47",
-              "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "to": "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e",
-              "relationship": "PUBLISHES_PORT",
-              "confidence": "medium"
-            }
-          ],
-          "confidence": "medium"
-        },
-        {
-          "id": "path:107f07040c36209e6bf3f4cb8038528181919c1190260b9db156be6c22412b3a",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "type": "compose_service",
-              "label": "production-api",
-              "location": {
-                "path": "compose.yml",
-                "line": 3,
-                "column": 5
-              },
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
-              "type": "file",
-              "label": "compose.yml",
-              "location": {
-                "path": "compose.yml"
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:1e4fcf9f2ddaf25fe3fff224d84a7224b3c939e6f01734de4112c8f02c91b524",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "relationship": "PASSED_TO",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "edge:3880c83bf945d7181568369f6e71c812bf5f725b47802cc6d14ee595c1e4c996",
-              "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
-              "relationship": "DETECTED_IN",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:190e6d3c096b5232aa139c13605fc008fda2cc8e7332a3994a2c809819dd8903",
+          "id": "path:03b127b47dc485f464f1d9c54677952e51c25f03c33ef9b276e659d42c370e09",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4097,174 +4099,42 @@
                 "column": 5
               },
               "confidence": "confirmed"
+            },
+            {
+              "id": "node:reusable_workflow:c98ce71cb4417b29c26dc99cf766194be9d05c4d26cf933b189d76eac3d2b474",
+              "type": "reusable_workflow",
+              "label": "example-vendor/reusable/.github/workflows/deploy.yml@v1",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 22,
+                "column": 11
+              },
+              "confidence": "confirmed"
             }
           ],
           "edges": [
             {
-              "id": "edge:76b27b4727a94115ccf07b5555a4ecda9c6623bd964a237d306b9efd1bac115c",
+              "id": "edge:5c85a17bfaf9619b9c016632ecd5bc96a989e8a2385b8e800999202c892d8345",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
-              "relationship": "PASSED_TO",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
+            },
+            {
+              "id": "edge:a4fcbda65672f6ac16c21fbbd7a81385420a3bf6d310a49480f48cf8382cce45",
+              "from": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
+              "to": "node:reusable_workflow:c98ce71cb4417b29c26dc99cf766194be9d05c4d26cf933b189d76eac3d2b474",
+              "relationship": "calls_workflow",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "unknown"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "unknown",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:216951a9fed22ef6dda487da04d2deb23befb14909bae5348e2e043bfa12aa46",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "type": "compose_service",
-              "label": "production-api",
-              "location": {
-                "path": "compose.yml",
-                "line": 3,
-                "column": 5
-              },
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13",
-              "type": "volume_mount",
-              "label": "/var/run/docker.sock:/var/run/docker.sock",
-              "location": {
-                "path": "compose.yml",
-                "line": 9,
-                "column": 9
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:1e4fcf9f2ddaf25fe3fff224d84a7224b3c939e6f01734de4112c8f02c91b524",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "relationship": "PASSED_TO",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "edge:c3c7f29838eec0361e4ee5c534da3d074758352a379bb4ef682c6bba243408d8",
-              "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "to": "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13",
-              "relationship": "MOUNTS",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:23b40e71125903f04d437fc0e10d1b6bba658172b35736148e5770caa20d11fc",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "type": "workflow",
-              "label": "Synthetic critical scenario",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 1,
-                "column": 1
-              },
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3",
-              "type": "trigger",
-              "label": "pull_request_target",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 4,
-                "column": 3
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:fedc732e86f804c73fa83d8030d1cfd92178920a8fb3e6260fee5948c07608ca",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "relationship": "REFERENCED_BY",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "edge:8ac1d718f9032857d23c957af4195a2ce7f0dee1e757d11ff79c879d11383434",
-              "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "to": "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3",
-              "relationship": "TRIGGERED_BY",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:251bc78cad3b9499963016458d59a9961bc4ed348704180d337c9653ddff1dd1",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "type": "workflow",
-              "label": "Synthetic critical scenario",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 1,
-                "column": 1
-              },
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:trigger:2853c9882c89183eb5e1f83a61dc7406ad6f00d1dccadc801f696a58836e9e81",
-              "type": "trigger",
-              "label": "workflow_dispatch",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 5,
-                "column": 3
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:fedc732e86f804c73fa83d8030d1cfd92178920a8fb3e6260fee5948c07608ca",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "relationship": "REFERENCED_BY",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "edge:0603d92fc7fbcacc52020cf2ceedd5bf8598b59d39b41f533d4bc30c945c0845",
-              "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "to": "node:trigger:2853c9882c89183eb5e1f83a61dc7406ad6f00d1dccadc801f696a58836e9e81",
-              "relationship": "TRIGGERED_BY",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:28976198415e457b64017045898d1a7ad9044a37b29b6c7ab2ae351a26c8d773",
+          "id": "path:052b0b5f0c89cc04647951d4a446de226a639827419670c96cd3864b95ad6456",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4298,90 +4168,27 @@
           ],
           "edges": [
             {
-              "id": "edge:7f7ce8426da273ab6bc084ab08ec435285c7bbd0f805e366b5af47216a8b9f8b",
+              "id": "edge:1f8e2438816091d4589bf3ee906455399c0f021008e901479090f1eef8d59953",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
-              "relationship": "PASSED_TO",
+              "relationship": "explicitly_forwarded_to",
+              "evidence_kind": "confirmed_static_data_flow",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:470d03c44f4789e13bebf1d0d1430b2916a5b1fc64caaed91abbb52940f0d79d",
+              "id": "edge:0d25d71849e96ae98685212bccae71ed9bb01fe68a4a8b17d670c11e35f97dcf",
               "from": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
               "to": "node:external_action:ff8b36c215aad21e5af602ab78f773cb8a7573b37fb3db8d7bacf3697597740e",
-              "relationship": "RUNS_ACTION",
+              "relationship": "runs_action",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:2e8bb45435fd3056b7cf89062e907adced4100222294e67a810ecc0f95edac0d",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "type": "workflow",
-              "label": "Synthetic critical scenario",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 1,
-                "column": 1
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:0d22bc31b2fb2bec2ffd3d9aca604f81acdd5fea86b2cdbde05404378a3cb0d0",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "relationship": "REFERENCED_BY",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:2f9a0ec02f9c47ec99e015cf63f78441036d0f6b3336d06c1731630a4d30c81d",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-              "type": "job",
-              "label": "deploy",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 11,
-                "column": 5
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:ba0965a998f6a5fc397f61143e397d4453b87ceab1e3cff474f80f4a341e4caf",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-              "relationship": "PASSED_TO",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:3242bc7f1833b9588ef019144631a06939be6f5ce343e30b7a8c94e2767fa7e0",
+          "id": "path:11d9aa5f17426f599b06d675a0f7d083c25967fbbfa53a8f11041d7e85ff4d96",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4413,24 +4220,27 @@
           ],
           "edges": [
             {
-              "id": "edge:0d22bc31b2fb2bec2ffd3d9aca604f81acdd5fea86b2cdbde05404378a3cb0d0",
+              "id": "edge:12e0f75ce970fd9bee2873e23dc3e9b0469c0bfd3ad7316aedb62d1eb153ad41",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "relationship": "REFERENCED_BY",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:65e74d268896cd3c69cd9560384e497196df29b678dc610c93c16e0095cc78b4",
+              "id": "edge:a24068b64a4952e43040f9450f20a753652251bf5cdebf5dc99cd0fe6e75477d",
               "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
               "to": "node:file:85a56bb4ce53a2222bba9c5e9f2ddac11e8d41147f818069263c0cf204cd5bde",
-              "relationship": "DETECTED_IN",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:34a6ce5869e9bd99e3f0f95c234c97fe7611e126c3e57507e3d2170c32226c8b",
+          "id": "path:12484330ab612af4cca0fb0c1feb62b3377d96ee613e3ee91129a9dbd8f670b6",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4451,37 +4261,251 @@
               "confidence": "confirmed"
             },
             {
-              "id": "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4",
-              "type": "permission",
-              "label": "all:write-all",
+              "id": "node:trigger:2853c9882c89183eb5e1f83a61dc7406ad6f00d1dccadc801f696a58836e9e81",
+              "type": "trigger",
+              "label": "workflow_dispatch",
               "location": {
                 "path": ".github/workflows/critical.yml",
-                "line": 7,
-                "column": 14
+                "line": 5,
+                "column": 3
               },
               "confidence": "confirmed"
             }
           ],
           "edges": [
             {
-              "id": "edge:0d22bc31b2fb2bec2ffd3d9aca604f81acdd5fea86b2cdbde05404378a3cb0d0",
+              "id": "edge:198883abbd2f1f855fe303c6c3fd71cdacabf921ea2889841ff76ddcf391b2d3",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "relationship": "REFERENCED_BY",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:05a433fa0e6435966150b3398eee501a3d7fb95b85c52a0934498e0b743dde6a",
+              "id": "edge:48c072ddc27e7612e5e3d507f89315ccbec94f21877a4a7da9fc4ba263d8a3eb",
               "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "to": "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4",
-              "relationship": "HAS_PERMISSION",
+              "to": "node:trigger:2853c9882c89183eb5e1f83a61dc7406ad6f00d1dccadc801f696a58836e9e81",
+              "relationship": "triggered_by",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:368aeb0d0c01085ae3dd047bc3a7954d806746cb2b1cfc4d5f4867bd17933d03",
+          "id": "path:272bff5e36a5db6f76d71cd56131d7df6539a12df9ba24d0de28d566be7a078e",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
+              "type": "step",
+              "label": "Mutable third-party demonstration",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 16,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:1f8e2438816091d4589bf3ee906455399c0f021008e901479090f1eef8d59953",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
+              "relationship": "explicitly_forwarded_to",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:2b3f9687b429da7b26585fc368b459922c9f156816ef9cda59d45464e99426b9",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "type": "workflow",
+              "label": "Synthetic critical scenario",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3",
+              "type": "trigger",
+              "label": "pull_request_target",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 4,
+                "column": 3
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:12e0f75ce970fd9bee2873e23dc3e9b0469c0bfd3ad7316aedb62d1eb153ad41",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:98b191236334611b1320085fbefa73462ecd908d1cd4596ac5d9ca5d09e61756",
+              "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "to": "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3",
+              "relationship": "triggered_by",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:335938c51ce4ac9735a30adff4f498a4b0f3e44142b9652393456e8b5050e7ee",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "type": "compose_service",
+              "label": "production-api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e390f3fdaddeb956b29fc4d18b8b9fd55e098389ea48e652bac3c1f92e505c1d",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:5b50d17476f08e5f56fd0f3a78e02f6ca1960e3b34efc65a48fc483d81f4c05e",
+              "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "type": "compose_service",
+              "label": "production-api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e390f3fdaddeb956b29fc4d18b8b9fd55e098389ea48e652bac3c1f92e505c1d",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:430d2352e3201d7c16fee60e77c6d9fa2f5bdd281c6260561ec9f45aa7c63062",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+              "type": "job",
+              "label": "deploy",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 11,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:cbad87102868952dadcc8be15add9faba22013fd616a15dd2c9bf2e6991c05df",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:50797664b3ec521f1a59ac694db8b3cf5c08e87b9a4873328924b48715af440b",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4519,97 +4543,35 @@
           ],
           "edges": [
             {
-              "id": "edge:0d22bc31b2fb2bec2ffd3d9aca604f81acdd5fea86b2cdbde05404378a3cb0d0",
+              "id": "edge:12e0f75ce970fd9bee2873e23dc3e9b0469c0bfd3ad7316aedb62d1eb153ad41",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-              "relationship": "REFERENCED_BY",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:65e74d268896cd3c69cd9560384e497196df29b678dc610c93c16e0095cc78b4",
+              "id": "edge:a24068b64a4952e43040f9450f20a753652251bf5cdebf5dc99cd0fe6e75477d",
               "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
               "to": "node:file:85a56bb4ce53a2222bba9c5e9f2ddac11e8d41147f818069263c0cf204cd5bde",
-              "relationship": "DETECTED_IN",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:af6f19ba9d3f3700345e17be82b77f8044c341ad563dbf1892130976c19c8f68",
+              "id": "edge:2a10c466afc39c24afb2e7429a90824eb6ebcf19c2db2185c1e686974e32a32d",
               "from": "node:file:85a56bb4ce53a2222bba9c5e9f2ddac11e8d41147f818069263c0cf204cd5bde",
               "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
-              "relationship": "DETECTED_IN",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "type": "compose_service",
-              "label": "production-api",
-              "location": {
-                "path": "compose.yml",
-                "line": 3,
-                "column": 5
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:1e4fcf9f2ddaf25fe3fff224d84a7224b3c939e6f01734de4112c8f02c91b524",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "relationship": "PASSED_TO",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:956fa5c318b3441f09bc71f6b83b71178bd062e07dc529bb2e9e870d3a36b1f2",
-          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-          "nodes": [
-            {
-              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "type": "credential",
-              "label": "CRITICAL_DEMO_TOKEN",
-              "confidence": "confirmed"
-            },
-            {
-              "id": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
-              "type": "step",
-              "label": "Mutable third-party demonstration",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 16,
-                "column": 9
-              },
-              "confidence": "confirmed"
-            }
-          ],
-          "edges": [
-            {
-              "id": "edge:7f7ce8426da273ab6bc084ab08ec435285c7bbd0f805e366b5af47216a8b9f8b",
-              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-              "to": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
-              "relationship": "PASSED_TO",
-              "confidence": "confirmed"
-            }
-          ],
-          "confidence": "confirmed"
-        },
-        {
-          "id": "path:ab155000ade2e00b2e62b63020d5aef294154d0bccb3c62a5859e5ccd0293aef",
+          "id": "path:58ab00b8205e09c66d79ae88eb179ac3adea21cbd53ac52432567d1a97a788d5",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4643,24 +4605,170 @@
           ],
           "edges": [
             {
-              "id": "edge:ba0965a998f6a5fc397f61143e397d4453b87ceab1e3cff474f80f4a341e4caf",
+              "id": "edge:cbad87102868952dadcc8be15add9faba22013fd616a15dd2c9bf2e6991c05df",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-              "relationship": "PASSED_TO",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:01060ba4049c73484d72ae91e49f6d7eddd5249fd28dddad75f5adb9492bbcdb",
+              "id": "edge:50dc9d216c0de64166ba7eaf289557ee730bdefa316fac6652f9f504c5e13b8b",
               "from": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
               "to": "node:environment:ea1a2796d9793dd6aa36c31afba575a47f804ddcf6d57a31ec418599e9c9cae6",
-              "relationship": "USES_ENVIRONMENT",
+              "relationship": "uses_environment",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "medium"
             }
           ],
-          "confidence": "medium"
+          "confidence": "medium",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:ada1bbb18e7a1b42d19084d85034037ced7a66eecf33ce7d33ebd9d9e9459ad9",
+          "id": "path:627c165b5346950ffb98e7833a275c778cb5f5f29ed372b849a199c689b365e4",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "type": "compose_service",
+              "label": "production-api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13",
+              "type": "volume_mount",
+              "label": "/var/run/docker.sock:/var/run/docker.sock",
+              "location": {
+                "path": "compose.yml",
+                "line": 9,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e390f3fdaddeb956b29fc4d18b8b9fd55e098389ea48e652bac3c1f92e505c1d",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:321b21f26a30f77cefb00bdaf4fd3f9c9b960b8a2e62b245ba697b738bf3b881",
+              "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "to": "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13",
+              "relationship": "mounts_volume",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:7423a448bcc519b692e724c39144e679f092b8586c3b9f84ec3d9012fca7eb26",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "type": "workflow",
+              "label": "Synthetic critical scenario",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4",
+              "type": "permission",
+              "label": "all:write-all",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 7,
+                "column": 14
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:12e0f75ce970fd9bee2873e23dc3e9b0469c0bfd3ad7316aedb62d1eb153ad41",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:6a509ee5679cfc46c67557435b3e92e03aba54901e74c0221ede85b667f04fc8",
+              "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "to": "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4",
+              "relationship": "has_permission",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:7b5bdd51c27d68cc4afdeb66196e66395b4d6ad4da423e7341b3bba9f0f663ef",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "type": "workflow",
+              "label": "Synthetic critical scenario",
+              "location": {
+                "path": ".github/workflows/critical.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:12e0f75ce970fd9bee2873e23dc3e9b0469c0bfd3ad7316aedb62d1eb153ad41",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:9b0fc4d7cae971aab6b1183f6cfdbedddcf2d155be38bdcbbc18023f2e519842",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4683,17 +4791,19 @@
           ],
           "edges": [
             {
-              "id": "edge:ef72efb317fd20156a08a67971567f778cc96b7e35e17887dce88f4b7ba03630",
+              "id": "edge:860dff85c49e277133f8a0b46f1b2e3cad4ba893f6ce29c5047754abe55e35a2",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:step:d4bc888ecc5ae6e0b5cd02d727c656434d21e558077223ca3f29efffd2450855",
-              "relationship": "PASSED_TO",
+              "relationship": "referenced_by_process",
+              "evidence_kind": "confirmed_static_data_flow",
               "confidence": "confirmed"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
         },
         {
-          "id": "path:c263e3dbb4cecf684a0ce1f04ca9c39d8971ee7765379573328c8fdd7fee3963",
+          "id": "path:b01644d038c2f11cd6aabdb5928142961525acf1b00a42313aa370fbd9f20950",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4712,39 +4822,77 @@
                 "column": 5
               },
               "confidence": "confirmed"
-            },
-            {
-              "id": "node:reusable_workflow:c98ce71cb4417b29c26dc99cf766194be9d05c4d26cf933b189d76eac3d2b474",
-              "type": "reusable_workflow",
-              "label": "example-vendor/reusable/.github/workflows/deploy.yml@v1",
-              "location": {
-                "path": ".github/workflows/critical.yml",
-                "line": 22,
-                "column": 11
-              },
-              "confidence": "confirmed"
             }
           ],
           "edges": [
             {
-              "id": "edge:76b27b4727a94115ccf07b5555a4ecda9c6623bd964a237d306b9efd1bac115c",
+              "id": "edge:5c85a17bfaf9619b9c016632ecd5bc96a989e8a2385b8e800999202c892d8345",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
-              "relationship": "PASSED_TO",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:ce5f30c41413793aada8f873009787e1466126f9fa901fcb8925f8b0d20e0750",
+          "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+          "nodes": [
+            {
+              "id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "type": "credential",
+              "label": "CRITICAL_DEMO_TOKEN",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:e8912c392214dc345baf58f79284eb91f97602bae82133cf0cf5723cbea11685",
-              "from": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
-              "to": "node:reusable_workflow:c98ce71cb4417b29c26dc99cf766194be9d05c4d26cf933b189d76eac3d2b474",
-              "relationship": "CALLS_WORKFLOW",
-              "confidence": "unknown"
+              "id": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "type": "compose_service",
+              "label": "production-api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e",
+              "type": "port_exposure",
+              "label": "published 9443 -\u003e 443",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "confidence": "medium"
             }
           ],
-          "confidence": "unknown"
+          "edges": [
+            {
+              "id": "edge:e390f3fdaddeb956b29fc4d18b8b9fd55e098389ea48e652bac3c1f92e505c1d",
+              "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+              "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:8a78430306c2f3a270dd78ee081facbb7d295d0791144097b34f7388a1bdcdff",
+              "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+              "to": "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e",
+              "relationship": "exposes_port",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "medium"
+            }
+          ],
+          "confidence": "medium",
+          "evidence_kind": "inferred_exposure_context"
         },
         {
-          "id": "path:d021e5c7668de21e4b2a006dbac6bf92e210b3b6bbd62bfb8a18e4cee494540e",
+          "id": "path:d1bba92ba53047071133f30ddd10ff63510e4f496a9d93469faec6472fb0fcff",
           "credential_id": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
           "nodes": [
             {
@@ -4778,21 +4926,24 @@
           ],
           "edges": [
             {
-              "id": "edge:1e4fcf9f2ddaf25fe3fff224d84a7224b3c939e6f01734de4112c8f02c91b524",
+              "id": "edge:e390f3fdaddeb956b29fc4d18b8b9fd55e098389ea48e652bac3c1f92e505c1d",
               "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
               "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-              "relationship": "PASSED_TO",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
               "confidence": "confirmed"
             },
             {
-              "id": "edge:16746011c9e4f06fe2d4a233afc7e5dbff3d3c969265d61e35c3f958d82f9669",
+              "id": "edge:91c1307334615aadb7f3f9c9326554c4332191ecd1847375dad39d2196117bb1",
               "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
               "to": "node:volume_mount:9db1f6eab9dfb42622d7f8dafb5372e8ae06f19f40dd799f9544efca80a145ea",
-              "relationship": "MOUNTS",
+              "relationship": "mounts_volume",
+              "evidence_kind": "inferred_exposure_context",
               "confidence": "confirmed"
             }
           ],
-          "confidence": "confirmed"
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
         }
       ],
       "warnings": [
@@ -4808,7 +4959,6 @@
         "REM008",
         "REM010",
         "REM011",
-        "REM012",
         "REM013",
         "REM014",
         "REM015",
@@ -4827,7 +4977,7 @@
             "CRD104"
           ],
           "evidence_path_ids": [
-            "path:23b40e71125903f04d437fc0e10d1b6bba658172b35736148e5770caa20d11fc"
+            "path:2b3f9687b429da7b26585fc368b459922c9f156816ef9cda59d45464e99426b9"
           ],
           "affected_locations": [
             {
@@ -4848,7 +4998,7 @@
             "CRD302"
           ],
           "evidence_path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "affected_locations": [
             {
@@ -4889,7 +5039,7 @@
             "CRD304"
           ],
           "evidence_path_ids": [
-            "path:216951a9fed22ef6dda487da04d2deb23befb14909bae5348e2e043bfa12aa46"
+            "path:627c165b5346950ffb98e7833a275c778cb5f5f29ed372b849a199c689b365e4"
           ],
           "affected_locations": [
             {
@@ -4912,8 +5062,8 @@
             "CRD403"
           ],
           "evidence_path_ids": [
-            "path:34a6ce5869e9bd99e3f0f95c234c97fe7611e126c3e57507e3d2170c32226c8b",
-            "path:ab155000ade2e00b2e62b63020d5aef294154d0bccb3c62a5859e5ccd0293aef"
+            "path:58ab00b8205e09c66d79ae88eb179ac3adea21cbd53ac52432567d1a97a788d5",
+            "path:7423a448bcc519b692e724c39144e679f092b8586c3b9f84ec3d9012fca7eb26"
           ],
           "affected_locations": [
             {
@@ -4939,7 +5089,7 @@
             "CRD203"
           ],
           "evidence_path_ids": [
-            "path:ada1bbb18e7a1b42d19084d85034037ced7a66eecf33ce7d33ebd9d9e9459ad9"
+            "path:9b0fc4d7cae971aab6b1183f6cfdbedddcf2d155be38bdcbbc18023f2e519842"
           ],
           "affected_locations": [
             {
@@ -4960,8 +5110,8 @@
             "CRD401"
           ],
           "evidence_path_ids": [
-            "path:2e8bb45435fd3056b7cf89062e907adced4100222294e67a810ecc0f95edac0d",
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:7b5bdd51c27d68cc4afdeb66196e66395b4d6ad4da423e7341b3bba9f0f663ef"
           ],
           "affected_locations": [
             {
@@ -5032,7 +5182,7 @@
             "CRD305"
           ],
           "evidence_path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "affected_locations": [
             {
@@ -5074,8 +5224,8 @@
             "CRD402"
           ],
           "evidence_path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de",
-            "path:ab155000ade2e00b2e62b63020d5aef294154d0bccb3c62a5859e5ccd0293aef"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:58ab00b8205e09c66d79ae88eb179ac3adea21cbd53ac52432567d1a97a788d5"
           ],
           "affected_locations": [
             {
@@ -5121,8 +5271,8 @@
             "CRD307"
           ],
           "evidence_path_ids": [
-            "path:216951a9fed22ef6dda487da04d2deb23befb14909bae5348e2e043bfa12aa46",
-            "path:d021e5c7668de21e4b2a006dbac6bf92e210b3b6bbd62bfb8a18e4cee494540e"
+            "path:627c165b5346950ffb98e7833a275c778cb5f5f29ed372b849a199c689b365e4",
+            "path:d1bba92ba53047071133f30ddd10ff63510e4f496a9d93469faec6472fb0fcff"
           ],
           "affected_locations": [
             {
@@ -5148,7 +5298,7 @@
             "CRD205"
           ],
           "evidence_path_ids": [
-            "path:28976198415e457b64017045898d1a7ad9044a37b29b6c7ab2ae351a26c8d773"
+            "path:052b0b5f0c89cc04647951d4a446de226a639827419670c96cd3864b95ad6456"
           ],
           "affected_locations": [
             {
@@ -5172,11 +5322,11 @@
             "CRD404"
           ],
           "evidence_path_ids": [
-            "path:190e6d3c096b5232aa139c13605fc008fda2cc8e7332a3994a2c809819dd8903",
-            "path:28976198415e457b64017045898d1a7ad9044a37b29b6c7ab2ae351a26c8d773",
-            "path:2e8bb45435fd3056b7cf89062e907adced4100222294e67a810ecc0f95edac0d",
-            "path:2f9a0ec02f9c47ec99e015cf63f78441036d0f6b3336d06c1731630a4d30c81d",
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:052b0b5f0c89cc04647951d4a446de226a639827419670c96cd3864b95ad6456",
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:430d2352e3201d7c16fee60e77c6d9fa2f5bdd281c6260561ec9f45aa7c63062",
+            "path:7b5bdd51c27d68cc4afdeb66196e66395b4d6ad4da423e7341b3bba9f0f663ef",
+            "path:b01644d038c2f11cd6aabdb5928142961525acf1b00a42313aa370fbd9f20950"
           ],
           "affected_locations": [
             {
@@ -5267,7 +5417,7 @@
             "CRD301"
           ],
           "evidence_path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "affected_locations": [
             {
@@ -5301,27 +5451,6 @@
           "priority": 3
         },
         {
-          "id": "REM012",
-          "title": "Review published host ports",
-          "why": "Published ports may increase service reachability depending on host firewall and network configuration.",
-          "triggering_rule_ids": [
-            "CRD303"
-          ],
-          "evidence_path_ids": [
-            "path:02bd76dc5964e0030b88ba79528a6b48e6987cfc5f9474d267d0d69d05c25e4b"
-          ],
-          "affected_locations": [
-            {
-              "path": "compose.yml",
-              "line": 7,
-              "column": 9
-            }
-          ],
-          "confidence": "medium",
-          "suggested_action": "Remove unnecessary port publishing or bind it to an appropriate interface, then enforce host and network access controls.",
-          "priority": 3
-        },
-        {
           "id": "REM016",
           "title": "Use a verified non-root container user",
           "why": "Static configuration cannot confirm a non-root runtime identity when user is omitted.",
@@ -5329,7 +5458,7 @@
             "CRD308"
           ],
           "evidence_path_ids": [
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078"
           ],
           "affected_locations": [
             {
@@ -5370,7 +5499,7 @@
             "CRD501"
           ],
           "evidence_path_ids": [
-            "path:c263e3dbb4cecf684a0ce1f04ca9c39d8971ee7765379573328c8fdd7fee3963"
+            "path:03b127b47dc485f464f1d9c54677952e51c25f03c33ef9b276e659d42c370e09"
           ],
           "affected_locations": [
             {
@@ -5392,8 +5521,8 @@
             "CRD503"
           ],
           "evidence_path_ids": [
-            "path:02bd76dc5964e0030b88ba79528a6b48e6987cfc5f9474d267d0d69d05c25e4b",
-            "path:4db79338a622c7187c66602519f1cd6687343b87d9611aed334a0e551a3cf3de"
+            "path:3d44dec8521496a8247fb498da13caa462df346dbd4789473a6eb8128b626078",
+            "path:ce5f30c41413793aada8f873009787e1466126f9fa901fcb8925f8b0d20e0750"
           ],
           "affected_locations": [
             {
@@ -6200,186 +6329,11 @@
     ],
     "edges": [
       {
-        "id": "edge:01060ba4049c73484d72ae91e49f6d7eddd5249fd28dddad75f5adb9492bbcdb",
-        "from": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-        "to": "node:environment:ea1a2796d9793dd6aa36c31afba575a47f804ddcf6d57a31ec418599e9c9cae6",
-        "type": "USES_ENVIRONMENT",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "deployment_environment",
-            "description": "Job declares a GitHub environment.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 12,
-              "column": 18
-            },
-            "field": "jobs.deploy.environment",
-            "source": "github-actions",
-            "confidence": "medium"
-          }
-        ],
-        "confidence": "medium"
-      },
-      {
-        "id": "edge:05a433fa0e6435966150b3398eee501a3d7fb95b85c52a0934498e0b743dde6a",
-        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "to": "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4",
-        "type": "HAS_PERMISSION",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "permission",
-            "description": "Explicit GitHub Actions permission.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 7,
-              "column": 14
-            },
-            "field": "workflow.permissions",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:0603d92fc7fbcacc52020cf2ceedd5bf8598b59d39b41f533d4bc30c945c0845",
-        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "to": "node:trigger:2853c9882c89183eb5e1f83a61dc7406ad6f00d1dccadc801f696a58836e9e81",
-        "type": "TRIGGERED_BY",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "workflow_trigger",
-            "description": "Workflow declares this trigger.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 5,
-              "column": 3
-            },
-            "field": "on.workflow_dispatch",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:0d22bc31b2fb2bec2ffd3d9aca604f81acdd5fea86b2cdbde05404378a3cb0d0",
-        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "type": "REFERENCED_BY",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "credential_reference",
-            "description": "Workflow contains a credential reference.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 24,
-              "column": 21
-            },
-            "field": "jobs.call-reusable",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:16746011c9e4f06fe2d4a233afc7e5dbff3d3c969265d61e35c3f958d82f9669",
-        "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-        "to": "node:volume_mount:9db1f6eab9dfb42622d7f8dafb5372e8ae06f19f40dd799f9544efca80a145ea",
-        "type": "MOUNTS",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "volume_mount",
-            "description": "Service declares this volume mount.",
-            "location": {
-              "path": "compose.yml",
-              "line": 10,
-              "column": 9
-            },
-            "field": "services.production-api.volumes[1]",
-            "source": "docker-compose",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:1e4fcf9f2ddaf25fe3fff224d84a7224b3c939e6f01734de4112c8f02c91b524",
-        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-        "type": "PASSED_TO",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "compose_credential_reference",
-            "description": "Credential reference is passed to this Compose service.",
-            "location": {
-              "path": "compose.yml",
-              "line": 5,
-              "column": 21
-            },
-            "field": "services.production-api.environment.DEPLOY_TOKEN",
-            "source": "docker-compose",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:329fc9c6ee164b31148ebc409723af3918f64dc217b5b709e6f2fa0d3953844e",
-        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-        "type": "PASSED_TO",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "job_credential_reference",
-            "description": "Job contains a credential reference.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 19,
-              "column": 18
-            },
-            "field": "jobs.deploy",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:3880c83bf945d7181568369f6e71c812bf5f725b47802cc6d14ee595c1e4c996",
-        "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
-        "type": "DETECTED_IN",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "compose_service",
-            "description": "Service is defined in this Compose file.",
-            "location": {
-              "path": "compose.yml",
-              "line": 3,
-              "column": 5
-            },
-            "field": "services.production-api",
-            "source": "docker-compose",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:470d03c44f4789e13bebf1d0d1430b2916a5b1fc64caaed91abbb52940f0d79d",
+        "id": "edge:0d25d71849e96ae98685212bccae71ed9bb01fe68a4a8b17d670c11e35f97dcf",
         "from": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
         "to": "node:external_action:ff8b36c215aad21e5af602ab78f773cb8a7573b37fb3db8d7bacf3697597740e",
-        "type": "RUNS_ACTION",
+        "type": "runs_action",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
@@ -6398,80 +6352,39 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:65e74d268896cd3c69cd9560384e497196df29b678dc610c93c16e0095cc78b4",
-        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "to": "node:file:85a56bb4ce53a2222bba9c5e9f2ddac11e8d41147f818069263c0cf204cd5bde",
-        "type": "DETECTED_IN",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "workflow_definition",
-            "description": "Workflow is defined in this file.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 1,
-              "column": 1
-            },
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:6c5fe3a3a1d7b0ba80f362936afd6d42e64d0a78b8307cdff56307ed35984e47",
-        "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
-        "to": "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e",
-        "type": "PUBLISHES_PORT",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "published_host_port",
-            "description": "Service publishes a host port and may be externally reachable depending on runtime configuration.",
-            "location": {
-              "path": "compose.yml",
-              "line": 7,
-              "column": 9
-            },
-            "field": "services.production-api.ports[0]",
-            "source": "docker-compose",
-            "confidence": "medium"
-          }
-        ],
-        "confidence": "medium"
-      },
-      {
-        "id": "edge:76b27b4727a94115ccf07b5555a4ecda9c6623bd964a237d306b9efd1bac115c",
-        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
-        "type": "PASSED_TO",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "job_credential_reference",
-            "description": "Job contains a credential reference.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 24,
-              "column": 21
-            },
-            "field": "jobs.call-reusable",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:7c257bc8074410b4c20b5ba11524409cb4d2fe82c021c6a33db27af296622f80",
+        "id": "edge:12e0f75ce970fd9bee2873e23dc3e9b0469c0bfd3ad7316aedb62d1eb153ad41",
         "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
         "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "type": "REFERENCED_BY",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
             "type": "credential_reference",
-            "description": "Workflow contains a credential reference.",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 19,
+              "column": 18
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:198883abbd2f1f855fe303c6c3fd71cdacabf921ea2889841ff76ddcf391b2d3",
+        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+        "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
             "location": {
               "path": ".github/workflows/critical.yml",
               "line": 15,
@@ -6485,15 +6398,16 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:7f7ce8426da273ab6bc084ab08ec435285c7bbd0f805e366b5af47216a8b9f8b",
+        "id": "edge:1f8e2438816091d4589bf3ee906455399c0f021008e901479090f1eef8d59953",
         "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
         "to": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
-        "type": "PASSED_TO",
+        "type": "explicitly_forwarded_to",
+        "evidence_kind": "confirmed_static_data_flow",
         "evidence": [
           {
             "rule_id": "",
             "type": "step_credential_reference",
-            "description": "Credential is passed to a workflow step.",
+            "description": "Reference is used by this workflow step.",
             "location": {
               "path": ".github/workflows/critical.yml",
               "line": 19,
@@ -6507,75 +6421,11 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:88dce485cdd3fc77d88fef289b253a5259475762efa32b33bfb8f56bc569fba6",
-        "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
-        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
-        "type": "DETECTED_IN",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "repository_file",
-            "description": "Compose file belongs to the selected repository.",
-            "location": {
-              "path": "compose.yml",
-              "line": 1,
-              "column": 1
-            },
-            "source": "docker-compose",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:8ac1d718f9032857d23c957af4195a2ce7f0dee1e757d11ff79c879d11383434",
-        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "to": "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3",
-        "type": "TRIGGERED_BY",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "workflow_trigger",
-            "description": "Workflow declares this trigger.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 4,
-              "column": 3
-            },
-            "field": "on.pull_request_target",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:98c4d5e101fdd559c36ea0c9d086f80f610c02b4ac5f8204f6a19552f2b5e5ab",
-        "from": "node:step:d4bc888ecc5ae6e0b5cd02d727c656434d21e558077223ca3f29efffd2450855",
-        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-        "type": "EXECUTED_BY",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "workflow_step",
-            "description": "Step executes within this job.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 14,
-              "column": 9
-            },
-            "field": "jobs.deploy.steps[0]",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:af6f19ba9d3f3700345e17be82b77f8044c341ad563dbf1892130976c19c8f68",
+        "id": "edge:2a10c466afc39c24afb2e7429a90824eb6ebcf19c2db2185c1e686974e32a32d",
         "from": "node:file:85a56bb4ce53a2222bba9c5e9f2ddac11e8d41147f818069263c0cf204cd5bde",
         "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
-        "type": "DETECTED_IN",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
@@ -6593,54 +6443,33 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:ba0965a998f6a5fc397f61143e397d4453b87ceab1e3cff474f80f4a341e4caf",
-        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-        "type": "PASSED_TO",
+        "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+        "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
-            "type": "job_credential_reference",
-            "description": "Job contains a credential reference.",
+            "type": "repository_file",
+            "description": "Compose file belongs to the selected repository.",
             "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 15,
-              "column": 14
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
             },
-            "field": "jobs.deploy",
-            "source": "github-actions",
+            "source": "docker-compose",
             "confidence": "confirmed"
           }
         ],
         "confidence": "confirmed"
       },
       {
-        "id": "edge:bf6affe472f8ca885462f0602641493d3a4edb40c91b3a54776d1030b77f0f53",
-        "from": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
-        "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "type": "REFERENCED_BY",
-        "evidence": [
-          {
-            "rule_id": "",
-            "type": "workflow_job",
-            "description": "Job belongs to this workflow.",
-            "location": {
-              "path": ".github/workflows/critical.yml",
-              "line": 22,
-              "column": 5
-            },
-            "field": "jobs.call-reusable",
-            "source": "github-actions",
-            "confidence": "confirmed"
-          }
-        ],
-        "confidence": "confirmed"
-      },
-      {
-        "id": "edge:c3c7f29838eec0361e4ee5c534da3d074758352a379bb4ef682c6bba243408d8",
+        "id": "edge:321b21f26a30f77cefb00bdaf4fd3f9c9b960b8a2e62b245ba697b738bf3b881",
         "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
         "to": "node:volume_mount:b6eb3417d98097f7792152197f9aeba04b9d3179c08447d87e55b12fb9027e13",
-        "type": "MOUNTS",
+        "type": "mounts_volume",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
@@ -6659,21 +6488,22 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:d9ce56a1d7f25ed7d6b184b0863f5ed25acf43c84c3e6ef34d5f17b3343d81d9",
-        "from": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
-        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
-        "type": "EXECUTED_BY",
+        "id": "edge:48c072ddc27e7612e5e3d507f89315ccbec94f21877a4a7da9fc4ba263d8a3eb",
+        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "to": "node:trigger:2853c9882c89183eb5e1f83a61dc7406ad6f00d1dccadc801f696a58836e9e81",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
-            "type": "workflow_step",
-            "description": "Step executes within this job.",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
             "location": {
               "path": ".github/workflows/critical.yml",
-              "line": 16,
-              "column": 9
+              "line": 5,
+              "column": 3
             },
-            "field": "jobs.deploy.steps[1]",
+            "field": "on.workflow_dispatch",
             "source": "github-actions",
             "confidence": "confirmed"
           }
@@ -6681,10 +6511,263 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:e8912c392214dc345baf58f79284eb91f97602bae82133cf0cf5723cbea11685",
+        "id": "edge:50dc9d216c0de64166ba7eaf289557ee730bdefa316fac6652f9f504c5e13b8b",
+        "from": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "to": "node:environment:ea1a2796d9793dd6aa36c31afba575a47f804ddcf6d57a31ec418599e9c9cae6",
+        "type": "uses_environment",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "deployment_environment",
+            "description": "Job declares a GitHub environment.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 12,
+              "column": 18
+            },
+            "field": "jobs.deploy.environment",
+            "source": "github-actions",
+            "confidence": "medium"
+          }
+        ],
+        "confidence": "medium"
+      },
+      {
+        "id": "edge:5b50d17476f08e5f56fd0f3a78e02f6ca1960e3b34efc65a48fc483d81f4c05e",
+        "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.production-api",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5c85a17bfaf9619b9c016632ecd5bc96a989e8a2385b8e800999202c892d8345",
+        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+        "to": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 24,
+              "column": 21
+            },
+            "field": "jobs.call-reusable",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:648eae39156b028e52b4f56a276881162ab9df07f6afd4c19f03a088a5aa40d2",
+        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+        "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 24,
+              "column": 21
+            },
+            "field": "jobs.call-reusable",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:6a509ee5679cfc46c67557435b3e92e03aba54901e74c0221ede85b667f04fc8",
+        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "to": "node:permission:f75f9dfdd07be6cad78a2582da47d76e941576b9f8a4f84f9116b1f61038a1c4",
+        "type": "has_permission",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "permission",
+            "description": "Explicit GitHub Actions permission.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 7,
+              "column": 14
+            },
+            "field": "workflow.permissions",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:6c8270d0017561f2748b95e7b2d9f0d57ad091b3556544674b698b92c74a8f86",
+        "from": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 11,
+              "column": 5
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:860dff85c49e277133f8a0b46f1b2e3cad4ba893f6ce29c5047754abe55e35a2",
+        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+        "to": "node:step:d4bc888ecc5ae6e0b5cd02d727c656434d21e558077223ca3f29efffd2450855",
+        "type": "referenced_by_process",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "shell_credential_reference",
+            "description": "Reference is used by this workflow step.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 15,
+              "column": 14
+            },
+            "field": "jobs.deploy.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:8a78430306c2f3a270dd78ee081facbb7d295d0791144097b34f7388a1bdcdff",
+        "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+        "to": "node:port_exposure:62f2248e809f0fd0be34948ac25534a6e32aa60a34812588e667fb0e51ca7b0e",
+        "type": "exposes_port",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "published_host_port",
+            "description": "Service publishes a host port; external reachability remains unknown.",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.production-api.ports[0]",
+            "source": "docker-compose",
+            "confidence": "medium"
+          }
+        ],
+        "confidence": "medium"
+      },
+      {
+        "id": "edge:91c1307334615aadb7f3f9c9326554c4332191ecd1847375dad39d2196117bb1",
+        "from": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+        "to": "node:volume_mount:9db1f6eab9dfb42622d7f8dafb5372e8ae06f19f40dd799f9544efca80a145ea",
+        "type": "mounts_volume",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "volume_mount",
+            "description": "Service declares this volume mount.",
+            "location": {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 9
+            },
+            "field": "services.production-api.volumes[1]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:98b191236334611b1320085fbefa73462ecd908d1cd4596ac5d9ca5d09e61756",
+        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "to": "node:trigger:761dd442a499eb2b1783210c2147f8008e2226e11e6b429e38fb3b8e03b62ba3",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.pull_request_target",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a24068b64a4952e43040f9450f20a753652251bf5cdebf5dc99cd0fe6e75477d",
+        "from": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
+        "to": "node:file:85a56bb4ce53a2222bba9c5e9f2ddac11e8d41147f818069263c0cf204cd5bde",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a4fcbda65672f6ac16c21fbbd7a81385420a3bf6d310a49480f48cf8382cce45",
         "from": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
         "to": "node:reusable_workflow:c98ce71cb4417b29c26dc99cf766194be9d05c4d26cf933b189d76eac3d2b474",
-        "type": "CALLS_WORKFLOW",
+        "type": "calls_workflow",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
@@ -6703,21 +6786,22 @@
         "confidence": "unknown"
       },
       {
-        "id": "edge:ef72efb317fd20156a08a67971567f778cc96b7e35e17887dce88f4b7ba03630",
-        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:step:d4bc888ecc5ae6e0b5cd02d727c656434d21e558077223ca3f29efffd2450855",
-        "type": "PASSED_TO",
+        "id": "edge:b6aeb6c224596ac7258092bf3d07df9607fd5cbd52e40a0d42059844e81c0e8a",
+        "from": "node:step:e307ef5f309ac1f7ea8e2fbbb7ed6053ae4568a46c570bcb45e7b44fa7923767",
+        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
-            "type": "shell_credential_reference",
-            "description": "Credential is passed to a workflow step.",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
             "location": {
               "path": ".github/workflows/critical.yml",
-              "line": 15,
-              "column": 14
+              "line": 16,
+              "column": 9
             },
-            "field": "jobs.deploy.steps[0]",
+            "field": "jobs.deploy.steps[1]",
             "source": "github-actions",
             "confidence": "confirmed"
           }
@@ -6725,15 +6809,16 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:fedc732e86f804c73fa83d8030d1cfd92178920a8fb3e6260fee5948c07608ca",
+        "id": "edge:bf963924978c2ff16dda66cce7a89640bf14185c26f989ee94e6c0e28e5f4ae7",
         "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
-        "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "type": "REFERENCED_BY",
+        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
-            "type": "credential_reference",
-            "description": "Workflow contains a credential reference.",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
             "location": {
               "path": ".github/workflows/critical.yml",
               "line": 19,
@@ -6747,10 +6832,34 @@
         "confidence": "confirmed"
       },
       {
-        "id": "edge:fff79ce7eb204f2c41b64e37e30fe339dde64fe95ea721633a5e43152cd902aa",
-        "from": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "id": "edge:cbad87102868952dadcc8be15add9faba22013fd616a15dd2c9bf2e6991c05df",
+        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 15,
+              "column": 14
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:cdf6c392ea51280591f8356ba07a34998e4f3d25c336654c79e1bb48575544e4",
+        "from": "node:job:3da6cea7117a92214b91cc5c9f9ee1ba4631f69c1839b2d0b2aeadb55d8e6d64",
         "to": "node:workflow:fdeeff0d95eb2191987d2ba03afd2e6ff6a423fc6a400bf887d1f7d142774da7",
-        "type": "REFERENCED_BY",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
         "evidence": [
           {
             "rule_id": "",
@@ -6758,10 +6867,56 @@
             "description": "Job belongs to this workflow.",
             "location": {
               "path": ".github/workflows/critical.yml",
-              "line": 11,
+              "line": 22,
               "column": 5
             },
-            "field": "jobs.deploy",
+            "field": "jobs.call-reusable",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:e390f3fdaddeb956b29fc4d18b8b9fd55e098389ea48e652bac3c1f92e505c1d",
+        "from": "node:credential:b3d51ae3a0f29308b1c49090079e2f24112a60526ddf094f2a0e5555fe585b42",
+        "to": "node:compose_service:67347ee77c55f43934323b48b2e73a40c8af4e5fd3c46b81f1b9b172604084d3",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            "field": "services.production-api.environment.DEPLOY_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:fb593e524f20a889a5aab5d7ddf897d7638366d9df2bae15d29e7fe885d22673",
+        "from": "node:step:d4bc888ecc5ae6e0b5cd02d727c656434d21e558077223ca3f29efffd2450855",
+        "to": "node:job:dd230691b42efeadec194552c0364c540ef35467ba9402d4e05dee091a46f11c",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/critical.yml",
+              "line": 14,
+              "column": 9
+            },
+            "field": "jobs.deploy.steps[0]",
             "source": "github-actions",
             "confidence": "confirmed"
           }
@@ -6772,5 +6927,7 @@
   },
   "repository_warnings": [],
   "parser_warnings": [],
-  "non_fatal_errors": []
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
 }

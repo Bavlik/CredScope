@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/credscope/credscope/internal/discovery"
-	"github.com/credscope/credscope/internal/sanitizer"
+	"github.com/Bavlik/CredScope/internal/discovery"
+	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
 
 // ReadFile reuses Phase 1 confinement and symlink checks, then performs a

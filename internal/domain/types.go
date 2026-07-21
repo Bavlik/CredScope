@@ -5,9 +5,39 @@ package domain
 import "time"
 
 const (
-	SchemaVersion = "1.0.0"
-	ScoringPolicy = "v1"
+	SchemaVersion = "2.0.0"
+	ScoringPolicy = "v2"
 )
+
+type Classification string
+
+const (
+	ClassificationSecret                 Classification = "secret"
+	ClassificationCredential             Classification = "credential"
+	ClassificationCredentialIdentifier   Classification = "credential_identifier"
+	ClassificationSensitiveConfiguration Classification = "sensitive_configuration"
+	ClassificationPublicConfiguration    Classification = "public_configuration"
+	ClassificationOperationalSetting     Classification = "operational_setting"
+	ClassificationUnknown                Classification = "unknown"
+)
+
+type Profile string
+
+const (
+	ProfileAuto       Profile = "auto"
+	ProfileLocal      Profile = "local"
+	ProfileCI         Profile = "ci"
+	ProfileStaging    Profile = "staging"
+	ProfileProduction Profile = "production"
+)
+
+type ProfileSelection struct {
+	Requested   Profile  `json:"requested"`
+	Selected    Profile  `json:"selected"`
+	Source      string   `json:"source"`
+	Reason      string   `json:"reason"`
+	Assumptions []string `json:"assumptions"`
+}
 
 type Confidence string
 
@@ -58,15 +88,16 @@ type CredentialIdentity struct {
 // Finding is the scanner-neutral representation accepted by future adapters.
 // There is intentionally no RawSecret, Match, or Secret field.
 type Finding struct {
-	ID          string             `json:"id"`
-	RuleID      string             `json:"rule_id"`
-	Description string             `json:"description"`
-	Credential  CredentialIdentity `json:"credential"`
-	Location    Location           `json:"location"`
-	Commit      string             `json:"commit,omitempty"`
-	CommitInfo  *CommitMetadata    `json:"commit_info,omitempty"`
-	Tags        []string           `json:"tags,omitempty"`
-	Source      string             `json:"source"`
+	ID                   string             `json:"id"`
+	RuleID               string             `json:"rule_id"`
+	Description          string             `json:"description"`
+	Credential           CredentialIdentity `json:"credential"`
+	Location             Location           `json:"location"`
+	Commit               string             `json:"commit,omitempty"`
+	CommitInfo           *CommitMetadata    `json:"commit_info,omitempty"`
+	Tags                 []string           `json:"tags,omitempty"`
+	Source               string             `json:"source"`
+	TestFixtureCandidate bool               `json:"test_fixture_candidate"`
 }
 
 // CommitMetadata intentionally excludes the commit message body because it may
@@ -103,24 +134,49 @@ const (
 type EdgeType string
 
 const (
-	EdgeDetectedIn      EdgeType = "DETECTED_IN"
-	EdgeReferencedBy    EdgeType = "REFERENCED_BY"
-	EdgeExposedTo       EdgeType = "EXPOSED_TO"
-	EdgePassedTo        EdgeType = "PASSED_TO"
-	EdgeExecutedBy      EdgeType = "EXECUTED_BY"
-	EdgeTriggeredBy     EdgeType = "TRIGGERED_BY"
-	EdgeDependsOn       EdgeType = "DEPENDS_ON"
-	EdgeHasPermission   EdgeType = "HAS_PERMISSION"
-	EdgeDeploysTo       EdgeType = "DEPLOYS_TO"
-	EdgeRunsAction      EdgeType = "RUNS_ACTION"
-	EdgePublishesPort   EdgeType = "PUBLISHES_PORT"
-	EdgeMounts          EdgeType = "MOUNTS"
-	EdgeUsesEnvironment EdgeType = "USES_ENVIRONMENT"
-	EdgeCallsWorkflow   EdgeType = "CALLS_WORKFLOW"
-	EdgeUsesSecret      EdgeType = "USES_SECRET"
-	EdgeLoadsEnvFile    EdgeType = "LOADS_ENV_FILE"
-	EdgeSharedWith      EdgeType = "SHARED_WITH"
-	EdgePropagatesTo    EdgeType = "PROPAGATES_TO"
+	EdgeConfiguredIn          EdgeType = "configured_in"
+	EdgeAvailableToService    EdgeType = "available_to_service"
+	EdgeAvailableToProcess    EdgeType = "available_to_process"
+	EdgeReferencedByProcess   EdgeType = "referenced_by_process"
+	EdgeMountedAsSecret       EdgeType = "mounted_as_secret"
+	EdgeExplicitlyForwardedTo EdgeType = "explicitly_forwarded_to"
+	EdgeDependsOn             EdgeType = "depends_on"
+	EdgeNetworkReachable      EdgeType = "network_reachable"
+	EdgeExposesPort           EdgeType = "exposes_port"
+	EdgeReadsEnvFile          EdgeType = "reads_env_file"
+	EdgeDetectedIn            EdgeType = "detected_in"
+	EdgeBelongsTo             EdgeType = "belongs_to"
+	EdgeTriggeredBy           EdgeType = "triggered_by"
+	EdgeHasPermission         EdgeType = "has_permission"
+	EdgeUsesEnvironment       EdgeType = "uses_environment"
+	EdgeRunsAction            EdgeType = "runs_action"
+	EdgeMountsVolume          EdgeType = "mounts_volume"
+	EdgeCallsWorkflow         EdgeType = "calls_workflow"
+)
+
+// Backward-compatible names for embedders compiling against v0.1.0. Their
+// serialized values use the corrected v2 relationship vocabulary.
+const (
+	EdgeReferencedBy  = EdgeConfiguredIn
+	EdgeExposedTo     = EdgeAvailableToProcess
+	EdgePassedTo      = EdgeExplicitlyForwardedTo
+	EdgeExecutedBy    = EdgeBelongsTo
+	EdgeDeploysTo     = EdgeUsesEnvironment
+	EdgePublishesPort = EdgeExposesPort
+	EdgeMounts        = EdgeMountsVolume
+	EdgeUsesSecret    = EdgeMountedAsSecret
+	EdgeLoadsEnvFile  = EdgeReadsEnvFile
+	EdgeSharedWith    = EdgeNetworkReachable
+	EdgePropagatesTo  = EdgeExplicitlyForwardedTo
+)
+
+type EvidenceKind string
+
+const (
+	EvidenceConfirmedDataFlow EvidenceKind = "confirmed_static_data_flow"
+	EvidenceExposureContext   EvidenceKind = "inferred_exposure_context"
+	EvidenceNetworkTopology   EvidenceKind = "network_topology_only"
+	EvidenceUnknownRuntime    EvidenceKind = "unknown_runtime_behavior"
 )
 
 type Node struct {
@@ -134,12 +190,13 @@ type Node struct {
 }
 
 type Edge struct {
-	ID         string     `json:"id"`
-	From       string     `json:"from"`
-	To         string     `json:"to"`
-	Type       EdgeType   `json:"type"`
-	Evidence   []Evidence `json:"evidence,omitempty"`
-	Confidence Confidence `json:"confidence"`
+	ID           string       `json:"id"`
+	From         string       `json:"from"`
+	To           string       `json:"to"`
+	Type         EdgeType     `json:"type"`
+	EvidenceKind EvidenceKind `json:"evidence_kind"`
+	Evidence     []Evidence   `json:"evidence,omitempty"`
+	Confidence   Confidence   `json:"confidence"`
 }
 
 type ScoreFactor struct {
@@ -150,6 +207,13 @@ type ScoreFactor struct {
 	Evidence     []Evidence `json:"evidence"`
 	Remediation  string     `json:"remediation"`
 	Confidence   Confidence `json:"confidence"`
+}
+
+type IgnoredItem struct {
+	Kind   string `json:"kind"`
+	Target string `json:"target"`
+	Reason string `json:"reason"`
+	Count  int    `json:"count"`
 }
 
 type Recommendation struct {

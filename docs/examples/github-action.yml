@@ -1,11 +1,9 @@
-# Pre-release reference workflow. Replace OWNER only after the public repository
-# and v1 ref exist. In this repository, use `uses: ./` for the CredScope step.
 name: CredScope
 
 on:
   pull_request:
   push:
-    branches: [main, master]
+    branches: [main]
 
 permissions:
   contents: read
@@ -31,9 +29,10 @@ jobs:
 
       - name: Run CredScope
         id: credscope
-        uses: ./
+        uses: Bavlik/CredScope@v0.2.0
         with:
           path: .
+          profile: ci
           gitleaks-report: gitleaks.json
           format: sarif
           output: credscope.sarif

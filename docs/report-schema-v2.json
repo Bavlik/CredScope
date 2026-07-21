@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Bavlik/CredScope/blob/main/docs/report-schema-v2.json",
+  "title": "CredScope JSON report schema v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "scan",
+    "policies",
+    "summary",
+    "credentials",
+    "graph",
+    "ignored_count",
+    "ignored_items",
+    "repository_warnings",
+    "parser_warnings",
+    "non_fatal_errors"
+  ],
+  "properties": {
+    "schema_version": { "const": "2" },
+    "tool": { "type": "object" },
+    "scan": {
+      "type": "object",
+      "required": ["repository", "profile"],
+      "properties": {
+        "repository": { "type": "string" },
+        "profile": {
+          "type": "object",
+          "required": ["requested", "selected", "source", "reason", "assumptions"]
+        }
+      }
+    },
+    "policies": { "type": "object" },
+    "summary": { "type": "object" },
+    "credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["credential", "score", "severity", "confidence", "contributions"],
+        "properties": {
+          "credential": {
+            "type": "object",
+            "required": ["classification", "classification_confidence", "classification_reason", "classification_source", "expected_secret", "rotation_remediation_applicable"]
+          },
+          "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+        }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": { "type": "array" },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "from", "to", "type", "evidence_kind", "confidence"]
+          }
+        }
+      }
+    },
+    "ignored_count": { "type": "integer", "minimum": 0 },
+    "ignored_items": { "type": "array" },
+    "repository_warnings": { "type": "array" },
+    "parser_warnings": { "type": "array" },
+    "non_fatal_errors": { "type": "array" }
+  }
+}

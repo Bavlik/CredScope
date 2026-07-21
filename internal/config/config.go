@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -18,11 +19,31 @@ const (
 )
 
 type Config struct {
-	Version int                   `yaml:"version" json:"version"`
-	Scan    ScanConfig            `yaml:"scan" json:"scan"`
-	Risk    RiskConfig            `yaml:"risk" json:"risk"`
-	Rules   map[string]RuleConfig `yaml:"rules" json:"rules"`
-	Output  OutputConfig          `yaml:"output" json:"output"`
+	Version         int                   `yaml:"version" json:"version"`
+	Profile         string                `yaml:"profile" json:"profile"`
+	Scan            ScanConfig            `yaml:"scan" json:"scan"`
+	Gitleaks        GitleaksConfig        `yaml:"gitleaks" json:"gitleaks"`
+	Ignore          IgnoreConfig          `yaml:"ignore" json:"ignore"`
+	Classifications map[string]string     `yaml:"classifications" json:"classifications"`
+	Risk            RiskConfig            `yaml:"risk" json:"risk"`
+	Rules           map[string]RuleConfig `yaml:"rules" json:"rules"`
+	Output          OutputConfig          `yaml:"output" json:"output"`
+}
+
+type GitleaksConfig struct {
+	PathPrefix string `yaml:"path_prefix" json:"path_prefix"`
+}
+
+type IgnoreEntry struct {
+	Value  string `yaml:"value" json:"value"`
+	Reason string `yaml:"reason" json:"reason"`
+}
+
+type IgnoreConfig struct {
+	Paths     []IgnoreEntry `yaml:"paths" json:"paths"`
+	Variables []IgnoreEntry `yaml:"variables" json:"variables"`
+	Findings  []IgnoreEntry `yaml:"findings" json:"findings"`
+	Rules     []IgnoreEntry `yaml:"rules" json:"rules"`
 }
 
 type ScanConfig struct {
@@ -49,7 +70,8 @@ type OutputConfig struct {
 
 func Default() Config {
 	return Config{
-		Version: 1,
+		Version: 2,
+		Profile: "auto",
 		Scan: ScanConfig{
 			Include: []string{
 				".github/workflows/*.yml",
@@ -62,9 +84,10 @@ func Default() Config {
 				"build/**", "coverage/**", ".tmp/**",
 			},
 		},
-		Risk:   RiskConfig{FailOn: "none", MinimumScore: 0},
-		Rules:  make(map[string]RuleConfig),
-		Output: OutputConfig{Format: "terminal"},
+		Risk:            RiskConfig{FailOn: "none", MinimumScore: 0},
+		Rules:           make(map[string]RuleConfig),
+		Classifications: make(map[string]string),
+		Output:          OutputConfig{Format: "terminal"},
 	}
 }
 
@@ -113,8 +136,14 @@ func Load(path string) (Config, error) {
 }
 
 func (c Config) Validate() error {
-	if c.Version != 1 {
-		return fmt.Errorf("unsupported configuration version %d (expected 1)", c.Version)
+	if c.Version != 1 && c.Version != 2 {
+		return fmt.Errorf("unsupported configuration version %d (expected 1 or 2)", c.Version)
+	}
+	if !oneOf(c.Profile, "auto", "local", "ci", "staging", "production") {
+		return fmt.Errorf("profile must be one of auto, local, ci, staging, production")
+	}
+	if err := validatePathPrefix(c.Gitleaks.PathPrefix); err != nil {
+		return fmt.Errorf("gitleaks.path_prefix: %w", err)
 	}
 	if c.Risk.MinimumScore < 0 || c.Risk.MinimumScore > 100 {
 		return fmt.Errorf("risk.minimum_score must be between 0 and 100")
@@ -153,7 +182,107 @@ func (c Config) Validate() error {
 			}
 		}
 	}
+	for name, value := range c.Classifications {
+		if !validVariableName(name) {
+			return fmt.Errorf("classifications contains invalid variable name %q", name)
+		}
+		if !oneOf(value, "secret", "credential", "credential_identifier", "sensitive_configuration", "public_configuration", "operational_setting", "unknown") {
+			return fmt.Errorf("classifications.%s has invalid classification %q", name, value)
+		}
+	}
+	for _, set := range []struct {
+		name  string
+		items []IgnoreEntry
+	}{{"ignore.paths", c.Ignore.Paths}, {"ignore.variables", c.Ignore.Variables}, {"ignore.findings", c.Ignore.Findings}, {"ignore.rules", c.Ignore.Rules}} {
+		for _, item := range set.items {
+			if strings.TrimSpace(item.Reason) == "" {
+				return fmt.Errorf("%s entry %q requires a human-readable reason", set.name, item.Value)
+			}
+			if strings.ContainsAny(item.Reason, "\x00\r\n") {
+				return fmt.Errorf("%s entry %q has an invalid reason", set.name, item.Value)
+			}
+			if containsSecretMaterial(item.Value) || containsSecretMaterial(item.Reason) {
+				return fmt.Errorf("%s entry must not contain secret material", set.name)
+			}
+			if strings.Contains(item.Value, "=") || strings.ContainsAny(item.Value, "\x00\r\n\t ") {
+				return fmt.Errorf("%s entry value must be an identifier or path pattern, not a secret value", set.name)
+			}
+			switch set.name {
+			case "ignore.paths":
+				if err := validatePattern(item.Value); err != nil {
+					return fmt.Errorf("%s entry %q: %w", set.name, item.Value, err)
+				}
+			case "ignore.variables":
+				if !validVariableName(item.Value) {
+					return fmt.Errorf("%s contains invalid variable %q", set.name, item.Value)
+				}
+			case "ignore.rules":
+				if len(item.Value) != 6 || !strings.HasPrefix(item.Value, "CRD") {
+					return fmt.Errorf("%s contains invalid rule %q", set.name, item.Value)
+				}
+			case "ignore.findings":
+				if item.Value == "" {
+					return fmt.Errorf("%s contains an empty finding identifier", set.name)
+				}
+			}
+		}
+	}
 	return nil
+}
+
+func validatePathPrefix(value string) error {
+	if value == "" {
+		return nil
+	}
+	if strings.ContainsRune(value, 0) {
+		return errors.New("contains a NUL byte")
+	}
+	normalized := strings.ReplaceAll(value, "\\", "/")
+	if !strings.HasPrefix(normalized, "/") && !(len(normalized) >= 3 && normalized[1] == ':' && normalized[2] == '/') {
+		return errors.New("must be an absolute container or Windows path")
+	}
+	cleaned := path.Clean(normalized)
+	if cleaned == "/" || (len(cleaned) == 2 && cleaned[1] == ':') || (len(cleaned) == 3 && cleaned[1:] == ":/") {
+		return errors.New("must identify a directory below the filesystem root")
+	}
+	for _, part := range strings.Split(normalized, "/") {
+		if part == ".." {
+			return errors.New("cannot contain parent traversal")
+		}
+	}
+	return nil
+}
+
+func validVariableName(value string) bool {
+	if value == "" {
+		return false
+	}
+	for index, ch := range value {
+		if (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_' || (index > 0 && ch >= '0' && ch <= '9') {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func containsSecretMaterial(value string) bool {
+	lower := strings.ToLower(strings.TrimSpace(value))
+	for _, prefix := range []string{"ghp_", "github_pat_", "glpat-", "xoxb-", "xoxp-", "xoxa-", "sk-"} {
+		if strings.HasPrefix(lower, prefix) {
+			return true
+		}
+	}
+	upper := strings.ToUpper(value)
+	if strings.Contains(upper, "-----BEGIN ") && strings.Contains(upper, "PRIVATE KEY-----") {
+		return true
+	}
+	for _, assignment := range []string{"PASSWORD=", "PASS=", "TOKEN=", "SECRET=", "PRIVATE_KEY=", "API_KEY=", "ACCESS_KEY=", "CLIENT_SECRET="} {
+		if strings.Contains(upper, assignment) {
+			return true
+		}
+	}
+	return len(value) == 20 && strings.HasPrefix(value, "AKIA")
 }
 
 func validatePattern(pattern string) error {

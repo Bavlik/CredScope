@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/credscope/credscope/internal/domain"
-	"github.com/credscope/credscope/internal/reporters"
+	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reporters"
 )
 
 func TestHTMLStandaloneEscapedAccessibleAndDeterministic(t *testing.T) {
@@ -24,11 +24,11 @@ func TestHTMLStandaloneEscapedAccessibleAndDeterministic(t *testing.T) {
 	if first.String() != second.String() {
 		t.Fatal("HTML differs")
 	}
-	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "fe44c32d311427874c0d388c19ed675a9ff3cc2614e370b051d9fe3ff535adae" {
+	if got := fmt.Sprintf("%x", sha256.Sum256(first.Bytes())); got != "eee3147bf9e74d5b650ff08bb10efb1a6c328c9c1f8bdee62ad3d878db561377" {
 		t.Fatalf("HTML golden hash = %s", got)
 	}
 	output := first.String()
-	for _, expected := range []string{"<!doctype html>", "Content-Security-Policy", "<header>", "<main>", "<footer>", "Rotate safely", "Static reachability graph", "&lt;script&gt;"} {
+	for _, expected := range []string{"<!doctype html>", "Content-Security-Policy", "<header>", "<main>", "<footer>", "Rotate safely", "Typed graph", "Risk score", "Evidence confidence", "&lt;script&gt;"} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("missing %q", expected)
 		}
@@ -72,5 +72,5 @@ func TestHTMLEvidenceIsPrioritizedAndBounded(t *testing.T) {
 }
 
 func htmlInput() reporters.Input {
-	return reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: `demo<script></style>&"`, StartedAt: time.Unix(1, 0), CompletedAt: time.Unix(2, 0)}, Analysis: domain.AnalysisResult{PolicyVersion: "v1", RuleCatalogVersion: "v1", Graph: domain.Graph{Nodes: []domain.Node{{ID: "node:safe", Type: domain.NodeCredential, Label: `<script>alert(1)</script>`}}, Edges: []domain.Edge{}}, Credentials: []domain.CredentialAnalysis{{Credential: domain.CredentialSubject{Label: `<script>TOKEN</script>`}, Score: 80, Severity: domain.SeverityCritical, Confidence: domain.ConfidenceSummary{Overall: domain.ConfidenceHigh}, Contributions: []domain.ScoreContribution{{RuleID: "CRD101", Description: "Credential imported", FinalContribution: 15}}, Remediations: []domain.RemediationResult{{ID: "REM001", Title: "Rotate safely", Why: "Exposure", SuggestedAction: "Rotate safely", Priority: 1}}, Warnings: []string{"Unknown runtime"}}}}}
+	return reporters.Input{Tool: reporters.Tool{Name: "CredScope", Version: "test"}, Scan: reporters.Scan{Repository: `demo<script></style>&"`, StartedAt: time.Unix(1, 0), CompletedAt: time.Unix(2, 0)}, Analysis: domain.AnalysisResult{PolicyVersion: "v2", RuleCatalogVersion: "v2", Profile: domain.ProfileSelection{Requested: domain.ProfileAuto, Selected: domain.ProfileAuto, Source: "conservative_fallback", Reason: "test context", Assumptions: []string{"runtime unknown"}}, Graph: domain.Graph{Nodes: []domain.Node{{ID: "node:safe", Type: domain.NodeCredential, Label: `<script>alert(1)</script>`}}, Edges: []domain.Edge{}}, Credentials: []domain.CredentialAnalysis{{Credential: domain.CredentialSubject{Label: `<script>TOKEN</script>`, Classification: domain.ClassificationSecret, ClassificationConfidence: domain.ConfidenceMedium, ClassificationReason: "name heuristic"}, Score: 80, Severity: domain.SeverityCritical, Confidence: domain.ConfidenceSummary{Overall: domain.ConfidenceHigh}, Contributions: []domain.ScoreContribution{{RuleID: "CRD101", Description: "Credential imported", FinalContribution: 15, RiskOrConfidence: "risk"}}, Remediations: []domain.RemediationResult{{ID: "REM001", Title: "Rotate safely", Why: "Exposure", SuggestedAction: "Rotate safely", Priority: 1}}, Warnings: []string{"Unknown runtime"}}}}}
 }

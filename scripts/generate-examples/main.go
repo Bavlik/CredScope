@@ -11,14 +11,14 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/credscope/credscope/internal/analysis"
-	"github.com/credscope/credscope/internal/config"
-	"github.com/credscope/credscope/internal/ingest"
-	"github.com/credscope/credscope/internal/reporters"
-	htmlreport "github.com/credscope/credscope/internal/reporters/html"
-	"github.com/credscope/credscope/internal/reporters/jsonreport"
-	"github.com/credscope/credscope/internal/reporters/mermaid"
-	"github.com/credscope/credscope/internal/reporters/sarif"
+	"github.com/Bavlik/CredScope/internal/analysis"
+	"github.com/Bavlik/CredScope/internal/config"
+	"github.com/Bavlik/CredScope/internal/ingest"
+	"github.com/Bavlik/CredScope/internal/reporters"
+	htmlreport "github.com/Bavlik/CredScope/internal/reporters/html"
+	"github.com/Bavlik/CredScope/internal/reporters/jsonreport"
+	"github.com/Bavlik/CredScope/internal/reporters/mermaid"
+	"github.com/Bavlik/CredScope/internal/reporters/sarif"
 )
 
 func main() {

@@ -4,14 +4,50 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
-func TestConfidenceMultipliers(t *testing.T) {
+func TestConfidenceWeights(t *testing.T) {
 	tests := map[domain.Confidence]int{domain.ConfidenceConfirmed: 100, domain.ConfidenceHigh: 90, domain.ConfidenceMedium: 70, domain.ConfidenceLow: 40, domain.ConfidenceUnknown: 0}
 	for confidence, want := range tests {
-		if got := ConfidenceMultiplier(confidence); got != want {
-			t.Errorf("ConfidenceMultiplier(%q) = %d, want %d", confidence, got, want)
+		if got := ConfidenceWeight(confidence); got != want {
+			t.Errorf("ConfidenceWeight(%q) = %d, want %d", confidence, got, want)
+		}
+	}
+}
+
+func TestRiskAndConfidenceAreIndependentAndProfilesAreExplicit(t *testing.T) {
+	match := []domain.RuleMatch{{RuleID: "CRD303", Confidence: domain.ConfidenceLow, AffectedNodeIDs: []string{"port"}}}
+	local := CalculateForProfile(match, domain.ProfileSelection{Selected: domain.ProfileLocal}, true)
+	production := CalculateForProfile(match, domain.ProfileSelection{Selected: domain.ProfileProduction}, true)
+	if local.Score >= production.Score {
+		t.Fatalf("local=%d production=%d", local.Score, production.Score)
+	}
+	if local.Confidence.Overall != domain.ConfidenceLow || production.Confidence.Overall != domain.ConfidenceLow {
+		t.Fatal("profile changed evidence confidence")
+	}
+	if !local.Contributions[0].ProfileChanged || local.Contributions[0].RiskOrConfidence != "risk" {
+		t.Fatalf("missing profile explanation: %+v", local.Contributions[0])
+	}
+	nonSecret := CalculateForProfile(match, domain.ProfileSelection{Selected: domain.ProfileProduction}, false)
+	if nonSecret.Score != 0 {
+		t.Fatalf("non-secret item scored %d", nonSecret.Score)
+	}
+}
+
+func TestProductionProfileWeightsSharingAndPrivilegedRuntimeMoreStrictly(t *testing.T) {
+	matches := []domain.RuleMatch{
+		{RuleID: "CRD306", Confidence: domain.ConfidenceConfirmed, AffectedNodeIDs: []string{"api", "worker"}},
+		{RuleID: "CRD302", Confidence: domain.ConfidenceConfirmed, AffectedNodeIDs: []string{"api"}},
+	}
+	staging := CalculateForProfile(matches, domain.ProfileSelection{Selected: domain.ProfileStaging}, true)
+	production := CalculateForProfile(matches, domain.ProfileSelection{Selected: domain.ProfileProduction}, true)
+	if production.Score <= staging.Score {
+		t.Fatalf("production=%d staging=%d", production.Score, staging.Score)
+	}
+	for _, contribution := range production.Contributions {
+		if !contribution.ProfileChanged {
+			t.Fatalf("production contribution lacks profile explanation: %+v", contribution)
 		}
 	}
 }
@@ -39,8 +75,8 @@ func TestCalculateRoundingAdjustmentDuplicateSuppressionAndCapping(t *testing.T)
 		t.Fatalf("contributions = %d, want duplicate rule suppressed", len(result.Contributions))
 	}
 	contribution := result.Contributions[0]
-	// weight 7 + 10% rounds to 8; medium 70% rounds to 6.
-	if contribution.AdjustedWeight != 8 || contribution.FinalContribution != 6 {
+	// Risk points remain independent from the medium evidence confidence.
+	if contribution.AdjustedWeight != 8 || contribution.FinalContribution != 8 || contribution.ConfidenceWeight != 70 {
 		t.Fatalf("contribution = %#v", contribution)
 	}
 	var many []domain.RuleMatch

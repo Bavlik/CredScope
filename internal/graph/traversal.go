@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/credscope/credscope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/domain"
 )
 
 const (
@@ -38,6 +38,9 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 		return []domain.EvidencePath{}, false
 	}
 	for _, edge := range input.Edges {
+		if edge.EvidenceKind == domain.EvidenceNetworkTopology {
+			continue
+		}
 		if _, fromOK := nodes[edge.From]; !fromOK {
 			continue
 		}
@@ -52,8 +55,8 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 	startNode := pathNode(nodes[start])
 	var paths []domain.EvidencePath
 	limitExceeded := false
-	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence)
-	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence) {
+	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence, domain.EvidenceKind)
+	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence, pathKind domain.EvidenceKind) {
 		for _, edge := range adjacent[current] {
 			if limitExceeded {
 				return
@@ -62,10 +65,11 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 				continue
 			}
 			nextNodes := appendCopy(pathNodes, pathNode(nodes[edge.To]))
-			nextEdges := appendEdge(pathEdges, domain.PathEdge{ID: edge.ID, From: edge.From, To: edge.To, Relationship: edge.Type, Evidence: edge.Evidence, Confidence: edge.Confidence})
+			nextEdges := appendEdge(pathEdges, domain.PathEdge{ID: edge.ID, From: edge.From, To: edge.To, Relationship: edge.Type, EvidenceKind: edge.EvidenceKind, Evidence: edge.Evidence, Confidence: edge.Confidence})
 			nextConfidence := weakest(confidence, edge.Confidence)
+			nextKind := combineEvidenceKind(pathKind, edge.EvidenceKind)
 			truncated := len(nextEdges) >= maxDepth && hasUnvisited(adjacent[edge.To], visited, edge.To)
-			path := domain.EvidencePath{CredentialID: start, Nodes: nextNodes, Edges: nextEdges, Confidence: nextConfidence, Truncated: truncated}
+			path := domain.EvidencePath{CredentialID: start, Nodes: nextNodes, Edges: nextEdges, Confidence: nextConfidence, EvidenceKind: nextKind, Truncated: truncated}
 			path.ID = stableID("path", pathKey(path))
 			paths = append(paths, path)
 			if len(paths) >= maxPaths {
@@ -77,10 +81,10 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 			}
 			nextVisited := cloneVisited(visited)
 			nextVisited[edge.To] = true
-			walk(edge.To, nextNodes, nextEdges, nextVisited, nextConfidence)
+			walk(edge.To, nextNodes, nextEdges, nextVisited, nextConfidence, nextKind)
 		}
 	}
-	walk(start, []domain.PathNode{startNode}, nil, map[string]bool{start: true}, domain.ConfidenceConfirmed)
+	walk(start, []domain.PathNode{startNode}, nil, map[string]bool{start: true}, domain.ConfidenceConfirmed, domain.EvidenceConfirmedDataFlow)
 	byID := make(map[string]domain.EvidencePath, len(paths))
 	for _, path := range paths {
 		byID[path.ID] = path
@@ -91,6 +95,25 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 	}
 	sort.Slice(paths, func(i, j int) bool { return paths[i].ID < paths[j].ID })
 	return paths, limitExceeded
+}
+
+func combineEvidenceKind(current, next domain.EvidenceKind) domain.EvidenceKind {
+	rank := func(value domain.EvidenceKind) int {
+		switch value {
+		case domain.EvidenceUnknownRuntime:
+			return 4
+		case domain.EvidenceNetworkTopology:
+			return 3
+		case domain.EvidenceExposureContext:
+			return 2
+		default:
+			return 1
+		}
+	}
+	if rank(next) > rank(current) {
+		return next
+	}
+	return current
 }
 
 func pathNode(node domain.Node) domain.PathNode {

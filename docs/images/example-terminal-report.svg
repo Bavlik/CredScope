@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">CredScope terminal report example</title>
+  <desc id="desc">A terminal report showing an experimental CredScope scan, production profile, secret classification, separate risk score and evidence confidence, and typed evidence.</desc>
+  <rect width="1200" height="650" rx="18" fill="#111827"/>
+  <rect x="24" y="24" width="1152" height="602" rx="12" fill="#0b1020" stroke="#334155"/>
+  <circle cx="52" cy="52" r="7" fill="#ef4444"/><circle cx="75" cy="52" r="7" fill="#f59e0b"/><circle cx="98" cy="52" r="7" fill="#22c55e"/>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="20" fill="#e5e7eb">
+    <text x="52" y="96" fill="#93c5fd">CredScope dev</text>
+    <text x="52" y="132">Repository: example</text>
+    <text x="52" y="168">Environment profile: production (explicit)</text>
+    <text x="52" y="216" fill="#f8fafc">Summary</text>
+    <text x="76" y="252">Items analyzed: 4    Ignored findings/items: 0</text>
+    <text x="76" y="288">Critical: 1  High: 0  Medium: 0  Low: 0  Informational: 3</text>
+    <text x="52" y="342" fill="#fca5a5">CRITICAL - POSTGRES_PASSWORD</text>
+    <text x="52" y="378">Classification: secret (confidence: Medium; source: variable_name_heuristic)</text>
+    <text x="52" y="414">Risk score: 82/100</text>
+    <text x="52" y="450">Evidence confidence: High</text>
+    <text x="52" y="498" fill="#f8fafc">Evidence paths:</text>
+    <text x="76" y="534">POSTGRES_PASSWORD → api [confirmed_static_data_flow]</text>
+    <text x="76" y="570">api → published 8080 [inferred_exposure_context]</text>
+    <text x="52" y="608" fill="#94a3b8">Network topology is reported separately and does not imply credential transmission.</text>
+  </g>
+</svg>
