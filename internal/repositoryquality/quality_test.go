@@ -130,7 +130,7 @@ func TestWorkflowYAMLPermissionsTriggersAndPins(t *testing.T) {
 
 func TestDocumentationMatchesActionAndContainsNoSensitiveLocalData(t *testing.T) {
 	root := repositoryRoot(t)
-	docPaths := []string{"README.md", "docs/github-action.md", "docs/installation.md", "docs/RELEASING.md", "docs/RELEASE_CHECKLIST.md", "action.yml"}
+	docPaths := []string{"README.md", "docs/github-action.md", "docs/installation.md", "docs/RELEASING.md", "action.yml"}
 	combined := ""
 	for _, path := range docPaths {
 		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))

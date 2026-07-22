@@ -1,29 +1,40 @@
 # Contributing to CredScope
 
-CredScope welcomes focused bug fixes, tests, documentation improvements, and design proposals that preserve its deterministic, offline-first security boundary.
+Focused bug fixes, tests, documentation improvements, and security-preserving proposals are welcome.
 
-## Development setup
+## Development
 
-Install Go 1.26, clone the repository, and run:
+Install Go 1.26, clone the repository, then run:
 
 ```bash
 go mod download
 go test -count=1 ./...
 go vet ./...
 go build ./cmd/credscope
-```
 
-Run `gofmt` on changed Go files. Linux contributors should also run `go test -race ./...`. If available, run `govulncheck ./...`, `gitleaks git .`, and a GoReleaser snapshot.
+Run gofmt on changed Go files. Linux contributors should also run:
 
-## Security requirements
+go test -race -count=1 ./...
+Security requirements
+Never add real credentials, private repository content, or personal data.
+Use clearly fake test values.
+Preserve path confinement, input limits, deterministic ordering, and output sanitization.
+Do not add telemetry, runtime network access, cloud authentication, or repository execution.
+Add negative tests for security-sensitive behavior.
+Pull requests
 
-- Never add raw secret values to domain models, logs, fixtures, or reports.
-- Use clearly fake test values and do not include private repository content or personal data.
-- Preserve path confinement, symlink and reparse-point checks, resource limits, deterministic ordering, output sanitization, and restrictive HTML CSP behavior.
-- Keep dependency and network edges separate from confirmed static data flow.
-- Add negative tests for security-sensitive changes.
-- Do not add runtime network access, telemetry, cloud authentication, or repository execution.
+Keep pull requests focused, explain the user-visible and security impact, update relevant documentation, and ensure CI passes.
 
-For substantial behavior changes, open an issue describing the threat-model and compatibility impact before implementation. Pull requests should be focused, explain behavior and security impact, update relevant documentation, and pass CI.
+Report vulnerabilities privately through SECURITY.md, not through public issues.
 
-Contributions are licensed under Apache-2.0. Follow the [Code of Conduct](CODE_OF_CONDUCT.md), and report vulnerabilities through [SECURITY.md](SECURITY.md), not public issues.
+Contributions are licensed under Apache-2.0.
+
+
+4. Press `Ctrl + S`
+5. Close Notepad
+
+Then run:
+
+```powershell
+git diff --check
+git status --short
