@@ -202,7 +202,6 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 		PackageVersion      string   `yaml:"PackageVersion"`
 		InstallerType       string   `yaml:"InstallerType"`
 		NestedInstallerType string   `yaml:"NestedInstallerType"`
-		Scope               string   `yaml:"Scope"`
 		Commands            []string `yaml:"Commands"`
 		Installers          []struct {
 			Architecture         string       `yaml:"Architecture"`
@@ -214,7 +213,7 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 		ManifestVersion string `yaml:"ManifestVersion"`
 	}
 	readYAML(t, filepath.Join(directory, "Bavlik.CredScope.installer.yaml"), &installerManifest)
-	if installerManifest.PackageIdentifier != "Bavlik.CredScope" || installerManifest.PackageVersion != version || installerManifest.InstallerType != "zip" || installerManifest.NestedInstallerType != "portable" || installerManifest.Scope != "user" || installerManifest.ManifestType != "installer" || installerManifest.ManifestVersion != "1.12.0" || strings.Join(installerManifest.Commands, ",") != "credscope" {
+	if installerManifest.PackageIdentifier != "Bavlik.CredScope" || installerManifest.PackageVersion != version || installerManifest.InstallerType != "zip" || installerManifest.NestedInstallerType != "portable" || installerManifest.ManifestType != "installer" || installerManifest.ManifestVersion != "1.12.0" || strings.Join(installerManifest.Commands, ",") != "credscope" {
 		t.Fatalf("invalid WinGet installer manifest: %#v", installerManifest)
 	}
 	wantArchitectures := []string{"arm64", "x64"}
