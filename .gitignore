@@ -6,6 +6,9 @@
 *.test
 /credscope
 /credscope.exe
+/credscope_*.zip
+/credscope_*.tar.gz
+/checksums.txt
 
 # Local toolchain used only when Go is not installed on the host
 /.tools/
@@ -18,9 +21,10 @@
 /.tmp-build/
 /.tmp-reports/
 /testdata/vulnerable/action-smoke.json
+/packaging/winget/.tmp/
+*.download
 
 # GoReleaser and local security tools
-/dist/
 /govulncheck
 /gitleaks
 

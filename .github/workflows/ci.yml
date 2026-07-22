@@ -25,6 +25,16 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
+      - name: Validate release version
+        shell: bash
+        run: |
+          version="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' VERSION)"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must contain a plain semantic version without a leading v" >&2
+            exit 1
+          fi
+          echo "VERSION=${version}" >> "${GITHUB_ENV}"
+
       - name: Verify formatting
         run: test -z "$(gofmt -l .)"
 
@@ -50,8 +60,35 @@ jobs:
 
       - name: Verify release metadata injection
         run: |
-          go build -trimpath -ldflags "-X main.version=v0.1.0-test -X main.commit=0123456789abcdef -X main.date=2026-01-02T03:04:05Z" -o .tmp-build/credscope-versioned ./cmd/credscope
-          test "$(.tmp-build/credscope-versioned version)" = "CredScope v0.1.0-test (commit 0123456789abcdef, built 2026-01-02T03:04:05Z)"
+          test_version="v${VERSION}-test"
+          go build -trimpath -ldflags "-X main.version=${test_version} -X main.commit=0123456789abcdef -X main.date=2026-01-02T03:04:05Z" -o .tmp-build/credscope-versioned ./cmd/credscope
+          expected="CredScope ${test_version}"$'\ncommit: 0123456789abcdef\nbuilt: 2026-01-02T03:04:05Z'
+          test "$(.tmp-build/credscope-versioned version)" = "$expected"
+
+      - name: Validate PowerShell script syntax
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($path in Get-ChildItem -LiteralPath scripts -Filter '*.ps1' -File) {
+            $tokens = $null
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($path.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error "$($path.Name): $($_.Message)" }
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
+
+      - name: Reject tracked release binaries and archives
+        shell: bash
+        run: |
+          tracked="$(git ls-files | grep -Ei '\.(exe|msi|msix|zip|tar\.gz)$|(^|/)checksums\.txt$' || true)"
+          if [[ -n "$tracked" ]]; then
+            echo "generated release artifacts must not be tracked:" >&2
+            echo "$tracked" >&2
+            exit 1
+          fi
 
       - name: Smoke test CLI and reports
         run: |
@@ -110,6 +147,8 @@ jobs:
         include:
           - goos: windows
             goarch: amd64
+          - goos: windows
+            goarch: arm64
           - goos: linux
             goarch: amd64
           - goos: linux
@@ -132,3 +171,61 @@ jobs:
         run: |
           mkdir -p .tmp-build
           go build -trimpath -o .tmp-build/credscope-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/credscope
+
+  release-snapshot:
+    name: GoReleaser snapshot
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Set deterministic snapshot metadata
+        shell: bash
+        run: |
+          version="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' VERSION)"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must contain a plain semantic version without a leading v" >&2
+            exit 1
+          fi
+          commit_timestamp="$(git show -s --format=%ct HEAD)"
+          echo "VERSION=${version}" >> "${GITHUB_ENV}"
+          echo "CREDSCOPE_BUILD_TIMESTAMP=${commit_timestamp}" >> "${GITHUB_ENV}"
+          echo "CREDSCOPE_BUILD_COMMIT=$(git rev-parse HEAD)" >> "${GITHUB_ENV}"
+          echo "CREDSCOPE_SNAPSHOT_VERSION=${version}-ci" >> "${GITHUB_ENV}"
+          echo "BUILD_DATE=$(date -u -d "@${commit_timestamp}" +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_ENV}"
+
+      - name: Build GoReleaser snapshot
+        uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
+        with:
+          distribution: goreleaser
+          version: v2.17.0
+          args: release --snapshot --clean
+
+      - name: Verify Windows portable archives
+        shell: bash
+        run: |
+          for architecture in amd64 arm64; do
+            archive="dist/credscope_${CREDSCOPE_SNAPSHOT_VERSION}_windows_${architecture}.zip"
+            test -f "$archive"
+            unzip -Z1 "$archive" | grep -Fx 'credscope.exe'
+            unzip -Z1 "$archive" | grep -Fx 'LICENSE'
+            unzip -Z1 "$archive" | grep -Fx 'README.md'
+            unzip -Z1 "$archive" | grep -Fx 'SECURITY.md'
+            if unzip -Z1 "$archive" | grep -E '(^|/)(testdata|docs/examples)(/|$)'; then
+              echo "unsafe fixture or generated report included in $archive" >&2
+              exit 1
+            fi
+          done
+          test -f dist/checksums.txt

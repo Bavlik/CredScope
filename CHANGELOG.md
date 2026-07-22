@@ -13,13 +13,18 @@ This section prepares the experimental v0.2.0 release. No v0.2.0 tag or release 
 - Reason-required false-positive controls in `.credscope.yml`.
 - Safe Gitleaks path-prefix normalization for container-generated reports.
 - Typed graph edges and explicit evidence kinds.
+- WinGet portable-package manifests for planned normal-user Windows installation.
+- Safe local release and WinGet manifest helper scripts.
 
 ### Changed
 
 - Corrected reachability semantics so dependency and network topology do not imply credential transmission.
 - Separated risk scores from evidence confidence.
 - Bumped deterministic JSON reporting to schema v2; see [the migration notes](docs/CONFIGURATION.md#json-schema-v2-migration).
-- Cleaned up documentation and made source installation the primary method.
+- Cleaned up technical documentation and retained source installation for developers.
+- Prepared deterministic GoReleaser archives for Windows, Linux, and macOS on amd64 and arm64.
+- Changed `credscope version` to display version, commit, and UTC build time on separate lines.
+- Reordered installation documentation around the planned WinGet normal-user path while retaining source instructions for developers.
 
 ### Security
 

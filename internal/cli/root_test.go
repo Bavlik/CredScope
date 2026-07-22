@@ -21,7 +21,7 @@ func executeCommandSeparate(t *testing.T, args ...string) (string, string, error
 	t.Helper()
 	var stdout, stderr bytes.Buffer
 	fixed := func() time.Time { return time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC) }
-	cmd := newRootCommand(BuildInfo{Version: "v0.1.0-test", Commit: "abc", Date: "today"}, &stdout, &stderr, fixed)
+	cmd := newRootCommand(BuildInfo{Version: "v0.2.0-test", Commit: "abc", Date: "today"}, &stdout, &stderr, fixed)
 	cmd.SetArgs(args)
 	err := cmd.Execute()
 	return stdout.String(), stderr.String(), err
@@ -32,7 +32,7 @@ func TestVersionCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if output != "CredScope v0.1.0-test (commit abc, built today)\n" {
+	if output != "CredScope v0.2.0-test\ncommit: abc\nbuilt: today\n" {
 		t.Fatalf("output = %q", output)
 	}
 }
@@ -44,7 +44,7 @@ func TestDevelopmentVersionMetadata(t *testing.T) {
 	if err := cmd.Execute(); err != nil {
 		t.Fatal(err)
 	}
-	if output.String() != "CredScope dev (commit none, built unknown)\n" {
+	if output.String() != "CredScope dev\ncommit: none\nbuilt: unknown\n" {
 		t.Fatalf("development version output = %q", output.String())
 	}
 }

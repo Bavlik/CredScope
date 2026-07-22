@@ -313,7 +313,7 @@ func newVersionCommand(info BuildInfo) *cobra.Command {
 		Short: "Print version information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s %s (commit %s, built %s)\n", productName, info.Version, info.Commit, info.Date)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s %s\ncommit: %s\nbuilt: %s\n", productName, info.Version, info.Commit, info.Date)
 			return nil
 		},
 	}

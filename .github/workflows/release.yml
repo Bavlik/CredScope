@@ -6,35 +6,113 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: read
+
+env:
+  GOFLAGS: -mod=readonly
 
 jobs:
-  goreleaser:
+  validate:
+    name: Validate tagged release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - name: Validate semantic version tag
-        shell: bash
-        run: |
-          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "release tag is not semantic version syntax" >&2
-            exit 1
-          fi
-
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Check out the tagged commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      - name: Verify checkout and tag target
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          tag_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
+          test "${tag_commit}" = "${GITHUB_SHA}"
+
+      - name: Validate tag and VERSION consistency
+        shell: bash
+        run: |
+          version="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' VERSION)"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must contain a plain semantic version without a leading v" >&2
+            exit 1
+          fi
+          expected_tag="v${version}"
+          if [[ "${GITHUB_REF_NAME}" != "${expected_tag}" ]]; then
+            echo "release tag '${GITHUB_REF_NAME}' does not match VERSION '${version}'; expected '${expected_tag}'" >&2
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
-      - name: Set reproducible build date
-        shell: bash
-        run: echo "BUILD_DATE=$(git show -s --format=%cI HEAD)" >> "$GITHUB_ENV"
+      - name: Download modules
+        run: go mod download
 
-      - name: Run GoReleaser
+      - name: Run tests
+        run: go test ./...
+
+      - name: Run vet
+        run: go vet ./...
+
+  publish:
+    name: Publish tagged release
+    needs: validate
+    runs-on: ubuntu-latest
+    # Write access to repository contents is required only for creating the
+    # GitHub Release and uploading artifacts with GitHub's built-in token.
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify checkout and tag target before publication
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          tag_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
+          test "${tag_commit}" = "${GITHUB_SHA}"
+
+      - name: Revalidate tag and VERSION consistency
+        shell: bash
+        run: |
+          version="$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' VERSION)"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must contain a plain semantic version without a leading v" >&2
+            exit 1
+          fi
+          expected_tag="v${version}"
+          if [[ "${GITHUB_REF_NAME}" != "${expected_tag}" ]]; then
+            echo "release tag '${GITHUB_REF_NAME}' does not match VERSION '${version}'; expected '${expected_tag}'" >&2
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Set reproducible release metadata
+        shell: bash
+        run: |
+          commit_timestamp="$(git show -s --format=%ct "${GITHUB_SHA}")"
+          echo "CREDSCOPE_BUILD_TIMESTAMP=${commit_timestamp}" >> "${GITHUB_ENV}"
+          echo "CREDSCOPE_BUILD_COMMIT=${GITHUB_SHA}" >> "${GITHUB_ENV}"
+          echo "BUILD_DATE=$(date -u -d "@${commit_timestamp}" +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_ENV}"
+
+      - name: Build and publish release artifacts
         uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
         with:
           distribution: goreleaser

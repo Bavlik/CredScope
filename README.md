@@ -34,9 +34,44 @@ The following checked-in visual excerpt reflects the terminal report fields; exa
 
 ![CredScope terminal report showing classification, risk, confidence, and typed evidence](docs/images/example-terminal-report.svg)
 
-## Source installation
+## Windows installation with WinGet
 
-Install [Git](https://git-scm.com/) and Go 1.26, the version declared by [`go.mod`](go.mod), then clone and run the command from source:
+The planned normal-user installation is:
+
+```powershell
+winget install --id Bavlik.CredScope -e
+```
+
+WinGet installs the portable CLI for the current user, exposes the `credscope` command, and tracks upgrades and uninstallation. Normal Windows users do not need Go, Git, a repository clone, a manual executable download, or a manual PATH change.
+
+> The v0.2.0 package is not available until the release is published and Microsoft accepts its WinGet manifest. The command above will not work before then.
+
+CredScope's Windows binaries are currently unsigned. Verify published SHA-256 checksums and do not disable SmartScreen, Defender, or other Windows security controls.
+
+## Usage
+
+```powershell
+credscope version
+credscope scan .
+credscope scan C:\path\to\repository
+credscope scan . --format html --output credscope-report.html
+```
+
+## GitHub Release manual installation
+
+GitHub Release archives remain available as a manual alternative after v0.2.0 is published. Download the archive for the correct operating system and architecture together with `checksums.txt`, verify its SHA-256 value, extract it, and run the executable. Manual installation does not provide WinGet-managed PATH, upgrade, or uninstall behavior.
+
+Windows PowerShell checksum verification:
+
+```powershell
+Get-FileHash .\credscope_0.2.0_windows_amd64.zip -Algorithm SHA256
+```
+
+Compare the result with the matching line in `checksums.txt`. Do not disable Windows security controls to run an unsigned binary.
+
+## Go installation for developers
+
+Contributors need [Git](https://git-scm.com/) and Go 1.26, the version declared by [`go.mod`](go.mod):
 
 ```bash
 git clone https://github.com/Bavlik/CredScope.git
@@ -45,9 +80,7 @@ go run ./cmd/credscope version
 go run ./cmd/credscope scan /path/to/repository
 ```
 
-No paid license is required. CredScope is available under Apache-2.0, which permits use, modification, and distribution under its terms.
-
-## Build from source
+## Building from source
 
 macOS and Linux:
 
@@ -63,17 +96,7 @@ go build -o credscope.exe ./cmd/credscope
 .\credscope.exe version
 ```
 
-## Optional release binaries
-
-GitHub Release binaries are a convenience for users who do not want to build locally. Verify published checksums before use. Official v0.1.0 Windows binaries are currently unsigned, so Windows may display a reputation warning; users may prefer building from source. Do not disable Windows security controls.
-
-## Quick start
-
-```bash
-go run ./cmd/credscope scan . --profile auto
-go run ./cmd/credscope scan . --format json --output credscope.json
-go run ./cmd/credscope scan . --format html --output reports/credscope.html
-```
+No paid license is required. CredScope is available under Apache-2.0, which permits use, modification, and distribution under its terms.
 
 Output paths are repository-relative and are written with confinement and symlink checks.
 
@@ -83,13 +106,13 @@ Create a Gitleaks JSON report, then import it:
 
 ```bash
 gitleaks git --report-format json --report-path gitleaks.json
-go run ./cmd/credscope scan . --gitleaks-report gitleaks.json
+credscope scan . --gitleaks-report gitleaks.json
 ```
 
 CredScope fingerprints and discards imported `Secret` and `Match` values; reports do not contain raw secrets. If Gitleaks ran in a container and recorded paths rooted at `/repo`, configure an exact prefix:
 
 ```bash
-go run ./cmd/credscope scan . \
+credscope scan . \
   --gitleaks-report gitleaks.json \
   --gitleaks-path-prefix /repo
 ```
@@ -193,7 +216,7 @@ The CLI performs no network requests, telemetry, shell execution, workflow execu
 
 ## Roadmap
 
-Planned work includes improved credential classification, additional scanner adapters, Kubernetes support, additional CI providers, signed release binaries, and package-manager distribution. These are not implemented features.
+Planned work includes improved credential classification, additional scanner adapters, Kubernetes support, additional CI providers, signed release binaries, and additional package-manager distribution. WinGet packaging is prepared for v0.2.0 but is not available until the release and manifest are published and accepted.
 
 ## Contributing
 

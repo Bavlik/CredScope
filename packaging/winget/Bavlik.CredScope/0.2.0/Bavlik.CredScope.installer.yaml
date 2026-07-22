@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+
+PackageIdentifier: Bavlik.CredScope
+PackageVersion: 0.2.0
+InstallerType: zip
+NestedInstallerType: portable
+Scope: user
+Commands:
+  - credscope
+Installers:
+  - Architecture: x64
+    NestedInstallerFiles:
+      - RelativeFilePath: credscope.exe
+        PortableCommandAlias: credscope
+    InstallerUrl: REPLACE_WITH_WINDOWS_AMD64_RELEASE_URL
+    InstallerSha256: REPLACE_WITH_WINDOWS_AMD64_SHA256
+  - Architecture: arm64
+    NestedInstallerFiles:
+      - RelativeFilePath: credscope.exe
+        PortableCommandAlias: credscope
+    InstallerUrl: REPLACE_WITH_WINDOWS_ARM64_RELEASE_URL
+    InstallerSha256: REPLACE_WITH_WINDOWS_ARM64_SHA256
+ManifestType: installer
+ManifestVersion: 1.12.0
