@@ -135,7 +135,6 @@ PackageIdentifier: Bavlik.CredScope
 PackageVersion: $Version
 InstallerType: zip
 NestedInstallerType: portable
-Scope: user
 Commands:
   - credscope
 Installers:
