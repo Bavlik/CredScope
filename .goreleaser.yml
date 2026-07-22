@@ -9,32 +9,35 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
+      - windows
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
       - arm64
-    ignore:
-      - goos: windows
-        goarch: arm64
     flags:
       - -trimpath
+      - -buildvcs=false
+      - -mod=readonly
     mod_timestamp: '{{ if index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ else }}{{ .CommitTimestamp }}{{ end }}'
     ldflags:
       - -s -w -buildid=
       - -X main.version=v{{ .Version }}
       - -X main.commit={{ if index .Env "CREDSCOPE_BUILD_COMMIT" }}{{ index .Env "CREDSCOPE_BUILD_COMMIT" }}{{ else }}{{ .FullCommit }}{{ end }}
-      - -X main.date={{ .Env.BUILD_DATE }}
+      - -X main.date={{ if index .Env "BUILD_DATE" }}{{ index .Env "BUILD_DATE" }}{{ else }}unknown{{ end }}
 
 archives:
   - id: credscope
-    ids: [credscope]
-    formats: [tar.gz]
+    ids:
+      - credscope
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        formats: [zip]
+        formats:
+          - zip
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    wrap_in_directory: false
     builds_info:
       owner: root
       group: root
@@ -47,11 +50,38 @@ archives:
           group: root
           mode: 0644
           mtime: "{{ .Env.BUILD_DATE }}"
+      - src: NOTICE
+        info: *archive_file_info
       - src: README.md
+        info: *archive_file_info
+      - src: SECURITY.md
         info: *archive_file_info
       - src: CHANGELOG.md
         info: *archive_file_info
-    wrap_in_directory: true
+      - src: CODE_OF_CONDUCT.md
+        info: *archive_file_info
+      - src: .credscope.yml.example
+        info: *archive_file_info
+      - src: docs/ARCHITECTURE.md
+        info: *archive_file_info
+      - src: docs/CONFIGURATION.md
+        info: *archive_file_info
+      - src: docs/RULES.md
+        info: *archive_file_info
+      - src: docs/SCORING.md
+        info: *archive_file_info
+      - src: docs/THREAT_MODEL.md
+        info: *archive_file_info
+      - src: docs/installation.md
+        info: *archive_file_info
+      - src: docs/reporting.md
+        info: *archive_file_info
+      - src: docs/github-action.md
+        info: *archive_file_info
+      - src: docs/inputs.md
+        info: *archive_file_info
+      - src: docs/report-schema-v2.json
+        info: *archive_file_info
 
 metadata:
   mod_timestamp: '{{ if index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ index .Env "CREDSCOPE_BUILD_TIMESTAMP" }}{{ else }}{{ .CommitTimestamp }}{{ end }}'
@@ -72,4 +102,5 @@ changelog:
       - '^chore:'
 
 release:
+  name_template: "CredScope v{{ .Version }}"
   prerelease: auto
