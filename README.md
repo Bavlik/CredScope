@@ -154,9 +154,11 @@ Use fake test values and preserve the project's security, determinism, path-conf
 
 ## License
 
+
 Licensed under the Apache License 2.0.
 
-Created and maintained by Abdallah Alotaibi ([@Bavlik](https://github.com/Bavlik)).
+Created and maintained by Abdallah Alotaibi ([@Bavlik](https://github.com/Bavlik)) and Rakan Al Salah ([@Cooler-spec](https://github.com/Cooler-spec)).
+
 
 ---
 
