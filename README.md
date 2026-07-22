@@ -138,13 +138,13 @@ See [the threat model](docs/THREAT_MODEL.md) and [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Configuration](docs/CONFIGURATION.md)
-- [Inputs](docs/inputs.md)
-- [Reporting](docs/reporting.md)
-- [Rules](docs/RULES.md)
-- [Scoring](docs/SCORING.md)
-- [Release process](docs/RELEASING.md)
+- Architecture
+- Configuration
+- Inputs
+- Reporting
+- Rules
+- Scoring
+- Release process
 
 ## Contributing
 
@@ -154,6 +154,12 @@ Use fake test values and preserve the project's security, determinism, path-conf
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE).
+Licensed under the Apache License 2.0.
 
 Created and maintained by Abdallah Alotaibi ([@Bavlik](https://github.com/Bavlik)).
+
+---
+
+### Documentation Update
+
+This README was updated to improve documentation clarity and formatting.
