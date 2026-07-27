@@ -28,7 +28,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const productName = "CredScope"
+const (
+	productName = "CredScope"
+	brandName   = "Bavlik"
+)
 
 // BuildInfo is populated by release linker flags.
 type BuildInfo struct {
@@ -70,6 +73,13 @@ func newRootCommand(info BuildInfo, stdout, stderr io.Writer, clock func() time.
 	root.SetOut(stdout)
 	root.SetErr(stderr)
 	root.AddCommand(newScanCommand(info, clock), newVersionCommand(info), newRulesCommand(), newExplainCommand())
+	defaultHelpFunc := root.HelpFunc()
+	root.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		defaultHelpFunc(cmd, args)
+		if cmd == root {
+			fmt.Fprintf(cmd.OutOrStdout(), "\n%s by %s\n", productName, brandName)
+		}
+	})
 	return root
 }
 
@@ -313,7 +323,7 @@ func newVersionCommand(info BuildInfo) *cobra.Command {
 		Short: "Print version information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s %s\ncommit: %s\nbuilt: %s\n", productName, info.Version, info.Commit, info.Date)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s %s\nby %s\ncommit: %s\nbuilt: %s\n", productName, info.Version, brandName, info.Commit, info.Date)
 			return nil
 		},
 	}

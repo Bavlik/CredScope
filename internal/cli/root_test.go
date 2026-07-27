@@ -32,7 +32,7 @@ func TestVersionCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if output != "CredScope v0.2.0-test\ncommit: abc\nbuilt: today\n" {
+	if output != "CredScope v0.2.0-test\nby Bavlik\ncommit: abc\nbuilt: today\n" {
 		t.Fatalf("output = %q", output)
 	}
 }
@@ -44,8 +44,37 @@ func TestDevelopmentVersionMetadata(t *testing.T) {
 	if err := cmd.Execute(); err != nil {
 		t.Fatal(err)
 	}
-	if output.String() != "CredScope dev\ncommit: none\nbuilt: unknown\n" {
+	if output.String() != "CredScope dev\nby Bavlik\ncommit: none\nbuilt: unknown\n" {
 		t.Fatalf("development version output = %q", output.String())
+	}
+}
+
+func TestRootHelpEndsWithBrandLineOnlyOnce(t *testing.T) {
+	output, err := executeCommand(t, "--help")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(strings.TrimRight(output, "\n"), "CredScope by Bavlik") {
+		t.Fatalf("root help does not end with brand line: %q", output)
+	}
+	if strings.Count(output, "CredScope by Bavlik") != 1 {
+		t.Fatalf("brand line must appear exactly once: %q", output)
+	}
+
+	scanOutput, err := executeCommand(t, "scan", "--help")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(scanOutput, "CredScope by Bavlik") {
+		t.Fatal("brand line must not repeat on subcommand help")
+	}
+
+	versionOutput, err := executeCommand(t, "version", "--help")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(versionOutput, "CredScope by Bavlik") {
+		t.Fatal("brand line must not repeat on subcommand help")
 	}
 }
 

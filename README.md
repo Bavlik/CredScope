@@ -1,5 +1,7 @@
 # CredScope
 
+*A security tool by Bavlik.*
+
 CredScope is an experimental, offline-first CLI for analyzing static credential exposure and reachability context in Docker Compose, GitHub Actions, and imported Gitleaks reports.
 
 > Review findings before acting on them. CredScope is not a complete vulnerability scanner and should not be the sole basis for a security decision.
@@ -47,7 +49,20 @@ After acceptance, installation will be:
 winget install --id Bavlik.CredScope -e
 ```
 
-See [installation documentation](docs/installation.md).
+### Linux (Debian/Kali/Ubuntu) via Cloudsmith APT
+
+CredScope publishes `.deb` packages to a Cloudsmith APT repository. Once the `bavlik/credscope` Cloudsmith repository exists and publishing is enabled:
+
+```bash
+curl -1sLf 'https://dl.cloudsmith.io/public/bavlik/credscope/cfg/setup/bash.deb.sh' | sudo -E bash
+sudo apt update
+sudo apt install credscope
+credscope version
+```
+
+Portable Linux archives are also published on every GitHub Release; see [installation documentation](docs/installation.md) for the safe extraction steps.
+
+See [installation documentation](docs/installation.md) for full details on every platform.
 
 ## Quick start
 
@@ -138,13 +153,17 @@ See [the threat model](docs/THREAT_MODEL.md) and [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
-- Architecture
-- Configuration
-- Inputs
-- Reporting
-- Rules
-- Scoring
-- Release process
+See [docs/README.md](docs/README.md) for the full documentation index, including:
+
+- [Installation](docs/installation.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Inputs](docs/inputs.md)
+- [Reporting](docs/reporting.md)
+- [Rules](docs/RULES.md)
+- [Scoring](docs/SCORING.md)
+- [Threat model](docs/THREAT_MODEL.md)
+- [Release process](docs/RELEASING.md)
 
 ## Contributing
 
@@ -152,16 +171,12 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT
 
 Use fake test values and preserve the project's security, determinism, path-confinement, and output-safety guarantees.
 
-## License
+## Package hosting
 
+Linux `.deb` packages are hosted on [Cloudsmith](https://cloudsmith.com), who provide free open-source package hosting.
+
+## License
 
 Licensed under the Apache License 2.0.
 
 Created and maintained by Abdallah Alotaibi ([@Bavlik](https://github.com/Bavlik)) and Rakan Al Salah ([@Cooler-spec](https://github.com/Cooler-spec)).
-
-
----
-
-### Documentation Update
-
-This README was updated to improve documentation clarity and formatting.

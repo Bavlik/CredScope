@@ -2,9 +2,24 @@
 
 All notable changes to CredScope are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.1] - Unreleased
 
-This section prepares the experimental v0.2.0 release. No v0.2.0 tag or release has been created.
+This section prepares v0.2.1. No v0.2.1 tag or release has been created.
+
+### Added
+
+- Debian package generation (`nfpms`) producing signed-metadata `.deb` packages for `linux/amd64` and `linux/arm64`, installing `credscope` to `/usr/bin` with `LICENSE`, `NOTICE`, and `README.md` under `/usr/share/doc/credscope/`.
+- Cloudsmith APT publishing preparation in the tag-triggered release workflow, gated on the `CLOUDSMITH_REPOSITORY` repository variable and the `CLOUDSMITH_API_KEY` secret, using the official pinned Cloudsmith CLI.
+- Documentation for installing CredScope on Debian/Kali/Ubuntu through Cloudsmith APT, and for safe portable-archive installation on Linux.
+- `docs/README.md` documentation index.
+- CI validation of the GoReleaser snapshot build: `goreleaser check`, presence and contents of Linux/Windows/macOS archives, `.deb` package metadata and contents via `dpkg-deb`, and archive/package safety checks (no `testdata`, generated reports, or credential-like files).
+
+### Changed
+
+- Portable release archives (`.zip`/`.tar.gz`) now wrap their contents in a single `credscope_<version>_<os>_<arch>/` directory instead of scattering `LICENSE`, `README.md`, and other files into the extraction directory.
+- Repository cleanup: removed an accidentally generated HTML scan report from `testdata/vulnerable/reports/`, tightened `.gitignore` against generated reports, coverage output, `.deb` packages, editor/OS junk, and local secrets, and added a documentation index at `docs/README.md`.
+
+## [0.2.0] - 2026-07-22
 
 ### Added
 
