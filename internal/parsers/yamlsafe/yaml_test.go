@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.yaml.in/yaml/v3"
+	"gopkg.in/yaml.v3"
 )
 
 func FuzzBoundedYAMLValidation(f *testing.F) {

@@ -13,7 +13,7 @@ import (
 	"github.com/Bavlik/CredScope/internal/domain"
 	"github.com/Bavlik/CredScope/internal/parsers/yamlsafe"
 	"github.com/Bavlik/CredScope/internal/sanitizer"
-	"go.yaml.in/yaml/v3"
+	"gopkg.in/yaml.v3"
 )
 
 const parserSource = "docker-compose"

@@ -1,0 +1,34 @@
+Source: credscope
+Section: utils
+Maintainer: Abdallah Alotaibi <46373099+Bavlik@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 14),
+               dh-golang,
+               golang-go (>= 2:1.26~),
+               golang-github-spf13-cobra-dev (>= 1.10.2~),
+               golang-github-spf13-pflag-dev (>= 1.0.9~),
+               golang-github-inconshreveable-mousetrap-dev (>= 1.1.0~),
+               golang-gopkg-yaml.v3-dev (>= 3.0.1~)
+Standards-Version: 4.7.4
+Homepage: https://github.com/Bavlik/CredScope
+Vcs-Browser: https://github.com/Bavlik/CredScope
+Vcs-Git: https://github.com/Bavlik/CredScope.git
+XS-Go-Import-Path: github.com/Bavlik/CredScope
+
+Package: credscope
+Architecture: any
+Depends: ${misc:Depends}
+Static-Built-Using: ${misc:Static-Built-Using}
+Built-Using: ${misc:Built-Using}
+Description: offline-first CLI for static credential exposure analysis
+ CredScope is an experimental, offline-first command-line tool for
+ analyzing static credential exposure and reachability context in
+ Docker Compose files, GitHub Actions workflows, and imported Gitleaks
+ JSON reports. It builds a typed graph of credentials, permissions,
+ ports, mounts, and service dependencies, then scores and reports the
+ findings in terminal, HTML, JSON, SARIF 2.1.0, or Mermaid format.
+ .
+ CredScope performs deterministic static analysis only. It does not
+ validate whether discovered credentials are active, execute repository
+ content, or make network requests, and it is not a replacement for a
+ complete vulnerability scanner or for Gitleaks. Findings should not be
+ the sole basis for a security decision.

@@ -1,0 +1,110 @@
+CredScope Debian source packaging notes
+========================================
+
+Go dependency graph and packaging strategy
+-------------------------------------------
+
+CredScope's actual build-time Go dependency graph (verified with
+`go list -deps ./cmd/credscope`, not assumed) is small:
+
+  - github.com/spf13/cobra      v1.10.2  (Apache-2.0)
+  - github.com/spf13/pflag      v1.0.9   (BSD-3-Clause)
+  - github.com/inconshreveable/mousetrap v1.1.0 (Apache-2.0)
+  - gopkg.in/yaml.v3            v3.0.1   (MIT and Apache-2.0)
+
+(cobra also pulls github.com/cpuguy83/go-md2man/v2, github.com/russross/
+blackfriday/v2, and gopkg.in/check.v1 into go.sum, but those are cobra's
+own doc-generation and test dependencies; CredScope does not import
+cobra's `doc` package, so they are not compiled into the credscope
+binary.)
+
+All four real dependencies are packaged in Debian/Kali, confirmed inside
+a real kali-rolling container (`apt-cache policy`), not assumed:
+
+  - golang-github-spf13-cobra-dev               1.10.2-1
+  - golang-github-spf13-pflag-dev                1.0.10-1
+  - golang-github-inconshreveable-mousetrap-dev  1.1.0-1
+  - golang-gopkg-yaml.v3-dev                     3.0.4-3
+
+Earlier packaging revisions of CredScope imported go.yaml.in/yaml/v3 (the
+goyaml.in project's continuation of the same API under a new module
+path), which was NOT packaged in Debian/Kali, forcing full vendoring.
+CredScope's own Go import was switched from go.yaml.in/yaml/v3 to the
+already-packaged gopkg.in/yaml.v3 specifically to remove that need (the
+two are API-compatible; goyaml.in v3 is an explicit continuation of the
+same code). There is now no vendor/ directory and no dependency that
+needs vendoring.
+
+Build strategy: dh-golang against system libraries
+----------------------------------------------------
+
+With every real dependency packaged, debian/rules uses the dh-golang
+buildsystem (`dh $@ --buildsystem=golang --with=golang`, confirmed
+working end-to-end in a real kali-rolling container, not assumed):
+
+  - `dh_auto_configure --buildsystem=golang` assembles a temporary GOPATH
+    under `_build/`, copying CredScope's own source to
+    `_build/src/github.com/Bavlik/CredScope` and symlinking every
+    installed golang-*-dev package's source from `/usr/share/gocode/src/`.
+  - This is legacy GOPATH mode (`GO111MODULE=off`): it does not read
+    go.mod/go.sum at all, and therefore never needs network access or a
+    module proxy. It builds directly against whatever version of each
+    dependency the installed Debian package provides.
+  - `override_dh_auto_build` calls `dh_auto_build --buildsystem=golang --
+    -ldflags "..."` so the built binary still gets the same
+    `main.version`/`main.commit`/`main.date` metadata CredScope's
+    GoReleaser release build and root_test.go expect.
+  - `override_dh_auto_install` installs only `_build/bin/credscope` to
+    `/usr/bin/credscope`. dh-golang's default install() would also copy
+    `_build/bin/credscope-action` and `_build/bin/generate-examples`
+    (CredScope's other, non-CLI-facing build products) and the entire Go
+    source tree to `/usr/share/gocode/src/...` (dh-golang's default
+    behavior for library packages); CredScope ships only the one CLI
+    binary, so both are skipped explicitly.
+  - `dh_golang` (from the `dh-golang` Build-Depends, part of the standard
+    `--with=golang` sequence) generates the `misc:Static-Built-Using`
+    substvar automatically from the real Build-Depends versions used,
+    resolving the previous `missing-static-built-using-field-for-golang-
+    package` lintian informational note.
+
+Because the build now happens entirely in GOPATH mode against installed
+Debian packages, `go.mod`/`go.sum` are present in the source tree (for
+upstream's normal `go build`/`go test` outside of Debian packaging, and
+so `go mod verify`/`go vet` keep working for everyone else) but are not
+consulted by the Debian build at all.
+
+Test scope during the build
+-----------------------------
+
+`override_dh_auto_test` runs `go test` (via `dh_auto_test
+--buildsystem=golang`) over every package except
+internal/repositoryquality, which tests CredScope's own GitHub-facing
+CI/release artifacts (GitHub Actions workflows, WinGet manifests, README
+wording) rather than the credscope binary, and some of whose tests shell
+out to `pwsh` to validate Windows WinGet packaging scripts -- an
+irrelevant, heavy dependency for a Debian package build. Every package
+that tests actual credscope behavior still runs, including the packages
+that changed with the yaml import switch (internal/config,
+internal/parsers/compose, internal/parsers/githubactions,
+internal/parsers/yamlsafe).
+
+Getting the orig tarball
+--------------------------
+
+Because there is no vendoring, the .orig tarball is now just CredScope's
+own tagged source, unmodified -- no repacking step is required (unlike
+the earlier vendored revision of this packaging). debian/watch points at
+GitHub's tag tarballs directly. To generate `../credscope_<version>.orig.
+tar.gz` for a real upload:
+
+    uscan --download-current-version --destdir=..
+
+or, equivalently and offline once the plain upstream tag tarball has
+already been fetched once:
+
+    git archive --format=tar.gz --prefix=credscope-<version>/ \
+      v<version> > ../credscope_<version>.orig.tar.gz
+
+Either way, the resulting .orig tarball does not need vendor/ and the
+Debian build never downloads anything: everything it needs comes from
+the golang-*-dev Build-Depends already installed in the build chroot.

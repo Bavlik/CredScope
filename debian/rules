@@ -1,0 +1,65 @@
+#!/usr/bin/make -f
+
+# CredScope now builds against Debian-packaged Go libraries only (see
+# debian/control and debian/README.source): golang-github-spf13-cobra-dev,
+# golang-github-spf13-pflag-dev, golang-github-inconshreveable-mousetrap-dev,
+# and golang-gopkg-yaml.v3-dev. The dh-golang buildsystem assembles a GOPATH
+# from those installed packages (legacy GOPATH/GO111MODULE=off mode, which
+# ignores go.mod/go.sum entirely and needs no module proxy), so the build
+# performs no network access and downloads no binaries. There is no vendor/
+# directory: every dependency comes from an already-installed Debian package.
+export DH_GOPKG := github.com/Bavlik/CredScope
+export CGO_ENABLED = 0
+
+# internal/repositoryquality tests CredScope's own GitHub-facing CI/release
+# artifacts (GitHub Actions workflows, WinGet manifests, README wording) by
+# reading them from the repository root at runtime.Caller(0)-relative paths.
+# dh-golang's GOPATH assembly only copies Go source (.go/.c/.h/... files,
+# see Debian::Debhelper::Buildsystem::golang), not those non-Go files, so
+# those tests cannot even find their fixtures under _build/. Some of them
+# also shell out to pwsh to validate Windows WinGet packaging scripts, an
+# irrelevant, heavy dependency for a Debian package build either way.
+# DH_GOLANG_EXCLUDES (a whitespace-separated list of Perl regexes matched
+# against `go list` import paths) is dh-golang's own supported mechanism for
+# this, applied consistently to both the build and test target lists.
+export DH_GOLANG_EXCLUDES := internal/repositoryquality
+
+UPSTREAM_VERSION := $(shell dpkg-parsechangelog -SVersion | sed 's/-[^-]*$$//')
+CHANGELOG_DATE := $(shell dpkg-parsechangelog -SDate)
+BUILD_DATE := $(shell date -u -d '$(CHANGELOG_DATE)' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)
+BUILD_COMMIT := unknown
+LDFLAGS := -X main.version=v$(UPSTREAM_VERSION) -X main.commit=$(BUILD_COMMIT) -X main.date=$(BUILD_DATE)
+
+%:
+	dh $@ --buildsystem=golang --with=golang
+
+override_dh_auto_build:
+	dh_auto_build --buildsystem=golang -- -ldflags "$(LDFLAGS)"
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	cd $(CURDIR)/_build/src/$(DH_GOPKG) && GOPATH=$(CURDIR)/_build GO111MODULE=off go vet ./...
+	dh_auto_test --buildsystem=golang
+endif
+
+# dh-golang's default install() also copies the entire Go source tree into
+# usr/share/gocode/src/, and copies every built command under _build/bin/
+# (credscope, credscope-action, generate-examples) into usr/bin/. CredScope
+# ships only the credscope CLI: no Go source (this is not a library other
+# packages build against), and none of the other internal build tools.
+override_dh_auto_install:
+	install -D -m0755 $(CURDIR)/_build/bin/credscope debian/credscope/usr/bin/credscope
+
+# The Apache-2.0 NOTICE file for gopkg.in/yaml.v3 ships with the
+# golang-gopkg-yaml.v3-dev package itself (it is a Debian dependency now, not
+# vendored code), so no extra NOTICE install step is needed here.
+
+# dwz cannot compress Go's DWARF debug sections ("Unknown debugging section
+# .debug_addr"); this is a known Go/dwz incompatibility, not specific to
+# credscope. Skip dwz the same way most Debian Go packages do; dh_strip
+# still produces a normal -dbgsym package, just without dwz compression.
+override_dh_dwz:
+
+override_dh_auto_clean:
+	dh_auto_clean --buildsystem=golang
+	rm -rf $(CURDIR)/_build
