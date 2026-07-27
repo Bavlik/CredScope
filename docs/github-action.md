@@ -26,7 +26,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-  - uses: Bavlik/CredScope@v0.2.2
+  - uses: Bavlik/CredScope@v0.2.3
     with:
       path: .
       profile: ci
@@ -35,4 +35,4 @@ steps:
       output: credscope.sarif
 ```
 
-The `v0.2.2` reference points to the current published release. See [the complete example](examples/github-action.yml).
+The `v0.2.3` reference points to the current published release. See [the complete example](examples/github-action.yml).

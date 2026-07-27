@@ -2,6 +2,23 @@
 
 All notable changes to CredScope are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] - 2026-07-27
+
+### Added
+
+- Debian source packaging for Kali/Debian.
+- Man page (`debian/credscope.1`).
+- autopkgtest smoke coverage (`debian/tests/smoke`).
+- Safe packaged examples (`debian/credscope.examples`).
+- Upstream metadata and watch file (`debian/upstream/metadata`, `debian/watch`).
+
+### Changed
+
+- Migrated from `go.yaml.in/yaml/v3` to Debian-packaged `gopkg.in/yaml.v3`.
+- Debian builds now use dh-golang and system Go libraries.
+- Source builds are offline and deterministic.
+- CredScope installs to `/usr/bin/credscope` from source packaging.
+
 ## [0.2.2] - 2026-07-27
 
 ### Changed
