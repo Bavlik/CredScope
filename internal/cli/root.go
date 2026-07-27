@@ -31,7 +31,10 @@ import (
 const (
 	productName = "CredScope"
 	brandName   = "Bavlik"
+	websiteText = "abdullahcv.com"
 )
+
+var brandLine = brandName + " · " + websiteText
 
 // BuildInfo is populated by release linker flags.
 type BuildInfo struct {
@@ -77,7 +80,7 @@ func newRootCommand(info BuildInfo, stdout, stderr io.Writer, clock func() time.
 	root.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		defaultHelpFunc(cmd, args)
 		if cmd == root {
-			fmt.Fprintf(cmd.OutOrStdout(), "\n%s by %s\n", productName, brandName)
+			fmt.Fprintf(cmd.OutOrStdout(), "\n%s\n", brandLine)
 		}
 	})
 	return root
@@ -323,7 +326,7 @@ func newVersionCommand(info BuildInfo) *cobra.Command {
 		Short: "Print version information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s %s\nby %s\ncommit: %s\nbuilt: %s\n", productName, info.Version, brandName, info.Commit, info.Date)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s %s\n%s\ncommit: %s\nbuilt: %s\n", productName, info.Version, brandLine, info.Commit, info.Date)
 			return nil
 		},
 	}

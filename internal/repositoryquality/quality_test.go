@@ -271,6 +271,60 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 	}
 }
 
+// TestReleaseDocumentationReflectsCurrentVersion checks that GitHub-facing
+// documentation advertises the current release and no longer carries the
+// pre-launch Cloudsmith APT readiness caveats, while historical version
+// references (changelog entries, WinGet manifests) remain untouched.
+func TestReleaseDocumentationReflectsCurrentVersion(t *testing.T) {
+	root := repositoryRoot(t)
+	version := strings.TrimSpace(readTextFile(t, filepath.Join(root, "VERSION")))
+
+	readme := readTextFile(t, filepath.Join(root, "README.md"))
+	installation := readTextFile(t, filepath.Join(root, "docs", "installation.md"))
+	githubAction := readTextFile(t, filepath.Join(root, "docs", "github-action.md"))
+
+	for _, stale := range []string{
+		"Cloudsmith repository exists and publishing is enabled",
+		"Once the repository is available",
+		"requires the Cloudsmith repository",
+		"will not resolve to a published repository",
+		"becomes usable only after the maintainer publishes",
+	} {
+		for name, doc := range map[string]string{"README.md": readme, "docs/installation.md": installation, "docs/github-action.md": githubAction} {
+			if strings.Contains(doc, stale) {
+				t.Fatalf("%s contains stale Cloudsmith readiness wording %q", name, stale)
+			}
+		}
+	}
+
+	if !strings.Contains(readme, "CredScope@v"+version) {
+		t.Fatalf("README GitHub Action example does not reference the current release v%s", version)
+	}
+	if !strings.Contains(githubAction, "CredScope@v"+version) {
+		t.Fatalf("docs/github-action.md example does not reference the current release v%s", version)
+	}
+	if !strings.Contains(readme, "credscope_"+version+"_windows_amd64.zip") {
+		t.Fatalf("README GitHub Release example does not reference the current release archive v%s", version)
+	}
+
+	changelog := readTextFile(t, filepath.Join(root, "CHANGELOG.md"))
+	if !strings.Contains(changelog, "[0.2.0] - 2026-07-22") {
+		t.Fatal("historical v0.2.0 changelog entry must remain")
+	}
+	if _, err := os.Stat(filepath.Join(root, "packaging", "winget", "Bavlik.CredScope", "0.2.0")); err != nil {
+		t.Fatal("historical WinGet 0.2.0 manifest directory must remain")
+	}
+}
+
+func readTextFile(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
+}
+
 func readYAML(t *testing.T, path string, target any) {
 	t.Helper()
 	data, err := os.ReadFile(path)
