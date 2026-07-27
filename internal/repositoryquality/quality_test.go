@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.yaml.in/yaml/v3"
+	"gopkg.in/yaml.v3"
 )
 
 var fullCommit = regexp.MustCompile(`^[0-9a-f]{40}$`)

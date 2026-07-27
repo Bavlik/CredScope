@@ -1,0 +1,13 @@
+version=5
+opts="filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/credscope-$1\.tar\.gz/" \
+  https://github.com/Bavlik/CredScope/tags .*/v?(\d\S*)\.tar\.gz debian uupdate
+
+# No repacking is required: CredScope builds against Debian-packaged Go
+# libraries (see debian/README.source), so the plain GitHub tag tarball
+# uscan resolves is a complete, buildable .orig source -- nothing needs to
+# be vendored or added to it. Generate the real .orig tarball with:
+#
+#   uscan --download-current-version --destdir=..
+#
+# The Debian build itself (dh-golang against the golang-*-dev
+# Build-Depends) never downloads anything at build time.

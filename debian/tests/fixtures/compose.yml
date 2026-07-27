@@ -1,0 +1,11 @@
+# Synthetic, non-secret fixture used only by debian/tests/smoke. The
+# credential below is a variable reference, never a real value, and no
+# Gitleaks report is involved in this test, so no raw secret handling is
+# exercised at all.
+services:
+  api:
+    image: example/api:1.0
+    environment:
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "8080:8080"

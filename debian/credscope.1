@@ -1,0 +1,178 @@
+.TH CREDSCOPE 1 "2026-07-27" "credscope" "User Commands"
+.SH NAME
+credscope \- analyze static credential exposure and reachability
+.SH SYNOPSIS
+.B credscope
+.RI [ command ]
+.RI [ flags ]
+.SH DESCRIPTION
+.B credscope
+is an experimental, offline\-first command\-line tool for analyzing static
+credential exposure and reachability context in Docker Compose files,
+GitHub Actions workflows, and imported Gitleaks JSON reports. It builds a
+typed graph of credentials, permissions, ports, mounts, dependencies, and
+shared network topology, then scores and reports the findings.
+.PP
+.B credscope
+performs deterministic static analysis only. It does not validate whether
+discovered credentials are active, execute repository content, workflows,
+or containers, or make network requests. It is not a complete
+vulnerability scanner, is not a replacement for Gitleaks or another
+secret scanner, and its findings should not be the sole basis for a
+security decision.
+.SH COMMANDS
+.TP
+.B credscope version
+Print the tool version, commit, and build date, then exit.
+.TP
+.BI "credscope scan " [repository]
+Analyze the repository at
+.I repository
+(default: the current directory) and produce a report. See
+.B SCAN OPTIONS
+below.
+.TP
+.B credscope rules list
+List every stable rule identifier (for example
+.BR CRD101 )
+and its short title, one per line, sorted by identifier.
+.TP
+.BI "credscope explain " RULE_ID
+Print the full title for a stable rule identifier, for example
+.BR "credscope explain CRD101" .
+.SH SCAN OPTIONS
+.TP
+.BI "\-\-gitleaks\-report " path
+Path to an imported Gitleaks JSON report. Raw
+.B Secret
+and
+.B Match
+values from the report are fingerprinted and discarded; they are never
+written to a credscope report.
+.TP
+.BI "\-\-gitleaks\-path\-prefix " prefix
+Exact absolute scanner path prefix to strip from Gitleaks finding paths
+(for reports generated inside a container).
+.TP
+.BI "\-\-profile " profile
+Environment profile:
+.BR auto ", " local ", " ci ", " staging ", or " production .
+.TP
+.BI "\-\-format " format ", \-f " format
+Report format. See
+.B REPORT FORMATS
+below. Default:
+.BR terminal .
+.TP
+.BI "\-\-output " path ", \-o " path
+Write the report to
+.I path
+instead of standard output.
+.TP
+.BI "\-\-fail\-on " severity
+Failure threshold:
+.BR none ", " informational ", " low ", " medium ", " high ", or " critical .
+Default:
+.BR none .
+.TP
+.BI "\-\-minimum\-score " score
+Minimum risk score (0\-100) to report.
+.TP
+.BI "\-\-include " pattern
+Additional repository\-relative include pattern. May be repeated.
+.TP
+.BI "\-\-exclude " pattern
+Repository\-relative exclude pattern. May be repeated.
+.TP
+.BI "\-\-config " path
+Configuration file. Defaults to
+.B .credscope.yml
+in the repository root when present.
+.TP
+.B \-\-no\-color
+Disable colored terminal output.
+.TP
+.B \-\-quiet ", \-q"
+Suppress non\-result output.
+.TP
+.B \-\-verbose ", \-v"
+Show detailed, secret\-safe evidence.
+.SH REPORT FORMATS
+.TP
+.B terminal
+Human\-readable, optionally colored, sanitized terminal output.
+.TP
+.B html
+A standalone, offline HTML report with no external scripts, styles,
+fonts, or network requests.
+.TP
+.B json
+Deterministic, machine\-readable JSON (schema version 2).
+.TP
+.B sarif
+SARIF 2.1.0, suitable for GitHub code scanning and other SARIF consumers.
+.TP
+.B mermaid
+A Mermaid flowchart of the typed credential/reachability graph, embedded
+in a fenced Markdown code block.
+.SH EXIT STATUS
+.TP
+.B 0
+Success; no configured risk threshold was exceeded.
+.TP
+.B 1
+The scan completed but the configured
+.B \-\-fail\-on
+/
+.B \-\-minimum\-score
+threshold was exceeded.
+.TP
+.B 2
+Usage error (invalid flags, invalid configuration).
+.TP
+.B 3
+Malformed input (an unreadable or invalid discovered file, Gitleaks
+report, or path).
+.TP
+.B 4
+Internal error (for example, a report could not be written).
+.SH EXAMPLES
+.PP
+Print the version:
+.PP
+.RS
+credscope version
+.RE
+.PP
+Scan the current repository and print a terminal report:
+.PP
+.RS
+credscope scan .
+.RE
+.PP
+Scan a repository, importing a Gitleaks report, and write an HTML report:
+.PP
+.RS
+credscope scan . \-\-gitleaks\-report gitleaks.json \-\-format html \-\-output credscope\-report.html
+.RE
+.PP
+List every stable rule identifier:
+.PP
+.RS
+credscope rules list
+.RE
+.SH SECURITY MODEL
+.B credscope
+does not validate whether credentials are active, execute repository
+content, workflows, or containers, make network requests, or prove
+runtime data flow or external network exposure. Repository discovery,
+imported reports, configuration, and output writes remain confined to
+the selected repository root.
+.SH SEE ALSO
+Full documentation, the rule catalog, and the scoring policy are
+installed under
+.IR /usr/share/doc/credscope/ .
+.SH AUTHOR
+Created and maintained by Abdallah Alotaibi (@Bavlik) and Rakan Al Salah
+(@Cooler\-spec). Project website:
+.BR https://abdullahcv.com .

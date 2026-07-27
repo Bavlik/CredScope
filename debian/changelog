@@ -1,0 +1,14 @@
+credscope (0.2.2-1) UNRELEASED; urgency=medium
+
+  * Initial Debian packaging, prepared for a Kali Linux New Tool Request.
+  * Builds credscope from Go source with the system Go toolchain; the code
+    is not downloaded or repackaged from a prebuilt GitHub Release binary.
+  * Switched CredScope's own Go import from go.yaml.in/yaml/v3 (not
+    packaged in Debian/Kali) to the already-packaged gopkg.in/yaml.v3.
+    Every real build dependency (cobra, pflag, mousetrap, yaml.v3) is now
+    available in the Debian/Kali archive, so this package builds with
+    dh-golang against system Go libraries. There is no vendor/ directory.
+    See debian/README.source for the full explanation.
+  * Not yet submitted to Kali or Debian.
+
+ -- Abdallah Alotaibi <46373099+Bavlik@users.noreply.github.com>  Mon, 27 Jul 2026 14:42:47 +0000

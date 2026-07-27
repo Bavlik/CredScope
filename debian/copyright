@@ -1,0 +1,29 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: CredScope
+Upstream-Contact: Abdallah Alotaibi <46373099+Bavlik@users.noreply.github.com>
+Source: https://github.com/Bavlik/CredScope
+Comment:
+ CredScope builds against Debian-packaged Go libraries (see
+ debian/control Build-Depends and debian/README.source): none of their
+ source is vendored or otherwise redistributed by this source package,
+ so their copyright and license terms are documented by their own
+ Debian source packages (golang-github-spf13-cobra-dev,
+ golang-github-spf13-pflag-dev,
+ golang-github-inconshreveable-mousetrap-dev, and
+ golang-gopkg-yaml.v3-dev), not here.
+
+Files: *
+Copyright: 2026 Abdallah Alotaibi
+License: Apache-2.0
+Comment:
+ CredScope is created and maintained by Abdallah Alotaibi (@Bavlik) and
+ Rakan Al Salah (@Cooler-spec). Project website: https://abdullahcv.com
+
+Files: debian/*
+Copyright: 2026 Abdallah Alotaibi
+License: Apache-2.0
+Comment: Debian packaging.
+
+License: Apache-2.0
+ On Debian systems, the complete text of the Apache License, Version 2.0
+ can be found in "/usr/share/common-licenses/Apache-2.0".

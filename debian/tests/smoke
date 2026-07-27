@@ -1,0 +1,47 @@
+#!/bin/sh
+# Offline autopkgtest smoke check for the credscope package.
+#
+# - Does not contact any network service.
+# - Does not execute any repository/workflow content.
+# - Does not require or reference real credentials.
+# - Scans a small synthetic fixture shipped in this test (fixtures/compose.yml)
+#   whose only "credential" is an environment-variable reference, never a
+#   value, so no raw secret is ever read, scanned, or printed.
+# - Deterministic: same input, same exit code, same JSON schema every run.
+
+set -eu
+
+here="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+echo "=== credscope version ==="
+credscope version
+
+echo "=== credscope --help ==="
+credscope --help
+
+echo "=== credscope rules list ==="
+credscope rules list
+
+echo "=== credscope scan (packaged synthetic fixture) ==="
+workdir="$(mktemp -d)"
+trap 'rm -rf "$workdir"' EXIT
+cp "$here/fixtures/compose.yml" "$workdir/compose.yml"
+
+report="$workdir/report.json"
+set +e
+credscope scan "$workdir" --format json --no-color --quiet >"$report"
+status=$?
+set -e
+
+# fail-on defaults to "none", so a clean scan of a low-risk fixture exits 0;
+# ExitThreshold (documented exit code 1) is also acceptable here since it
+# still means the scan completed and produced a report.
+if [ "$status" -ne 0 ] && [ "$status" -ne 1 ]; then
+    echo "credscope scan exited with unexpected status $status" >&2
+    exit 1
+fi
+
+grep -q '"schema_version"' "$report"
+grep -q '"schema_version": "2"' "$report" || grep -q '"schema_version":"2"' "$report"
+
+echo "smoke tests passed"
