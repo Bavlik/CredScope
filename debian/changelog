@@ -1,3 +1,16 @@
+credscope (0.2.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release (v0.2.3): release metadata and documentation
+    refresh (VERSION, CHANGELOG.md, current-release references updated
+    from v0.2.2 to v0.2.3). No functional CLI changes since v0.2.2.
+  * Debian packaging itself is unchanged from 0.2.2-1: still builds from
+    source against Debian-packaged Go libraries via dh-golang, with no
+    vendor/ directory and no network access at build time. See
+    debian/README.source for the full explanation.
+  * Not yet submitted to Kali or Debian.
+
+ -- Abdallah Alotaibi <46373099+Bavlik@users.noreply.github.com>  Mon, 27 Jul 2026 16:16:45 +0000
+
 credscope (0.2.2-1) UNRELEASED; urgency=medium
 
   * Initial Debian packaging, prepared for a Kali Linux New Tool Request.

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-CredScope v0.2.2 is the latest maintained release, distributed as an experimental security tool. Security fixes are made on the latest maintained release line and the default branch. v0.1.0, v0.2.0, and v0.2.1 remain immutable as historical releases.
+CredScope v0.2.3 is the latest maintained release, distributed as an experimental security tool. Security fixes are made on the latest maintained release line and the default branch. v0.1.0, v0.2.0, v0.2.1, and v0.2.2 remain immutable as historical releases.
 
 ## Reporting a vulnerability
 

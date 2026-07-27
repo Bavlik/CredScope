@@ -55,7 +55,7 @@ Tested on Kali Linux. APT manages upgrades and uninstallation (`sudo apt remove 
 
 ### GitHub Release
 
-CredScope v0.2.2 is available from GitHub Releases for:
+CredScope v0.2.3 is available from GitHub Releases for:
 
 - Windows amd64 and arm64
 - Linux amd64 and arm64
@@ -66,7 +66,7 @@ Download the archive for your operating system and architecture together with `c
 Windows example:
 
 ```powershell
-Get-FileHash .\credscope_0.2.2_windows_amd64.zip -Algorithm SHA256
+Get-FileHash .\credscope_0.2.3_windows_amd64.zip -Algorithm SHA256
 ```
 
 CredScope Windows binaries are currently unsigned. Do not disable SmartScreen, Defender, Smart App Control, or other Windows security controls.
@@ -144,7 +144,7 @@ permissions:
 
 steps:
   - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-  - uses: Bavlik/CredScope@v0.2.2
+  - uses: Bavlik/CredScope@v0.2.3
     with:
       path: .
       gitleaks-report: gitleaks.json

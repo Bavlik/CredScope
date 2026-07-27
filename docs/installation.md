@@ -27,7 +27,7 @@ Two installation methods are supported.
 Download the archive for your architecture and `checksums.txt` from the same GitHub Release, verify the checksum, then extract into a scratch directory so the bundled `LICENSE`, `README.md`, and other documentation files do not scatter across your working directory:
 
 ```bash
-version=0.2.1
+version=0.2.3
 arch=amd64   # or arm64
 
 workdir="$(mktemp -d)"
