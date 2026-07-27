@@ -11,72 +11,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Get-PublishedHash {
-    param(
-        [Parameter(Mandatory)] [string]$ChecksumText,
-        [Parameter(Mandatory)] [string]$FileName
-    )
-
-    $pattern = "(?im)^([0-9a-f]{64})\s+\*?$([regex]::Escape($FileName))\s*$"
-    $match = [regex]::Match($ChecksumText, $pattern)
-    if (-not $match.Success) {
-        throw "checksums.txt does not contain an SHA-256 entry for $FileName."
-    }
-    return $match.Groups[1].Value.ToUpperInvariant()
-}
-
-function Assert-PortableArchive {
-    param([Parameter(Mandatory)] [string]$Path)
-
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $archive = [System.IO.Compression.ZipFile]::OpenRead($Path)
-    try {
-        $entryNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-        $credentialExecutables = 0
-        $executableExtensions = [System.Collections.Generic.HashSet[string]]::new(
-            [string[]]@('.exe', '.com', '.bat', '.cmd', '.ps1', '.msi', '.msix', '.scr'),
-            [System.StringComparer]::OrdinalIgnoreCase
-        )
-
-        foreach ($entry in $archive.Entries) {
-            $entryName = $entry.FullName
-            $normalizedName = $entryName.Replace('\', '/')
-            if ([string]::IsNullOrWhiteSpace($entryName)) {
-                throw "Archive contains an empty entry name: $Path"
-            }
-            if ($entryName.StartsWith('/') -or $entryName.StartsWith('\') -or $entryName -match '^[A-Za-z]:[\\/]') {
-                throw "Archive contains an absolute path entry '$entryName': $Path"
-            }
-
-            $components = @($entryName -split '[\\/]')
-            if ($components -contains '..') {
-                throw "Archive contains a traversal entry '$entryName': $Path"
-            }
-            if (-not $entryNames.Add($normalizedName)) {
-                throw "Archive contains a duplicate entry name '$entryName': $Path"
-            }
-
-            $leafName = $components[-1]
-            if ($leafName -ieq 'credscope.exe') {
-                $credentialExecutables++
-                if ($normalizedName -cne 'credscope.exe') {
-                    throw "credscope.exe must be the single root archive executable: $Path"
-                }
-            }
-
-            $extension = [System.IO.Path]::GetExtension($leafName)
-            if ($executableExtensions.Contains($extension) -and $normalizedName -cne 'credscope.exe') {
-                throw "Archive contains an unexpected executable entry '$entryName': $Path"
-            }
-        }
-
-        if ($credentialExecutables -ne 1) {
-            throw "Archive must contain exactly one root credscope.exe entry: $Path"
-        }
-    } finally {
-        $archive.Dispose()
-    }
-}
+. (Join-Path $PSScriptRoot 'winget-manifest-functions.ps1')
 
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $releaseBase = "https://github.com/Bavlik/CredScope/releases/download/v$Version"
@@ -87,8 +22,8 @@ $temporaryRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("credscope-winget-
 $manifestDirectory = Join-Path $repositoryRoot "packaging/winget/Bavlik.CredScope/$Version"
 
 $artifacts = @(
-    [pscustomobject]@{ Architecture = 'x64'; FileName = "credscope_${Version}_windows_amd64.zip"; Url = ''; Path = ''; Hash = '' },
-    [pscustomobject]@{ Architecture = 'arm64'; FileName = "credscope_${Version}_windows_arm64.zip"; Url = ''; Path = ''; Hash = '' }
+    [pscustomobject]@{ Architecture = 'x64'; FileName = "credscope_${Version}_windows_amd64.zip"; Url = ''; Path = ''; Hash = ''; RelativeExePath = '' },
+    [pscustomobject]@{ Architecture = 'arm64'; FileName = "credscope_${Version}_windows_arm64.zip"; Url = ''; Path = ''; Hash = ''; RelativeExePath = '' }
 )
 
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
@@ -101,7 +36,13 @@ try {
         $artifact.Url = "$releaseBase/$($artifact.FileName)"
         $artifact.Path = Join-Path $temporaryRoot $artifact.FileName
         Invoke-WebRequest -Uri $artifact.Url -OutFile $artifact.Path -UseBasicParsing
-        Assert-PortableArchive -Path $artifact.Path
+
+        # Inspect the actual archive instead of assuming a layout: the
+        # executable may be at the archive root (historical) or wrapped in a
+        # credscope_<version>_<os>_<arch>/ directory (current GoReleaser
+        # output). Resolve-PortableExecutableRelativePath fails clearly if
+        # credscope.exe is missing, duplicated, absolute, or path-traversing.
+        $artifact.RelativeExePath = Resolve-PortableExecutableRelativePath -Path $artifact.Path
 
         $artifact.Hash = (Get-FileHash -LiteralPath $artifact.Path -Algorithm SHA256).Hash.ToUpperInvariant()
         if ($artifact.Hash -notmatch '^[0-9A-F]{64}$') {
@@ -140,13 +81,13 @@ Commands:
 Installers:
   - Architecture: x64
     NestedInstallerFiles:
-      - RelativeFilePath: credscope.exe
+      - RelativeFilePath: $($x64.RelativeExePath)
         PortableCommandAlias: credscope
     InstallerUrl: $($x64.Url)
     InstallerSha256: $($x64.Hash)
   - Architecture: arm64
     NestedInstallerFiles:
-      - RelativeFilePath: credscope.exe
+      - RelativeFilePath: $($arm64.RelativeExePath)
         PortableCommandAlias: credscope
     InstallerUrl: $($arm64.Url)
     InstallerSha256: $($arm64.Hash)
@@ -160,8 +101,8 @@ ManifestVersion: 1.12.0
 PackageIdentifier: Bavlik.CredScope
 PackageVersion: $Version
 PackageLocale: en-US
-Publisher: Abdallah Alotaibi
-PublisherUrl: https://github.com/Bavlik
+Publisher: Bavlik
+PublisherUrl: https://abdullahcv.com
 PublisherSupportUrl: https://github.com/Bavlik/CredScope/security/advisories/new
 Author: Abdallah Alotaibi
 PackageName: CredScope

@@ -1,6 +1,7 @@
 package repositoryquality
 
 import (
+	"archive/zip"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -170,14 +171,74 @@ func TestReleaseWorkflowCannotCreateTags(t *testing.T) {
 	}
 }
 
+// architectureExpectation pins the exact, real, published installer fields
+// for one WinGet architecture entry. Values are transcribed from the actual
+// published GitHub Release checksums.txt and archive layout, not derived.
+type architectureExpectation struct {
+	relativeFilePath string
+	installerURL     string
+	installerSHA256  string
+}
+
+// wingetVersionExpectation pins the exact fields every committed
+// packaging/winget/Bavlik.CredScope/<version> manifest directory must
+// contain. There is intentionally no generic fallback: a new version
+// directory must not be committed until an explicit entry is added here,
+// which forces a human to transcribe its real, published values rather than
+// letting a placeholder or a loosened pattern check slip through.
+type wingetVersionExpectation struct {
+	publisher     string
+	publisherURL  string
+	architectures map[string]architectureExpectation
+}
+
+var wingetManifestExpectations = map[string]wingetVersionExpectation{
+	// Historical: flat archive layout (credscope.exe at the archive root),
+	// finalized against the published v0.2.0 GitHub Release. Must not change.
+	"0.2.0": {
+		publisher:    "Abdallah Alotaibi",
+		publisherURL: "https://github.com/Bavlik",
+		architectures: map[string]architectureExpectation{
+			"x64": {
+				relativeFilePath: "credscope.exe",
+				installerURL:     "https://github.com/Bavlik/CredScope/releases/download/v0.2.0/credscope_0.2.0_windows_amd64.zip",
+				installerSHA256:  "E43C22B4E52C790C04D7B1F02CD87F3CE907CA0688FAA11A5B4493A446A8277C",
+			},
+			"arm64": {
+				relativeFilePath: "credscope.exe",
+				installerURL:     "https://github.com/Bavlik/CredScope/releases/download/v0.2.0/credscope_0.2.0_windows_arm64.zip",
+				installerSHA256:  "6A394A31E24E3A431E23DDFC070C4822F447513B2E8024075ADA25C4EDE706F7",
+			},
+		},
+	},
+	// Current: directory-wrapped archive layout (credscope_<version>_<os>_<arch>/credscope.exe),
+	// finalized against the published v0.2.2 GitHub Release, current Bavlik brand.
+	"0.2.2": {
+		publisher:    "Bavlik",
+		publisherURL: "https://abdullahcv.com",
+		architectures: map[string]architectureExpectation{
+			"x64": {
+				relativeFilePath: "credscope_0.2.2_windows_amd64/credscope.exe",
+				installerURL:     "https://github.com/Bavlik/CredScope/releases/download/v0.2.2/credscope_0.2.2_windows_amd64.zip",
+				installerSHA256:  "4CDD55B0D4FCCA555A1F3D4C9E8CFBEE98E7E69E26A2D3EFB030BF2E3F6A85E8",
+			},
+			"arm64": {
+				relativeFilePath: "credscope_0.2.2_windows_arm64/credscope.exe",
+				installerURL:     "https://github.com/Bavlik/CredScope/releases/download/v0.2.2/credscope_0.2.2_windows_arm64.zip",
+				installerSHA256:  "D6EF2B980842F6E4026DE4266B29ABEEEBD22AE261953033D34AF587E44C9E3D",
+			},
+		},
+	},
+}
+
 // TestWinGetPortableManifestsAreConsistent validates every WinGet manifest
-// version directory that is actually checked in. It intentionally does not
-// require a directory for the current VERSION: manifests for a version are
-// only finalized after that version's GitHub Release archives and published
-// SHA-256 checksums exist (see scripts/update-winget-manifest.ps1 and
-// packaging/winget/README.md). A committed manifest must never contain
-// placeholder URLs or hashes, so every directory found here is held to full
-// validation with no placeholder allowance.
+// version directory that is actually checked in against an explicit,
+// hand-transcribed expectation in wingetManifestExpectations. It intentionally
+// does not require a directory for the current VERSION: manifests for a
+// version are only finalized after that version's GitHub Release archives
+// and published SHA-256 checksums exist (see scripts/update-winget-manifest.ps1
+// and packaging/winget/README.md). An unregistered version directory fails
+// the test rather than falling back to a loose, generic pattern check.
 func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 	root := repositoryRoot(t)
 	base := filepath.Join(root, "packaging", "winget", "Bavlik.CredScope")
@@ -186,7 +247,6 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 		t.Fatal(err)
 	}
 	versionPattern := regexp.MustCompile(`^\d+\.\d+\.\d+$`)
-	sha256Pattern := regexp.MustCompile(`^[0-9A-Fa-f]{64}$`)
 	checked := 0
 	for _, entry := range entries {
 		if !entry.IsDir() || !versionPattern.MatchString(entry.Name()) {
@@ -197,6 +257,11 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 		checked++
 
 		t.Run(version, func(t *testing.T) {
+			expectation, ok := wingetManifestExpectations[version]
+			if !ok {
+				t.Fatalf("no explicit expectation registered in wingetManifestExpectations for committed WinGet manifest version %q; add one with its real, published values before committing this directory", version)
+			}
+
 			var versionManifest struct {
 				PackageIdentifier string `yaml:"PackageIdentifier"`
 				PackageVersion    string `yaml:"PackageVersion"`
@@ -232,19 +297,26 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 			if installerManifest.PackageIdentifier != "Bavlik.CredScope" || installerManifest.PackageVersion != version || installerManifest.InstallerType != "zip" || installerManifest.NestedInstallerType != "portable" || installerManifest.ManifestType != "installer" || installerManifest.ManifestVersion != "1.12.0" || strings.Join(installerManifest.Commands, ",") != "credscope" {
 				t.Fatalf("invalid WinGet installer manifest: %#v", installerManifest)
 			}
+
 			wantArchitectures := []string{"arm64", "x64"}
 			var architectures []string
 			for _, installer := range installerManifest.Installers {
 				architectures = append(architectures, installer.Architecture)
-				if len(installer.NestedInstallerFiles) != 1 || installer.NestedInstallerFiles[0].RelativeFilePath != "credscope.exe" || installer.NestedInstallerFiles[0].PortableCommandAlias != "credscope" {
+				want, ok := expectation.architectures[installer.Architecture]
+				if !ok {
+					t.Fatalf("no expectation registered for architecture %q in version %q", installer.Architecture, version)
+				}
+				if len(installer.NestedInstallerFiles) != 1 || installer.NestedInstallerFiles[0].PortableCommandAlias != "credscope" {
 					t.Fatalf("invalid portable alias for %s: %#v", installer.Architecture, installer.NestedInstallerFiles)
 				}
-				expectedURLPrefix := "https://github.com/Bavlik/CredScope/releases/download/v" + version + "/"
-				if !strings.HasPrefix(installer.InstallerURL, expectedURLPrefix) {
-					t.Fatalf("committed WinGet manifests must reference a real published release asset, not a placeholder: %s installer URL = %q", installer.Architecture, installer.InstallerURL)
+				if relative := installer.NestedInstallerFiles[0].RelativeFilePath; relative != want.relativeFilePath {
+					t.Fatalf("RelativeFilePath for %s = %q, want exactly %q", installer.Architecture, relative, want.relativeFilePath)
 				}
-				if !sha256Pattern.MatchString(installer.InstallerSHA256) || strings.Count(installer.InstallerSHA256, "0") == len(installer.InstallerSHA256) {
-					t.Fatalf("committed WinGet manifests must contain a real published SHA-256, not a placeholder or zero hash: %s hash = %q", installer.Architecture, installer.InstallerSHA256)
+				if installer.InstallerURL != want.installerURL {
+					t.Fatalf("InstallerUrl for %s = %q, want exactly %q", installer.Architecture, installer.InstallerURL, want.installerURL)
+				}
+				if !strings.EqualFold(installer.InstallerSHA256, want.installerSHA256) {
+					t.Fatalf("InstallerSha256 for %s = %q, want exactly %q", installer.Architecture, installer.InstallerSHA256, want.installerSHA256)
 				}
 			}
 			sort.Strings(architectures)
@@ -256,19 +328,181 @@ func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 				PackageIdentifier string `yaml:"PackageIdentifier"`
 				PackageVersion    string `yaml:"PackageVersion"`
 				Publisher         string `yaml:"Publisher"`
+				PublisherUrl      string `yaml:"PublisherUrl"`
 				PackageName       string `yaml:"PackageName"`
 				License           string `yaml:"License"`
 				ManifestType      string `yaml:"ManifestType"`
 				ManifestVersion   string `yaml:"ManifestVersion"`
 			}
 			readYAML(t, filepath.Join(directory, "Bavlik.CredScope.locale.en-US.yaml"), &localeManifest)
-			if localeManifest.PackageIdentifier != "Bavlik.CredScope" || localeManifest.PackageVersion != version || localeManifest.Publisher != "Abdallah Alotaibi" || localeManifest.PackageName != "CredScope" || localeManifest.License != "Apache-2.0" || localeManifest.ManifestType != "defaultLocale" || localeManifest.ManifestVersion != "1.12.0" {
+			if localeManifest.PackageIdentifier != "Bavlik.CredScope" || localeManifest.PackageVersion != version || localeManifest.PackageName != "CredScope" || localeManifest.License != "Apache-2.0" || localeManifest.ManifestType != "defaultLocale" || localeManifest.ManifestVersion != "1.12.0" {
 				t.Fatalf("invalid WinGet locale manifest: %#v", localeManifest)
+			}
+			if localeManifest.Publisher != expectation.publisher || localeManifest.PublisherUrl != expectation.publisherURL {
+				t.Fatalf("WinGet locale publisher for %s = (%q, %q), want exactly (%q, %q)", version, localeManifest.Publisher, localeManifest.PublisherUrl, expectation.publisher, expectation.publisherURL)
 			}
 		})
 	}
 	if checked == 0 {
 		t.Fatal("no WinGet manifest version directories found under packaging/winget/Bavlik.CredScope")
+	}
+}
+
+// resolvePowerShellExecutable finds a PowerShell interpreter to run the
+// WinGet packaging scripts' tests with. CredScope CI runs this package's
+// "quality" job on ubuntu-latest, where only pwsh (PowerShell 7+) exists —
+// there is no powershell.exe there. pwsh is preferred on every platform;
+// Windows PowerShell is only considered as a Windows-only fallback, since it
+// does not exist elsewhere. If nothing is found the test fails loudly
+// instead of silently skipping this security coverage.
+func resolvePowerShellExecutable(t *testing.T) string {
+	t.Helper()
+	candidates := []string{"pwsh"}
+	if runtime.GOOS == "windows" {
+		candidates = append(candidates, "powershell.exe", "powershell")
+	}
+	for _, candidate := range candidates {
+		if resolved, err := exec.LookPath(candidate); err == nil {
+			return resolved
+		}
+	}
+	t.Fatalf("no PowerShell executable found (tried %s); install pwsh to run the WinGet packaging security tests", strings.Join(candidates, ", "))
+	return ""
+}
+
+// runResolvePortableExecutableRelativePath invokes
+// scripts/resolve-portable-executable-path.ps1 — a thin -File-invocable
+// wrapper around Resolve-PortableExecutableRelativePath in
+// scripts/winget-manifest-functions.ps1 — against a fixture ZIP, returning
+// its stdout (trimmed) and whether the invocation failed.
+func runResolvePortableExecutableRelativePath(t *testing.T, powershell, zipPath string) (string, error) {
+	t.Helper()
+	root := repositoryRoot(t)
+	wrapperPath := filepath.Join(root, "scripts", "resolve-portable-executable-path.ps1")
+	cmd := exec.Command(powershell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", wrapperPath, "-Path", zipPath)
+	output, err := cmd.CombinedOutput()
+	return strings.TrimSpace(string(output)), err
+}
+
+// writeFixtureZip builds a minimal ZIP archive at path containing the given
+// entry names (each holding a small placeholder payload), without any of the
+// safety normalization Resolve-PortableExecutableRelativePath itself applies
+// — so malicious entry names (e.g. path traversal) can be exercised.
+func writeFixtureZip(t *testing.T, path string, entries ...string) {
+	t.Helper()
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+	writer := zip.NewWriter(file)
+	for _, name := range entries {
+		entryWriter, err := writer.CreateHeader(&zip.FileHeader{Name: name, Method: zip.Deflate})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := entryWriter.Write([]byte("placeholder")); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestResolvePortableExecutableRelativePath exercises the ZIP-layout
+// inspection that scripts/update-winget-manifest.ps1 relies on to set
+// RelativeFilePath. It must locate credscope.exe by inspecting the archive
+// rather than assuming a fixed layout, covering both the historical flat
+// layout and the directory-wrapped layout GoReleaser produces since
+// CHANGELOG [0.2.1], and it must fail clearly instead of silently accepting
+// an unsafe or ambiguous archive.
+func TestResolvePortableExecutableRelativePath(t *testing.T) {
+	powershell := resolvePowerShellExecutable(t)
+
+	cases := []struct {
+		name       string
+		entries    []string
+		wantPath   string
+		wantErr    bool
+		errKeyword string
+	}{
+		{name: "flat archive root", entries: []string{"credscope.exe", "README.md"}, wantPath: "credscope.exe"},
+		{name: "wrapped amd64 archive", entries: []string{"credscope_0.2.2_windows_amd64/credscope.exe", "credscope_0.2.2_windows_amd64/README.md"}, wantPath: "credscope_0.2.2_windows_amd64/credscope.exe"},
+		{name: "wrapped arm64 archive", entries: []string{"credscope_0.2.2_windows_arm64/credscope.exe", "credscope_0.2.2_windows_arm64/README.md"}, wantPath: "credscope_0.2.2_windows_arm64/credscope.exe"},
+		{name: "missing executable", entries: []string{"README.md", "LICENSE"}, wantErr: true, errKeyword: "does not contain credscope.exe"},
+		{name: "duplicate executables", entries: []string{"credscope.exe", "sub/credscope.exe"}, wantErr: true, errKeyword: "more than one credscope.exe"},
+		{name: "traversal path", entries: []string{"../credscope.exe"}, wantErr: true, errKeyword: "traversal entry"},
+		{name: "absolute path", entries: []string{"/credscope.exe"}, wantErr: true, errKeyword: "absolute path entry"},
+		{name: "unexpected executable elsewhere", entries: []string{"credscope.exe", "extra/payload.exe"}, wantErr: true, errKeyword: "unexpected executable entry"},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			zipPath := filepath.Join(t.TempDir(), "fixture.zip")
+			writeFixtureZip(t, zipPath, testCase.entries...)
+			output, err := runResolvePortableExecutableRelativePath(t, powershell, zipPath)
+			if testCase.wantErr {
+				if err == nil {
+					t.Fatalf("expected failure, got success with output: %s", output)
+				}
+				if testCase.errKeyword != "" && !strings.Contains(output, testCase.errKeyword) {
+					t.Fatalf("expected error output to contain %q, got: %s", testCase.errKeyword, output)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("expected success, got error: %v, output: %s", err, output)
+			}
+			if output != testCase.wantPath {
+				t.Fatalf("RelativeFilePath = %q, want %q", output, testCase.wantPath)
+			}
+		})
+	}
+}
+
+// TestResolvePortableExecutableRelativePathMatchesCommittedManifest ties the
+// resolver's output to the already-validated, real committed v0.2.2
+// manifest: rebuilding a synthetic archive with the exact same entry layout
+// GoReleaser produces must resolve to the exact RelativeFilePath values
+// already shipped in packaging/winget/Bavlik.CredScope/0.2.2.
+func TestResolvePortableExecutableRelativePathMatchesCommittedManifest(t *testing.T) {
+	powershell := resolvePowerShellExecutable(t)
+	root := repositoryRoot(t)
+	directory := filepath.Join(root, "packaging", "winget", "Bavlik.CredScope", "0.2.2")
+
+	var installerManifest struct {
+		PackageVersion string `yaml:"PackageVersion"`
+		Installers     []struct {
+			Architecture         string `yaml:"Architecture"`
+			NestedInstallerFiles []struct {
+				RelativeFilePath string `yaml:"RelativeFilePath"`
+			} `yaml:"NestedInstallerFiles"`
+		} `yaml:"Installers"`
+	}
+	readYAML(t, filepath.Join(directory, "Bavlik.CredScope.installer.yaml"), &installerManifest)
+	version := installerManifest.PackageVersion
+
+	archOSArch := map[string]string{"x64": "windows_amd64", "arm64": "windows_arm64"}
+	for _, installer := range installerManifest.Installers {
+		osArch, ok := archOSArch[installer.Architecture]
+		if !ok || len(installer.NestedInstallerFiles) != 1 {
+			t.Fatalf("unexpected committed installer entry: %#v", installer)
+		}
+		wantPath := "credscope_" + version + "_" + osArch + "/credscope.exe"
+		if installer.NestedInstallerFiles[0].RelativeFilePath != wantPath {
+			t.Fatalf("committed RelativeFilePath = %q, want %q", installer.NestedInstallerFiles[0].RelativeFilePath, wantPath)
+		}
+
+		zipPath := filepath.Join(t.TempDir(), "fixture.zip")
+		writeFixtureZip(t, zipPath, wantPath, osArch+"/README.md")
+		output, err := runResolvePortableExecutableRelativePath(t, powershell, zipPath)
+		if err != nil {
+			t.Fatalf("resolver failed for %s: %v, output: %s", installer.Architecture, err, output)
+		}
+		if output != wantPath {
+			t.Fatalf("resolver output = %q, want %q (matching committed manifest)", output, wantPath)
+		}
 	}
 }
 
