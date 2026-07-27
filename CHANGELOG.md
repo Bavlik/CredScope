@@ -2,9 +2,17 @@
 
 All notable changes to CredScope are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
-## [0.2.1] - Unreleased
+## [0.2.2] - 2026-07-27
 
-This section prepares v0.2.1. No v0.2.1 tag or release has been created.
+### Changed
+
+- Updated subtle Bavlik branding with abdullahcv.com.
+- Refreshed GitHub README and installation documentation.
+- Updated current GitHub Action examples.
+- Updated HTML report attribution.
+- Clarified active Cloudsmith APT installation.
+
+## [0.2.1] - 2026-07-27
 
 ### Added
 

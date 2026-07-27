@@ -62,7 +62,7 @@ jobs:
         run: |
           test_version="v${VERSION}-test"
           go build -trimpath -ldflags "-X main.version=${test_version} -X main.commit=0123456789abcdef -X main.date=2026-01-02T03:04:05Z" -o .tmp-build/credscope-versioned ./cmd/credscope
-          expected="CredScope ${test_version}"$'\nby Bavlik\ncommit: 0123456789abcdef\nbuilt: 2026-01-02T03:04:05Z'
+          expected="CredScope ${test_version}"$'\nBavlik · abdullahcv.com\ncommit: 0123456789abcdef\nbuilt: 2026-01-02T03:04:05Z'
           test "$(.tmp-build/credscope-versioned version)" = "$expected"
 
       - name: Validate PowerShell script syntax

@@ -50,7 +50,7 @@ The archive extracts into a single `credscope_<version>_linux_<arch>/` directory
 
 ### Debian/Kali/Ubuntu via Cloudsmith APT
 
-CredScope publishes `.deb` packages to a Cloudsmith APT repository for Debian, Kali, and Ubuntu. Once the repository is available:
+CredScope publishes `.deb` packages to a Cloudsmith APT repository for Debian, Kali, and Ubuntu:
 
 ```bash
 curl -1sLf 'https://dl.cloudsmith.io/public/bavlik/credscope/cfg/setup/bash.deb.sh' | sudo -E bash
@@ -61,7 +61,7 @@ credscope version
 
 APT manages upgrades and uninstallation (`sudo apt remove credscope`).
 
-This path requires the Cloudsmith repository `bavlik/credscope` to exist and the GitHub Actions repository variable `CLOUDSMITH_REPOSITORY` to be set to `credscope` before publishing runs. Until then, the setup script above will not resolve to a published repository.
+The `bavlik/credscope` Cloudsmith repository is public open-source hosting, so no authentication is required to add it or install packages. This path has been tested on Kali Linux.
 
 ## Developers
 

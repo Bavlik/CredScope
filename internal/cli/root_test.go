@@ -32,7 +32,7 @@ func TestVersionCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if output != "CredScope v0.2.0-test\nby Bavlik\ncommit: abc\nbuilt: today\n" {
+	if output != "CredScope v0.2.0-test\nBavlik · abdullahcv.com\ncommit: abc\nbuilt: today\n" {
 		t.Fatalf("output = %q", output)
 	}
 }
@@ -44,7 +44,7 @@ func TestDevelopmentVersionMetadata(t *testing.T) {
 	if err := cmd.Execute(); err != nil {
 		t.Fatal(err)
 	}
-	if output.String() != "CredScope dev\nby Bavlik\ncommit: none\nbuilt: unknown\n" {
+	if output.String() != "CredScope dev\nBavlik · abdullahcv.com\ncommit: none\nbuilt: unknown\n" {
 		t.Fatalf("development version output = %q", output.String())
 	}
 }
@@ -54,10 +54,10 @@ func TestRootHelpEndsWithBrandLineOnlyOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasSuffix(strings.TrimRight(output, "\n"), "CredScope by Bavlik") {
+	if !strings.HasSuffix(strings.TrimRight(output, "\n"), "Bavlik · abdullahcv.com") {
 		t.Fatalf("root help does not end with brand line: %q", output)
 	}
-	if strings.Count(output, "CredScope by Bavlik") != 1 {
+	if strings.Count(output, "Bavlik · abdullahcv.com") != 1 {
 		t.Fatalf("brand line must appear exactly once: %q", output)
 	}
 
@@ -65,7 +65,7 @@ func TestRootHelpEndsWithBrandLineOnlyOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(scanOutput, "CredScope by Bavlik") {
+	if strings.Contains(scanOutput, "Bavlik · abdullahcv.com") {
 		t.Fatal("brand line must not repeat on subcommand help")
 	}
 
@@ -73,7 +73,7 @@ func TestRootHelpEndsWithBrandLineOnlyOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(versionOutput, "CredScope by Bavlik") {
+	if strings.Contains(versionOutput, "Bavlik · abdullahcv.com") {
 		t.Fatal("brand line must not repeat on subcommand help")
 	}
 }
@@ -182,6 +182,9 @@ func TestAllFormatsUseCompleteCriticalAnalysisAndCleanStdout(t *testing.T) {
 			}
 			if !strings.Contains(stdout, "CRD304") || !strings.Contains(stdout, "FAKE_PRODUCTION_TOKEN") {
 				t.Fatalf("format %s omitted common score/rule identity", format)
+			}
+			if format != "html" && strings.Contains(stdout, "abdullahcv.com") {
+				t.Fatalf("format %s must not carry branding into a machine-readable report", format)
 			}
 			switch format {
 			case "terminal":
