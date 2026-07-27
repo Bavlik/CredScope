@@ -112,6 +112,21 @@ jobs:
           echo "CREDSCOPE_BUILD_COMMIT=${GITHUB_SHA}" >> "${GITHUB_ENV}"
           echo "BUILD_DATE=$(date -u -d "@${commit_timestamp}" +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_ENV}"
 
+      - name: Verify Cloudsmith publishing configuration
+        shell: bash
+        run: |
+          if [ -z "${CLOUDSMITH_REPOSITORY}" ]; then
+            echo "the CLOUDSMITH_REPOSITORY repository variable is not set; configure it (expected value: credscope) before publishing" >&2
+            exit 1
+          fi
+          if [ -z "${CLOUDSMITH_API_KEY}" ]; then
+            echo "the CLOUDSMITH_API_KEY secret is not set; add it before publishing" >&2
+            exit 1
+          fi
+        env:
+          CLOUDSMITH_REPOSITORY: ${{ vars.CLOUDSMITH_REPOSITORY }}
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+
       - name: Build and publish release artifacts
         uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
         with:
@@ -120,3 +135,38 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Debian packages were produced
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(dist/*.deb)
+          if [ "${#packages[@]}" -eq 0 ]; then
+            echo "no .deb packages were found in dist/; GoReleaser nfpms output is required before publishing" >&2
+            exit 1
+          fi
+
+      - name: Set up Python for Cloudsmith CLI
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Cloudsmith CLI
+        shell: bash
+        run: python3 -m pip install --no-cache-dir "cloudsmith-cli==1.19.0"
+
+      - name: Publish Debian packages to Cloudsmith
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(dist/*.deb)
+
+          for package in "${packages[@]}"; do
+            echo "Publishing ${package} to bavlik/${CLOUDSMITH_REPOSITORY}/any-distro/any-version"
+            cloudsmith push deb \
+              "bavlik/${CLOUDSMITH_REPOSITORY}/any-distro/any-version" \
+              "$package"
+          done
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          CLOUDSMITH_REPOSITORY: ${{ vars.CLOUDSMITH_REPOSITORY }}

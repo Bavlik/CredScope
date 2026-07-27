@@ -62,7 +62,7 @@ jobs:
         run: |
           test_version="v${VERSION}-test"
           go build -trimpath -ldflags "-X main.version=${test_version} -X main.commit=0123456789abcdef -X main.date=2026-01-02T03:04:05Z" -o .tmp-build/credscope-versioned ./cmd/credscope
-          expected="CredScope ${test_version}"$'\ncommit: 0123456789abcdef\nbuilt: 2026-01-02T03:04:05Z'
+          expected="CredScope ${test_version}"$'\nby Bavlik\ncommit: 0123456789abcdef\nbuilt: 2026-01-02T03:04:05Z'
           test "$(.tmp-build/credscope-versioned version)" = "$expected"
 
       - name: Validate PowerShell script syntax
@@ -206,6 +206,13 @@ jobs:
           echo "CREDSCOPE_SNAPSHOT_VERSION=${version}-ci" >> "${GITHUB_ENV}"
           echo "BUILD_DATE=$(date -u -d "@${commit_timestamp}" +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_ENV}"
 
+      - name: Check GoReleaser configuration
+        uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
+        with:
+          distribution: goreleaser
+          version: v2.17.0
+          args: check
+
       - name: Build GoReleaser snapshot
         uses: goreleaser/goreleaser-action@1a80836c5c9d9e5755a25cb59ec6f45a3b5f41a8 # v7.2.1
         with:
@@ -213,19 +220,75 @@ jobs:
           version: v2.17.0
           args: release --snapshot --clean
 
-      - name: Verify Windows portable archives
+      - name: Verify portable archives extract into one directory
+        shell: bash
+        run: |
+          verify_unsafe_paths() {
+            local label="$1" entries="$2"
+            if echo "$entries" | grep -E '(^|/)(testdata|docs/examples)(/|$)'; then
+              echo "unsafe fixture or generated report included in $label" >&2
+              exit 1
+            fi
+          }
+
+          for architecture in amd64 arm64; do
+            dir="credscope_${CREDSCOPE_SNAPSHOT_VERSION}_windows_${architecture}"
+            archive="dist/${dir}.zip"
+            test -f "$archive"
+            entries="$(unzip -Z1 "$archive")"
+            echo "$entries" | grep -Fx "${dir}/credscope.exe"
+            echo "$entries" | grep -Fx "${dir}/LICENSE"
+            echo "$entries" | grep -Fx "${dir}/README.md"
+            echo "$entries" | grep -Fx "${dir}/SECURITY.md"
+            verify_unsafe_paths "$archive" "$entries"
+          done
+
+          for os in linux darwin; do
+            for architecture in amd64 arm64; do
+              dir="credscope_${CREDSCOPE_SNAPSHOT_VERSION}_${os}_${architecture}"
+              archive="dist/${dir}.tar.gz"
+              test -f "$archive"
+              entries="$(tar -tzf "$archive")"
+              echo "$entries" | grep -Fx "${dir}/credscope"
+              echo "$entries" | grep -Fx "${dir}/LICENSE"
+              echo "$entries" | grep -Fx "${dir}/README.md"
+              echo "$entries" | grep -Fx "${dir}/SECURITY.md"
+              verify_unsafe_paths "$archive" "$entries"
+            done
+          done
+
+          test -f dist/checksums.txt
+
+      - name: Verify Debian packages
         shell: bash
         run: |
           for architecture in amd64 arm64; do
-            archive="dist/credscope_${CREDSCOPE_SNAPSHOT_VERSION}_windows_${architecture}.zip"
-            test -f "$archive"
-            unzip -Z1 "$archive" | grep -Fx 'credscope.exe'
-            unzip -Z1 "$archive" | grep -Fx 'LICENSE'
-            unzip -Z1 "$archive" | grep -Fx 'README.md'
-            unzip -Z1 "$archive" | grep -Fx 'SECURITY.md'
-            if unzip -Z1 "$archive" | grep -E '(^|/)(testdata|docs/examples)(/|$)'; then
-              echo "unsafe fixture or generated report included in $archive" >&2
+            deb="dist/credscope_${CREDSCOPE_SNAPSHOT_VERSION}_${architecture}.deb"
+            test -f "$deb"
+
+            echo "--- dpkg-deb --info ${deb} ---"
+            dpkg-deb --info "$deb"
+
+            echo "--- dpkg-deb --contents ${deb} ---"
+            contents="$(dpkg-deb --contents "$deb")"
+            echo "$contents"
+
+            binary_line="$(echo "$contents" | grep -E '\./usr/bin/credscope$')"
+            test -n "$binary_line"
+            echo "$binary_line" | grep -Eq '^-rwx' || {
+              echo "/usr/bin/credscope is not executable in $deb" >&2
+              exit 1
+            }
+
+            echo "$contents" | grep -Fq './usr/share/doc/credscope/LICENSE'
+            echo "$contents" | grep -Fq './usr/share/doc/credscope/README.md'
+
+            if echo "$contents" | grep -E '(^|/)(testdata|docs/examples)(/|$)'; then
+              echo "unsafe fixture or generated report included in $deb" >&2
+              exit 1
+            fi
+            if echo "$contents" | grep -Ei '\.env$|credentials|gitleaks\.json|/reports/'; then
+              echo "credential-like or generated report file included in $deb" >&2
               exit 1
             fi
           done
-          test -f dist/checksums.txt

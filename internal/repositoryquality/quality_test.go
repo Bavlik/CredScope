@@ -169,84 +169,105 @@ func TestReleaseWorkflowCannotCreateTags(t *testing.T) {
 	}
 }
 
+// TestWinGetPortableManifestsAreConsistent validates every WinGet manifest
+// version directory that is actually checked in. It intentionally does not
+// require a directory for the current VERSION: manifests for a version are
+// only finalized after that version's GitHub Release archives and published
+// SHA-256 checksums exist (see scripts/update-winget-manifest.ps1 and
+// packaging/winget/README.md). A committed manifest must never contain
+// placeholder URLs or hashes, so every directory found here is held to full
+// validation with no placeholder allowance.
 func TestWinGetPortableManifestsAreConsistent(t *testing.T) {
 	root := repositoryRoot(t)
-	versionBytes, err := os.ReadFile(filepath.Join(root, "VERSION"))
+	base := filepath.Join(root, "packaging", "winget", "Bavlik.CredScope")
+	entries, err := os.ReadDir(base)
 	if err != nil {
 		t.Fatal(err)
 	}
-	version := strings.TrimSpace(string(versionBytes))
-	if !regexp.MustCompile(`^\d+\.\d+\.\d+$`).MatchString(version) {
-		t.Fatalf("VERSION must contain plain X.Y.Z syntax, got %q", version)
-	}
-	directory := filepath.Join(root, "packaging", "winget", "Bavlik.CredScope", version)
-
-	var versionManifest struct {
-		PackageIdentifier string `yaml:"PackageIdentifier"`
-		PackageVersion    string `yaml:"PackageVersion"`
-		DefaultLocale     string `yaml:"DefaultLocale"`
-		ManifestType      string `yaml:"ManifestType"`
-		ManifestVersion   string `yaml:"ManifestVersion"`
-	}
-	readYAML(t, filepath.Join(directory, "Bavlik.CredScope.yaml"), &versionManifest)
-	if versionManifest.PackageIdentifier != "Bavlik.CredScope" || versionManifest.PackageVersion != version || versionManifest.DefaultLocale != "en-US" || versionManifest.ManifestType != "version" || versionManifest.ManifestVersion != "1.12.0" {
-		t.Fatalf("invalid WinGet version manifest: %#v", versionManifest)
-	}
-
-	type nestedFile struct {
-		RelativeFilePath     string `yaml:"RelativeFilePath"`
-		PortableCommandAlias string `yaml:"PortableCommandAlias"`
-	}
-	var installerManifest struct {
-		PackageIdentifier   string   `yaml:"PackageIdentifier"`
-		PackageVersion      string   `yaml:"PackageVersion"`
-		InstallerType       string   `yaml:"InstallerType"`
-		NestedInstallerType string   `yaml:"NestedInstallerType"`
-		Commands            []string `yaml:"Commands"`
-		Installers          []struct {
-			Architecture         string       `yaml:"Architecture"`
-			NestedInstallerFiles []nestedFile `yaml:"NestedInstallerFiles"`
-			InstallerURL         string       `yaml:"InstallerUrl"`
-			InstallerSHA256      string       `yaml:"InstallerSha256"`
-		} `yaml:"Installers"`
-		ManifestType    string `yaml:"ManifestType"`
-		ManifestVersion string `yaml:"ManifestVersion"`
-	}
-	readYAML(t, filepath.Join(directory, "Bavlik.CredScope.installer.yaml"), &installerManifest)
-	if installerManifest.PackageIdentifier != "Bavlik.CredScope" || installerManifest.PackageVersion != version || installerManifest.InstallerType != "zip" || installerManifest.NestedInstallerType != "portable" || installerManifest.ManifestType != "installer" || installerManifest.ManifestVersion != "1.12.0" || strings.Join(installerManifest.Commands, ",") != "credscope" {
-		t.Fatalf("invalid WinGet installer manifest: %#v", installerManifest)
-	}
-	wantArchitectures := []string{"arm64", "x64"}
-	var architectures []string
+	versionPattern := regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 	sha256Pattern := regexp.MustCompile(`^[0-9A-Fa-f]{64}$`)
-	for _, installer := range installerManifest.Installers {
-		architectures = append(architectures, installer.Architecture)
-		if len(installer.NestedInstallerFiles) != 1 || installer.NestedInstallerFiles[0].RelativeFilePath != "credscope.exe" || installer.NestedInstallerFiles[0].PortableCommandAlias != "credscope" {
-			t.Fatalf("invalid portable alias for %s: %#v", installer.Architecture, installer.NestedInstallerFiles)
+	checked := 0
+	for _, entry := range entries {
+		if !entry.IsDir() || !versionPattern.MatchString(entry.Name()) {
+			continue
 		}
-		placeholderURL := strings.HasPrefix(installer.InstallerURL, "REPLACE_WITH_WINDOWS_")
-		placeholderHash := strings.HasPrefix(installer.InstallerSHA256, "REPLACE_WITH_WINDOWS_")
-		if (!placeholderURL && !strings.HasPrefix(installer.InstallerURL, "https://github.com/Bavlik/CredScope/releases/download/")) || (!placeholderHash && !sha256Pattern.MatchString(installer.InstallerSHA256)) {
-			t.Fatalf("invalid URL or SHA-256 for %s", installer.Architecture)
-		}
-	}
-	sort.Strings(architectures)
-	if strings.Join(architectures, ",") != strings.Join(wantArchitectures, ",") {
-		t.Fatalf("WinGet architectures = %v, want %v", architectures, wantArchitectures)
-	}
+		version := entry.Name()
+		directory := filepath.Join(base, version)
+		checked++
 
-	var localeManifest struct {
-		PackageIdentifier string `yaml:"PackageIdentifier"`
-		PackageVersion    string `yaml:"PackageVersion"`
-		Publisher         string `yaml:"Publisher"`
-		PackageName       string `yaml:"PackageName"`
-		License           string `yaml:"License"`
-		ManifestType      string `yaml:"ManifestType"`
-		ManifestVersion   string `yaml:"ManifestVersion"`
+		t.Run(version, func(t *testing.T) {
+			var versionManifest struct {
+				PackageIdentifier string `yaml:"PackageIdentifier"`
+				PackageVersion    string `yaml:"PackageVersion"`
+				DefaultLocale     string `yaml:"DefaultLocale"`
+				ManifestType      string `yaml:"ManifestType"`
+				ManifestVersion   string `yaml:"ManifestVersion"`
+			}
+			readYAML(t, filepath.Join(directory, "Bavlik.CredScope.yaml"), &versionManifest)
+			if versionManifest.PackageIdentifier != "Bavlik.CredScope" || versionManifest.PackageVersion != version || versionManifest.DefaultLocale != "en-US" || versionManifest.ManifestType != "version" || versionManifest.ManifestVersion != "1.12.0" {
+				t.Fatalf("invalid WinGet version manifest: %#v", versionManifest)
+			}
+
+			type nestedFile struct {
+				RelativeFilePath     string `yaml:"RelativeFilePath"`
+				PortableCommandAlias string `yaml:"PortableCommandAlias"`
+			}
+			var installerManifest struct {
+				PackageIdentifier   string   `yaml:"PackageIdentifier"`
+				PackageVersion      string   `yaml:"PackageVersion"`
+				InstallerType       string   `yaml:"InstallerType"`
+				NestedInstallerType string   `yaml:"NestedInstallerType"`
+				Commands            []string `yaml:"Commands"`
+				Installers          []struct {
+					Architecture         string       `yaml:"Architecture"`
+					NestedInstallerFiles []nestedFile `yaml:"NestedInstallerFiles"`
+					InstallerURL         string       `yaml:"InstallerUrl"`
+					InstallerSHA256      string       `yaml:"InstallerSha256"`
+				} `yaml:"Installers"`
+				ManifestType    string `yaml:"ManifestType"`
+				ManifestVersion string `yaml:"ManifestVersion"`
+			}
+			readYAML(t, filepath.Join(directory, "Bavlik.CredScope.installer.yaml"), &installerManifest)
+			if installerManifest.PackageIdentifier != "Bavlik.CredScope" || installerManifest.PackageVersion != version || installerManifest.InstallerType != "zip" || installerManifest.NestedInstallerType != "portable" || installerManifest.ManifestType != "installer" || installerManifest.ManifestVersion != "1.12.0" || strings.Join(installerManifest.Commands, ",") != "credscope" {
+				t.Fatalf("invalid WinGet installer manifest: %#v", installerManifest)
+			}
+			wantArchitectures := []string{"arm64", "x64"}
+			var architectures []string
+			for _, installer := range installerManifest.Installers {
+				architectures = append(architectures, installer.Architecture)
+				if len(installer.NestedInstallerFiles) != 1 || installer.NestedInstallerFiles[0].RelativeFilePath != "credscope.exe" || installer.NestedInstallerFiles[0].PortableCommandAlias != "credscope" {
+					t.Fatalf("invalid portable alias for %s: %#v", installer.Architecture, installer.NestedInstallerFiles)
+				}
+				expectedURLPrefix := "https://github.com/Bavlik/CredScope/releases/download/v" + version + "/"
+				if !strings.HasPrefix(installer.InstallerURL, expectedURLPrefix) {
+					t.Fatalf("committed WinGet manifests must reference a real published release asset, not a placeholder: %s installer URL = %q", installer.Architecture, installer.InstallerURL)
+				}
+				if !sha256Pattern.MatchString(installer.InstallerSHA256) || strings.Count(installer.InstallerSHA256, "0") == len(installer.InstallerSHA256) {
+					t.Fatalf("committed WinGet manifests must contain a real published SHA-256, not a placeholder or zero hash: %s hash = %q", installer.Architecture, installer.InstallerSHA256)
+				}
+			}
+			sort.Strings(architectures)
+			if strings.Join(architectures, ",") != strings.Join(wantArchitectures, ",") {
+				t.Fatalf("WinGet architectures = %v, want %v", architectures, wantArchitectures)
+			}
+
+			var localeManifest struct {
+				PackageIdentifier string `yaml:"PackageIdentifier"`
+				PackageVersion    string `yaml:"PackageVersion"`
+				Publisher         string `yaml:"Publisher"`
+				PackageName       string `yaml:"PackageName"`
+				License           string `yaml:"License"`
+				ManifestType      string `yaml:"ManifestType"`
+				ManifestVersion   string `yaml:"ManifestVersion"`
+			}
+			readYAML(t, filepath.Join(directory, "Bavlik.CredScope.locale.en-US.yaml"), &localeManifest)
+			if localeManifest.PackageIdentifier != "Bavlik.CredScope" || localeManifest.PackageVersion != version || localeManifest.Publisher != "Abdallah Alotaibi" || localeManifest.PackageName != "CredScope" || localeManifest.License != "Apache-2.0" || localeManifest.ManifestType != "defaultLocale" || localeManifest.ManifestVersion != "1.12.0" {
+				t.Fatalf("invalid WinGet locale manifest: %#v", localeManifest)
+			}
+		})
 	}
-	readYAML(t, filepath.Join(directory, "Bavlik.CredScope.locale.en-US.yaml"), &localeManifest)
-	if localeManifest.PackageIdentifier != "Bavlik.CredScope" || localeManifest.PackageVersion != version || localeManifest.Publisher != "Abdallah Alotaibi" || localeManifest.PackageName != "CredScope" || localeManifest.License != "Apache-2.0" || localeManifest.ManifestType != "defaultLocale" || localeManifest.ManifestVersion != "1.12.0" {
-		t.Fatalf("invalid WinGet locale manifest: %#v", localeManifest)
+	if checked == 0 {
+		t.Fatal("no WinGet manifest version directories found under packaging/winget/Bavlik.CredScope")
 	}
 }
 
