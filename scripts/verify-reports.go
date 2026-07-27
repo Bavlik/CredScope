@@ -66,8 +66,13 @@ func main() {
 		if !bytes.HasPrefix(bytes.ToLower(data), []byte("<!doctype html>")) || !strings.Contains(lower, "content-security-policy") || !strings.Contains(lower, "<main") {
 			fail("HTML report lacks required standalone structure")
 		}
-		if strings.Contains(lower, "src=\"http") || strings.Contains(lower, "href=\"http") {
-			fail("HTML report references an external network resource")
+		const allowedWebsiteHref = `href="https://abdullahcv.com"`
+		if strings.Count(lower, allowedWebsiteHref) != 1 {
+			fail("HTML report must contain exactly one approved website link")
+		}
+		withoutApprovedWebsite := strings.ReplaceAll(lower, allowedWebsiteHref, "")
+		if strings.Contains(withoutApprovedWebsite, `src="http`) || strings.Contains(withoutApprovedWebsite, `href="http`) {
+			fail("HTML report references an unapproved external network resource")
 		}
 		assertNoRaw(data)
 	}

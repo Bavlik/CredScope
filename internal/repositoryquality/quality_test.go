@@ -2,6 +2,7 @@ package repositoryquality
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -313,6 +314,52 @@ func TestReleaseDocumentationReflectsCurrentVersion(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, "packaging", "winget", "Bavlik.CredScope", "0.2.0")); err != nil {
 		t.Fatal("historical WinGet 0.2.0 manifest directory must remain")
+	}
+}
+
+// TestVerifyReportsApprovesOnlyTheSingleBavlikWebsiteLink exercises the
+// scripts/verify-reports.go external-resource guard as the CI smoke test
+// invokes it: it must accept the one approved footer link and still reject
+// any other external href or src, including a doubled approved link.
+func TestVerifyReportsApprovesOnlyTheSingleBavlikWebsiteLink(t *testing.T) {
+	root := repositoryRoot(t)
+	validJSON := []byte(`{"schema_version":"2"}`)
+
+	htmlWith := func(footer string) []byte {
+		return []byte("<!doctype html><html><head><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'\"></head><body><main>content</main>" + footer + "</body></html>")
+	}
+
+	cases := []struct {
+		name    string
+		footer  string
+		wantErr bool
+	}{
+		{"approved link only", `<footer><a href="https://abdullahcv.com">abdullahcv.com</a></footer>`, false},
+		{"missing approved link", `<footer>no link</footer>`, true},
+		{"approved link duplicated", `<footer><a href="https://abdullahcv.com">a</a><a href="https://abdullahcv.com">b</a></footer>`, true},
+		{"unapproved href alongside approved", `<footer><a href="https://abdullahcv.com">a</a><a href="http://evil.example">b</a></footer>`, true},
+		{"unapproved src", `<footer><a href="https://abdullahcv.com">a</a><img src="http://evil.example/pixel.png"></footer>`, true},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			dir := t.TempDir()
+			if err := os.WriteFile(filepath.Join(dir, "credscope.json"), validJSON, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, "credscope.html"), htmlWith(testCase.footer), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			cmd := exec.Command("go", "run", "./scripts/verify-reports.go", dir)
+			cmd.Dir = root
+			output, err := cmd.CombinedOutput()
+			if testCase.wantErr && err == nil {
+				t.Fatalf("expected verify-reports to fail, output: %s", output)
+			}
+			if !testCase.wantErr && err != nil {
+				t.Fatalf("expected verify-reports to pass, err: %v, output: %s", err, output)
+			}
+		})
 	}
 }
 
