@@ -1,0 +1,28 @@
+schema_version: 1
+id: gitleaks-repository-root-confinement
+title: Finding path with parent traversal is rejected, not silently clamped
+description: >
+  The imported Gitleaks report describes a finding whose File field attempts
+  parent-directory traversal outside the repository root, without any
+  gitleaks.path_prefix configured to justify an absolute or escaping path.
+  CredScope must fail closed with a controlled error rather than silently
+  clamping or accepting the path.
+category: gitleaks
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: error
+  error_contains: "repository-relative"
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [gitleaks, negative-control, path-safety, malformed-input]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_GITLEAKS_TRAVERSAL_001
+notes: >
+  This is a controlled-error case: expect.result is "error", so no
+  expected.json or expected.sarif golden files are present.

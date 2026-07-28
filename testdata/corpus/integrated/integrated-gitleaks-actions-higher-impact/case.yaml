@@ -1,0 +1,26 @@
+schema_version: 1
+id: integrated-gitleaks-actions-higher-impact
+title: Imported finding referenced by a high-impact production workflow
+description: >
+  A Gitleaks finding's Key matches a variable referenced by a workflow that
+  combines several independently higher-impact conditions: pull_request_target
+  triggering, a broad write permission, a production environment, a
+  third-party action, and direct use in a shell command. Verifies that an
+  imported finding connected to this much static context is scored
+  substantially higher than an isolated finding.
+category: integrated
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD101, CRD102, CRD104, CRD201, CRD203, CRD204, CRD208]
+  evidence: [confirmed_static_data_flow]
+  edges: [configured_in, referenced_by_process, has_permission, uses_environment]
+tags: [integrated, gitleaks, github-actions, higher-impact, positive-control]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_INTEGRATED_ACTIONS_001
+notes: ""

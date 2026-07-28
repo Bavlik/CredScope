@@ -1,0 +1,28 @@
+schema_version: 1
+id: integrated-multi-finding-deterministic-ordering
+title: Four independent findings across a workflow and a Compose service
+description: >
+  Four Gitleaks findings (ALPHA, BETA, GAMMA, DELTA) are each independently
+  referenced: two by a GitHub Actions workflow, two by a Compose service.
+  Exercises deterministic credential and graph ordering at a larger scale
+  than the single-finding cases, in addition to the corpus runner's
+  built-in two-pass byte-identical determinism check.
+category: integrated
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD101, CRD102, CRD301]
+  evidence: [confirmed_static_data_flow]
+  edges: [configured_in, available_to_service]
+tags: [integrated, determinism, ordering, scale]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_ALPHA
+  - CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_BETA
+  - CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_GAMMA
+  - CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_DELTA
+notes: ""

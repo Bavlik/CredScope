@@ -1,0 +1,1302 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "gitleaks-multiple-and-duplicate-findings",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "auto",
+      "source": "conservative_fallback",
+      "reason": "Repository filenames and supported inputs do not identify one environment profile with sufficient confidence.",
+      "assumptions": [
+        "Deployment environment is uncertain.",
+        "Published ports provide exposure context only.",
+        "Runtime data flow and internet exposure remain unknown."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 3,
+    "informational": 3,
+    "low": 0,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 15,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "label": "ALPHA_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:5f7ee1202015ef2079f9d95dc5ec49700336b4c156d70f4505282663dbd997c5"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 15,
+      "severity": "informational",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding A",
+              "location": {
+                "path": "config/a.env",
+                "line": 4
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6"
+          ],
+          "path_ids": [
+            "path:7d575ff0820d0b8b2fda7d06679ff95f8bb71f9ff8cc09c2afc6fe0f432b2659"
+          ],
+          "remediation_id": "REM001"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding A",
+              "location": {
+                "path": "config/a.env",
+                "line": 4
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 0,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:2454fb7c8bd4453c63a289aee628b01f62503760bc35f0dae6e3a01f70c0717c",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/a.env",
+                "line": 4
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+              "type": "file",
+              "label": "config/a.env",
+              "location": {
+                "path": "config/a.env"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:38eebd73407261cf933a9f58094ffc2c2e44c989a4bb57c5004fe21a0f2ae286",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:fedceb92f22515899bb6775160f7293ec5d77394571656cc398d5d938528015f",
+              "from": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "to": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:cac39bf575fea865384f1e730d7378fb588cec0b9431e06057aad54c89f13acb",
+              "from": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:7d575ff0820d0b8b2fda7d06679ff95f8bb71f9ff8cc09c2afc6fe0f432b2659",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/a.env",
+                "line": 4
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:38eebd73407261cf933a9f58094ffc2c2e44c989a4bb57c5004fe21a0f2ae286",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:d35a85dad021261656bdb4b7fecaba7521badc6390e9f2ccf602cc234757aa13",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/a.env",
+                "line": 4
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+              "type": "file",
+              "label": "config/a.env",
+              "location": {
+                "path": "config/a.env"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:38eebd73407261cf933a9f58094ffc2c2e44c989a4bb57c5004fe21a0f2ae286",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:fedceb92f22515899bb6775160f7293ec5d77394571656cc398d5d938528015f",
+              "from": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+              "to": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:7d575ff0820d0b8b2fda7d06679ff95f8bb71f9ff8cc09c2afc6fe0f432b2659"
+          ],
+          "affected_locations": [
+            {
+              "path": "config/a.env",
+              "line": 4
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "credential": {
+        "id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+        "label": "BETA_KEY",
+        "type": "aws-access-token",
+        "fingerprints": [
+          "sha256:499e5efbe22fef4d771c062fcda82307365bae9caedcdb0469b730d2c145bef7"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 15,
+      "severity": "informational",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "aws-access-token",
+              "type": "scanner_finding",
+              "description": "Synthetic finding B",
+              "location": {
+                "path": "config/b.env",
+                "line": 9
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1"
+          ],
+          "path_ids": [
+            "path:04fd1f97d201673db33086cc164a1ca91d2fd5c4e1f47d92a38263ae54f05dd2"
+          ],
+          "remediation_id": "REM001"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "aws-access-token",
+              "type": "scanner_finding",
+              "description": "Synthetic finding B",
+              "location": {
+                "path": "config/b.env",
+                "line": 9
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 0,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:04fd1f97d201673db33086cc164a1ca91d2fd5c4e1f47d92a38263ae54f05dd2",
+          "credential_id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+          "nodes": [
+            {
+              "id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+              "type": "credential",
+              "label": "BETA_KEY",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "type": "finding",
+              "label": "aws-access-token",
+              "location": {
+                "path": "config/b.env",
+                "line": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:37c9e9b5297043fea246fceec8a7498e5a2d15384e195327a9652f2425e04afe",
+              "from": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+              "to": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:41389677a25f7a1bed51e51ae3c7220ed0373a2d3625fb9ac69b029781dcd42f",
+          "credential_id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+          "nodes": [
+            {
+              "id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+              "type": "credential",
+              "label": "BETA_KEY",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "type": "finding",
+              "label": "aws-access-token",
+              "location": {
+                "path": "config/b.env",
+                "line": 9
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+              "type": "file",
+              "label": "config/b.env",
+              "location": {
+                "path": "config/b.env"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:37c9e9b5297043fea246fceec8a7498e5a2d15384e195327a9652f2425e04afe",
+              "from": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+              "to": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:9f59a8160b45f99fc296e0684233b56d7425903726257665410ba3e481e00735",
+              "from": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "to": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:cdf3c973c9d27ec999352ad3dc4c0ccdc58f797d5d1c615db697fa7f88cf231c",
+          "credential_id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+          "nodes": [
+            {
+              "id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+              "type": "credential",
+              "label": "BETA_KEY",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "type": "finding",
+              "label": "aws-access-token",
+              "location": {
+                "path": "config/b.env",
+                "line": 9
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+              "type": "file",
+              "label": "config/b.env",
+              "location": {
+                "path": "config/b.env"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:37c9e9b5297043fea246fceec8a7498e5a2d15384e195327a9652f2425e04afe",
+              "from": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+              "to": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:9f59a8160b45f99fc296e0684233b56d7425903726257665410ba3e481e00735",
+              "from": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+              "to": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:6eb0770287952e6a132d88dee32948d3caca6b431f8685135cb809a31a6a3a4c",
+              "from": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:04fd1f97d201673db33086cc164a1ca91d2fd5c4e1f47d92a38263ae54f05dd2"
+          ],
+          "affected_locations": [
+            {
+              "path": "config/b.env",
+              "line": 9
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        }
+      ]
+    },
+    {
+      "credential": {
+        "id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+        "label": "GAMMA_SECRET",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:473087c3d8c3f24fdcf4d65b84c448696fbc3dc3edfb529b6c247bd84e0f8761"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 15,
+      "severity": "informational",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding C, reported twice by the scanner",
+              "location": {
+                "path": "config/c.env",
+                "line": 5
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb"
+          ],
+          "path_ids": [
+            "path:86e36d23359ee5745fa8d7a05a0fe4146be01a2a838bc4df2e83a9e01008d9f3"
+          ],
+          "remediation_id": "REM001"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding C, reported twice by the scanner",
+              "location": {
+                "path": "config/c.env",
+                "line": 5
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 0,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:86e36d23359ee5745fa8d7a05a0fe4146be01a2a838bc4df2e83a9e01008d9f3",
+          "credential_id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+          "nodes": [
+            {
+              "id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+              "type": "credential",
+              "label": "GAMMA_SECRET",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/c.env",
+                "line": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e46da049586f305cfe0b37b0647f2dda6f76d081f0a0ed11b5f0e53d752b46ac",
+              "from": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+              "to": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:c231ef801d6bb3a8618e4db2e55286c9989ca5fd582f267a5d1915a06f79889c",
+          "credential_id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+          "nodes": [
+            {
+              "id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+              "type": "credential",
+              "label": "GAMMA_SECRET",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/c.env",
+                "line": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+              "type": "file",
+              "label": "config/c.env",
+              "location": {
+                "path": "config/c.env"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e46da049586f305cfe0b37b0647f2dda6f76d081f0a0ed11b5f0e53d752b46ac",
+              "from": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+              "to": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:d89615a1fb124894172ed9f4e49d0fb86bf6edde56fde374d92d578315f27210",
+              "from": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "to": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:dd8a273a870fa0cc07d2515794e2e80c6ef0efd90f3669416431873c181b093a",
+              "from": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:f005d1b3587eed62fb15d6a128ba29ac4ce328836a200f329b694c7eed5cb0c8",
+          "credential_id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+          "nodes": [
+            {
+              "id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+              "type": "credential",
+              "label": "GAMMA_SECRET",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/c.env",
+                "line": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+              "type": "file",
+              "label": "config/c.env",
+              "location": {
+                "path": "config/c.env"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e46da049586f305cfe0b37b0647f2dda6f76d081f0a0ed11b5f0e53d752b46ac",
+              "from": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+              "to": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:d89615a1fb124894172ed9f4e49d0fb86bf6edde56fde374d92d578315f27210",
+              "from": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+              "to": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:86e36d23359ee5745fa8d7a05a0fe4146be01a2a838bc4df2e83a9e01008d9f3"
+          ],
+          "affected_locations": [
+            {
+              "path": "config/c.env",
+              "line": 5
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+        "type": "credential",
+        "label": "BETA_KEY",
+        "metadata": {
+          "credential_type": "aws-access-token"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+        "type": "credential",
+        "label": "GAMMA_SECRET",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "type": "credential",
+        "label": "ALPHA_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+        "type": "file",
+        "label": "config/a.env",
+        "location": {
+          "path": "config/a.env"
+        },
+        "metadata": {
+          "path": "config/a.env"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding A",
+            "location": {
+              "path": "config/a.env",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+        "type": "file",
+        "label": "config/c.env",
+        "location": {
+          "path": "config/c.env"
+        },
+        "metadata": {
+          "path": "config/c.env"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding C, reported twice by the scanner",
+            "location": {
+              "path": "config/c.env",
+              "line": 5
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+        "type": "file",
+        "label": "config/b.env",
+        "location": {
+          "path": "config/b.env"
+        },
+        "metadata": {
+          "path": "config/b.env"
+        },
+        "evidence": [
+          {
+            "rule_id": "aws-access-token",
+            "type": "scanner_finding",
+            "description": "Synthetic finding B",
+            "location": {
+              "path": "config/b.env",
+              "line": 9
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": "config/c.env",
+          "line": 5
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding C, reported twice by the scanner",
+            "location": {
+              "path": "config/c.env",
+              "line": 5
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+        "type": "finding",
+        "label": "aws-access-token",
+        "location": {
+          "path": "config/b.env",
+          "line": 9
+        },
+        "metadata": {
+          "rule_id": "aws-access-token",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "aws-access-token",
+            "type": "scanner_finding",
+            "description": "Synthetic finding B",
+            "location": {
+              "path": "config/b.env",
+              "line": 9
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": "config/a.env",
+          "line": 4
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding A",
+            "location": {
+              "path": "config/a.env",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:37c9e9b5297043fea246fceec8a7498e5a2d15384e195327a9652f2425e04afe",
+        "from": "node:credential:2058836f98acf7c56c173d5a7e94a6a5a0f99e1b335e00e53d3dfe5fb556a3f4",
+        "to": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "aws-access-token",
+            "type": "scanner_finding",
+            "description": "Synthetic finding B",
+            "location": {
+              "path": "config/b.env",
+              "line": 9
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:38eebd73407261cf933a9f58094ffc2c2e44c989a4bb57c5004fe21a0f2ae286",
+        "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "to": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding A",
+            "location": {
+              "path": "config/a.env",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:6eb0770287952e6a132d88dee32948d3caca6b431f8685135cb809a31a6a3a4c",
+        "from": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "aws-access-token",
+            "type": "scanner_finding",
+            "description": "Synthetic finding B",
+            "location": {
+              "path": "config/b.env",
+              "line": 9
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:9f59a8160b45f99fc296e0684233b56d7425903726257665410ba3e481e00735",
+        "from": "node:finding:8ccbc80d2029083d445f65bc73cbbf85034230c40742874536db97bee49159a1",
+        "to": "node:file:ddfa7ba69bf9796d62b42fc3b1f374075af218dfcb4ca3f3aeea5a7ac4600c6f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "aws-access-token",
+            "type": "scanner_finding",
+            "description": "Synthetic finding B",
+            "location": {
+              "path": "config/b.env",
+              "line": 9
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:cac39bf575fea865384f1e730d7378fb588cec0b9431e06057aad54c89f13acb",
+        "from": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding A",
+            "location": {
+              "path": "config/a.env",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:d89615a1fb124894172ed9f4e49d0fb86bf6edde56fde374d92d578315f27210",
+        "from": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+        "to": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding C, reported twice by the scanner",
+            "location": {
+              "path": "config/c.env",
+              "line": 5
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:dd8a273a870fa0cc07d2515794e2e80c6ef0efd90f3669416431873c181b093a",
+        "from": "node:file:b47c0c2d9d9f7777918bb4e91e5a031eaf692390da9482348466af14081a3c6e",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding C, reported twice by the scanner",
+            "location": {
+              "path": "config/c.env",
+              "line": 5
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:e46da049586f305cfe0b37b0647f2dda6f76d081f0a0ed11b5f0e53d752b46ac",
+        "from": "node:credential:7c88e5815cadc243844d378e9069426026969022607fb1319df500d057936207",
+        "to": "node:finding:077c5a6cf8754591b9ec83287d76ed329ad6e84572dbf19938926656a55559cb",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding C, reported twice by the scanner",
+            "location": {
+              "path": "config/c.env",
+              "line": 5
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:fedceb92f22515899bb6775160f7293ec5d77394571656cc398d5d938528015f",
+        "from": "node:finding:f4e6f173f3920c060b1680b3cd61bed5e6c038b59aa938cc3a55f318962e0cd6",
+        "to": "node:file:18ccd78af06a8c914b797f2b75a452544b43fb735c3ab0b06fa8145686c26801",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding A",
+            "location": {
+              "path": "config/a.env",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

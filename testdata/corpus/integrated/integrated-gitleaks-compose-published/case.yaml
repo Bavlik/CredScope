@@ -1,0 +1,24 @@
+schema_version: 1
+id: integrated-gitleaks-compose-published
+title: Public Compose service using an imported credential finding
+description: >
+  A Gitleaks finding's Key matches a variable consumed by a Compose service
+  that publishes a host port bound to all interfaces. This is the primary
+  integrated scenario connecting an imported scanner finding to
+  Compose-derived exposure context.
+category: integrated
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: production
+expect:
+  result: success
+covers:
+  rules: [CRD101, CRD301, CRD303]
+  evidence: [confirmed_static_data_flow, inferred_exposure_context]
+  edges: [available_to_service, exposes_port]
+tags: [integrated, gitleaks, compose, published-port, positive-control]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_INTEGRATED_COMPOSE_001
+notes: ""

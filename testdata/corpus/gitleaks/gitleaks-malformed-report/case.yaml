@@ -1,0 +1,29 @@
+schema_version: 1
+id: gitleaks-malformed-report
+title: Truncated JSON report produces a controlled parse error
+description: >
+  The imported Gitleaks report is not valid JSON: an object is left
+  unterminated and closed with a stray array bracket. CredScope must fail
+  closed with a controlled, structural error that never includes any
+  fragment of the malformed report's field values.
+category: gitleaks
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: error
+  error_contains: "invalid JSON syntax"
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [gitleaks, negative-control, malformed-input]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_GITLEAKS_MALFORMED_001
+notes: >
+  This is a controlled-error case: expect.result is "error", so no
+  expected.json or expected.sarif golden files are present. A canary is
+  declared defensively even though the JSON never parses far enough to
+  reach the adapter's redaction logic.

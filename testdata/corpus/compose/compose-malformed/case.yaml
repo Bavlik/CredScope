@@ -1,0 +1,24 @@
+schema_version: 1
+id: compose-malformed
+title: A service's ports field is a scalar instead of a list
+description: >
+  The Compose file is valid YAML but structurally invalid: `services.api.ports`
+  is a bare scalar instead of a sequence. CredScope must fail closed with a
+  controlled, field-specific structural error.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: error
+  error_contains: "ports must be a list"
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [compose, negative-control, malformed-input]
+forbidden_output_strings: []
+notes: >
+  This is a controlled-error case: expect.result is "error", so no
+  expected.json or expected.sarif golden files are present.

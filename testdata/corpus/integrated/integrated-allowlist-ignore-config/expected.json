@@ -1,0 +1,1458 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "integrated-allowlist-ignore-config",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "production",
+      "selected": "production",
+      "source": "explicit",
+      "reason": "Selected explicitly by command-line option or repository configuration.",
+      "assumptions": [
+        "Published services, broad credential sharing, and privileged runtime settings receive stricter risk weighting.",
+        "Internet exposure is not assumed without direct evidence."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 1,
+    "informational": 0,
+    "low": 1,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 35,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "label": "ACTIVE_PROD_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:039f4c35feaf9e76d2a8bf468ada5f1305f53a16ea82f197d32c03112e2bee32"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 35,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Active production credential, not covered by any allowlist entry",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871"
+          ],
+          "path_ids": [
+            "path:252a9cf2698413f660c0f7a20ceb53cbb8be6eae61f5c4a5c65ffadf8ba100e9"
+          ],
+          "remediation_id": "REM001"
+        },
+        {
+          "rule_id": "CRD102",
+          "title": "Credential referenced by workflow",
+          "category": "github_actions",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:secret_copied_to_environment",
+              "description": "A secret reference is copied into workflow-level environment scope.",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 11,
+                "column": 24
+              },
+              "field": "workflow.env.STAGING_DEBUG_TOKEN",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed"
+          ],
+          "path_ids": [
+            "path:6df307be3dc0a63bc1861148b6c6fe99d3407510ce2574c1be9695a175985863"
+          ],
+          "remediation_id": "REM007"
+        },
+        {
+          "rule_id": "CRD203",
+          "title": "Secret passed to shell",
+          "category": "github_actions",
+          "severity": "high",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "type": "shell_credential_reference",
+              "description": "Reference is used by this workflow step.",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 20,
+                "column": 14
+              },
+              "field": "jobs.deploy.steps[0]",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc"
+          ],
+          "path_ids": [
+            "path:1fc2b9aa99f4e61dc62756e63b41ed3f7dfeb564975ad57e3e085d879cd2e87b"
+          ],
+          "remediation_id": "REM008"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Active production credential, not covered by any allowlist entry",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD102",
+          "description": "Credential referenced by workflow",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:secret_copied_to_environment",
+              "description": "A secret reference is copied into workflow-level environment scope.",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 11,
+                "column": 24
+              },
+              "field": "workflow.env.STAGING_DEBUG_TOKEN",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD203",
+          "description": "Secret passed to shell",
+          "base_weight": 12,
+          "adjustments": [],
+          "adjusted_weight": 12,
+          "confidence_weight_percent": 100,
+          "final_contribution": 12,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "type": "shell_credential_reference",
+              "description": "Reference is used by this workflow step.",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 20,
+                "column": 14
+              },
+              "field": "jobs.deploy.steps[0]",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 3,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 1,
+        "jobs": 1,
+        "services": 0,
+        "permissions": 1,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:1156c5593c85285f8967c7e7baea2caab475b2f506babf1b529a3b2876497844",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "type": "workflow",
+              "label": "Allowlisted deployment",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:trigger:214d28fe5ef5105532280e1730aadae86d342df4f69826e17b72d4c881770cb0",
+              "type": "trigger",
+              "label": "push",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 4,
+                "column": 3
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:ca15a1faacf7c9ffab8ab55bf814f9ddf94524dcd8b2dfafcd61ade960b82f3e",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:83b654aa3ccb5d655a7b9cbb7127cf0c6701e788bdc2b75db9c6333353277624",
+              "from": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "to": "node:trigger:214d28fe5ef5105532280e1730aadae86d342df4f69826e17b72d4c881770cb0",
+              "relationship": "triggered_by",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:18d2fd9643afdd681c056ffdfc0579a2e07047c82d6f02dffd46cc9e3b5cd81d",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+              "type": "job",
+              "label": "deploy",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 15,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f2d59d837ca0305d5196978c01e4297483c4a18a96296c3abca463af65ae32a0",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:1fc2b9aa99f4e61dc62756e63b41ed3f7dfeb564975ad57e3e085d879cd2e87b",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc",
+              "type": "step",
+              "label": "Deploy with the active token",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 19,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:1098af430712fe3801a7930607274f524f31e3f219fa04ccaddf4217460467de",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc",
+              "relationship": "referenced_by_process",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:252a9cf2698413f660c0f7a20ceb53cbb8be6eae61f5c4a5c65ffadf8ba100e9",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:06a2c4ccf7dea46f1dddae27e901f97885d5d0ff4088145fd302211756f8da2e",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:4b039bfd234ea4f30c97e776a60a95b71aaeae206dfc7effa5106695ec8b55f6",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:06a2c4ccf7dea46f1dddae27e901f97885d5d0ff4088145fd302211756f8da2e",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:64e38ae115cf1e1373d37f162b22cae1163a7738fd3361b398c6cc877d70c032",
+              "from": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:15367c6bd25cecc990a233fe0a69e33a596a7d757fe3e314b02d8960a62777f5",
+              "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:67fec3f09e861c5019dd5c9c229c4373e0f5174f54884d1c6db758846d4e6a3f",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "type": "workflow",
+              "label": "Allowlisted deployment",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+              "type": "file",
+              "label": ".github/workflows/deploy.yml",
+              "location": {
+                "path": ".github/workflows/deploy.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:ca15a1faacf7c9ffab8ab55bf814f9ddf94524dcd8b2dfafcd61ade960b82f3e",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:569ca0d90d3dc4e69caf1da5ecba7f50ef117f53c6b42471a98d017278eae4de",
+              "from": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "to": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:6df307be3dc0a63bc1861148b6c6fe99d3407510ce2574c1be9695a175985863",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "type": "workflow",
+              "label": "Allowlisted deployment",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:960f1e6d9d023a1c253a9bd67a4b2939b33283503fdbeddbfaf0db39845e59ea",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:7ce93faf5cadebf66aed887d09116919fd06628da25366bb9ef205fb67f7855f",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "type": "workflow",
+              "label": "Allowlisted deployment",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:permission:112cc403172a0c50224936bedd1570147123e74d51dbdeffe53fa687ae86900e",
+              "type": "permission",
+              "label": "contents:read",
+              "location": {
+                "path": ".github/workflows/deploy.yml",
+                "line": 8,
+                "column": 13
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:960f1e6d9d023a1c253a9bd67a4b2939b33283503fdbeddbfaf0db39845e59ea",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:872ecc52b6bc911300e1aa1f55e4c7db86dd9e23ec2c975865e11562806501a2",
+              "from": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+              "to": "node:permission:112cc403172a0c50224936bedd1570147123e74d51dbdeffe53fa687ae86900e",
+              "relationship": "has_permission",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:e21df0a0b727503e63b90e70acf8b22a8693aa12ef20f4d9275809405f8b3bf3",
+          "credential_id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+          "nodes": [
+            {
+              "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "type": "credential",
+              "label": "ACTIVE_PROD_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:06a2c4ccf7dea46f1dddae27e901f97885d5d0ff4088145fd302211756f8da2e",
+              "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+              "to": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:64e38ae115cf1e1373d37f162b22cae1163a7738fd3361b398c6cc877d70c032",
+              "from": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001",
+        "REM007",
+        "REM008"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:252a9cf2698413f660c0f7a20ceb53cbb8be6eae61f5c4a5c65ffadf8ba100e9"
+          ],
+          "affected_locations": [
+            {
+              "path": ".env.example",
+              "line": 2
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        },
+        {
+          "id": "REM008",
+          "title": "Avoid passing secrets through shell commands",
+          "why": "Shell interpolation can expose credentials through command construction, tracing, process arguments, or error output.",
+          "triggering_rule_ids": [
+            "CRD203"
+          ],
+          "evidence_path_ids": [
+            "path:1fc2b9aa99f4e61dc62756e63b41ed3f7dfeb564975ad57e3e085d879cd2e87b"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/deploy.yml",
+              "line": 20,
+              "column": 14
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Pass the secret through the narrowest supported secret input or environment scope and prevent command tracing; do not interpolate it into command text.",
+          "priority": 2
+        },
+        {
+          "id": "REM007",
+          "title": "Restrict credential scope",
+          "why": "The credential reaches more workflow or service scope than may be necessary.",
+          "triggering_rule_ids": [
+            "CRD102"
+          ],
+          "evidence_path_ids": [
+            "path:6df307be3dc0a63bc1861148b6c6fe99d3407510ce2574c1be9695a175985863"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "path": ".github/workflows/deploy.yml",
+              "line": 11,
+              "column": 24
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers.",
+          "priority": 3
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "type": "credential",
+        "label": "ACTIVE_PROD_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+        "type": "file",
+        "label": ".github/workflows/deploy.yml",
+        "location": {
+          "path": ".github/workflows/deploy.yml"
+        },
+        "metadata": {
+          "path": ".github/workflows/deploy.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "file",
+        "label": ".env.example",
+        "location": {
+          "path": ".env.example"
+        },
+        "metadata": {
+          "path": ".env.example"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Active production credential, not covered by any allowlist entry",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": ".env.example",
+          "line": 2
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Active production credential, not covered by any allowlist entry",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+        "type": "job",
+        "label": "deploy",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 15,
+          "column": 5
+        },
+        "metadata": {
+          "job_id": "deploy",
+          "workflow": "Allowlisted deployment"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow job",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 15,
+              "column": 5
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:secret_copied_to_environment",
+            "description": "A secret reference is copied into job-level environment scope.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 17,
+              "column": 26
+            },
+            "field": "job.deploy.env.ACTIVE_PROD_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:secret_passed_to_shell",
+            "description": "A secret reference is interpolated into an inert shell command.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 20,
+              "column": 14
+            },
+            "field": "jobs.deploy.steps[0].run",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:permission:112cc403172a0c50224936bedd1570147123e74d51dbdeffe53fa687ae86900e",
+        "type": "permission",
+        "label": "contents:read",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 8,
+          "column": 13
+        },
+        "metadata": {
+          "level": "read",
+          "scope": "contents"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Repository permission",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 8,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc",
+        "type": "step",
+        "label": "Deploy with the active token",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 19,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "true",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 19,
+              "column": 9
+            },
+            "field": "jobs.deploy.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:trigger:214d28fe5ef5105532280e1730aadae86d342df4f69826e17b72d4c881770cb0",
+        "type": "trigger",
+        "label": "push",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 4,
+          "column": 3
+        },
+        "metadata": {
+          "name": "push"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow trigger",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.push",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "type": "workflow",
+        "label": "Allowlisted deployment",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "file": ".github/workflows/deploy.yml",
+          "missing_explicit_permissions": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:secret_copied_to_environment",
+            "description": "A secret reference is copied into workflow-level environment scope.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 11,
+              "column": 24
+            },
+            "field": "workflow.env.STAGING_DEBUG_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:06a2c4ccf7dea46f1dddae27e901f97885d5d0ff4088145fd302211756f8da2e",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Active production credential, not covered by any allowlist entry",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:1098af430712fe3801a7930607274f524f31e3f219fa04ccaddf4217460467de",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc",
+        "type": "referenced_by_process",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "shell_credential_reference",
+            "description": "Reference is used by this workflow step.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 20,
+              "column": 14
+            },
+            "field": "jobs.deploy.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:15367c6bd25cecc990a233fe0a69e33a596a7d757fe3e314b02d8960a62777f5",
+        "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Active production credential, not covered by any allowlist entry",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:25b9d7f6506c6c669154b9bc96cdfd81eda611d7761292eec9bd2e08119c859c",
+        "from": "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc",
+        "to": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 19,
+              "column": 9
+            },
+            "field": "jobs.deploy.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:39e61d4847ab54843d2d8ae6ee15769362da1787f361fed780765bbc995427ce",
+        "from": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+        "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 15,
+              "column": 5
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:3bb89bb36d1005fbe7af42c946f33d52d71711455e7220cd1eef259600645209",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:step:7ef3e6b0b9be2dfd112247537c1e827ad2240163047eade29184797d26a787cc",
+        "type": "available_to_process",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "inherited_environment",
+            "description": "Environment reference is available to this workflow step.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 17,
+              "column": 26
+            },
+            "field": "job.deploy.env.ACTIVE_PROD_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:4b10debc7f9c37b9fc90134a3590a245ee5f1590690b00e4f3a80eaf7b7d6110",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+        "type": "explicitly_forwarded_to",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_environment",
+            "description": "Reference is explicitly forwarded into job-level environment scope.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 17,
+              "column": 26
+            },
+            "field": "job.deploy.env.ACTIVE_PROD_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:569ca0d90d3dc4e69caf1da5ecba7f50ef117f53c6b42471a98d017278eae4de",
+        "from": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "to": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:64e38ae115cf1e1373d37f162b22cae1163a7738fd3361b398c6cc877d70c032",
+        "from": "node:finding:1f8ff3c162a02f98219d086c3d7ea8070f5751cc769177277a09d54c27f7e871",
+        "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Active production credential, not covered by any allowlist entry",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:671cbfbb644f586822b267f36fd2af70bff43e5045d5904d55ec436b85ebd925",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 20,
+              "column": 14
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:83b654aa3ccb5d655a7b9cbb7127cf0c6701e788bdc2b75db9c6333353277624",
+        "from": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "to": "node:trigger:214d28fe5ef5105532280e1730aadae86d342df4f69826e17b72d4c881770cb0",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.push",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:872ecc52b6bc911300e1aa1f55e4c7db86dd9e23ec2c975865e11562806501a2",
+        "from": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "to": "node:permission:112cc403172a0c50224936bedd1570147123e74d51dbdeffe53fa687ae86900e",
+        "type": "has_permission",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "permission",
+            "description": "Explicit GitHub Actions permission.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 8,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:960f1e6d9d023a1c253a9bd67a4b2939b33283503fdbeddbfaf0db39845e59ea",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 17,
+              "column": 26
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a7c1269e8b5d3716fccc9e2ab910a5dcbde4bee8d049453d8b7a11e26e4182fe",
+        "from": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Workflow file belongs to the selected repository.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:ca15a1faacf7c9ffab8ab55bf814f9ddf94524dcd8b2dfafcd61ade960b82f3e",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:workflow:cd5cb50506fd1bf7b5cec52973c96046a046a073d7df9b014c74233e31b0c5ed",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 20,
+              "column": 14
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:f2d59d837ca0305d5196978c01e4297483c4a18a96296c3abca463af65ae32a0",
+        "from": "node:credential:820c73ebb5d7e74de6f10340eed8a410e9e7783fb94a542129faa53cf1ebbb09",
+        "to": "node:job:38450efd4e1739ba9836daab6087ff3946e260ad12e7d9d2a8d8864d7d00a78e",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 17,
+              "column": 26
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 2,
+  "ignored_items": [
+    {
+      "kind": "finding",
+      "target": "test-fixture-finding",
+      "reason": "Reviewed scanner rule in a fake fixture; not a real credential",
+      "count": 1
+    },
+    {
+      "kind": "variable",
+      "target": "STAGING_DEBUG_TOKEN",
+      "reason": "Known false positive; internal debug flag, not a credential",
+      "count": 1
+    }
+  ]
+}

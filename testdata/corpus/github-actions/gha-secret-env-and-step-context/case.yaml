@@ -1,0 +1,26 @@
+schema_version: 1
+id: gha-secret-env-and-step-context
+title: Secret expressions at workflow, job, and step environment scopes
+description: >
+  A single workflow references three distinct secrets at each of the three
+  environment-binding scopes GitHub Actions supports: workflow-level env,
+  job-level env, and step-level env. The step-level secret is additionally
+  referenced directly inside a run block's shell text. Verifies that
+  CredScope's static parser distinguishes all three scopes and detects both
+  indirect (env-variable) and direct (inline expression) shell exposure.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD102, CRD203]
+  evidence: [confirmed_static_data_flow]
+  edges: [configured_in, referenced_by_process]
+tags: [github-actions, context-scope, positive-control]
+forbidden_output_strings: []
+notes: >
+  No canary is required: workflows reference secret names via
+  ${{ secrets.X }} expressions and never contain actual secret values.

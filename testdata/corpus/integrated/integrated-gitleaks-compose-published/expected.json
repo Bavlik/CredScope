@@ -1,0 +1,1493 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "integrated-gitleaks-compose-published",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "production",
+      "selected": "production",
+      "source": "explicit",
+      "reason": "Selected explicitly by command-line option or repository configuration.",
+      "assumptions": [
+        "Published services, broad credential sharing, and privileged runtime settings receive stricter risk weighting.",
+        "Internet exposure is not assumed without direct evidence."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 1,
+    "informational": 0,
+    "low": 1,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 36,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+        "label": "PUBLIC_API_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:2a89b07599ee85b79900134ed2f042e18ac19b5a928acda8fcee2fd39f304a40"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 36,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic API credential discovered by the scanner",
+              "location": {
+                "path": ".env.example",
+                "line": 6
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51"
+          ],
+          "path_ids": [
+            "path:bedd66beb93750ad0272eb273fe80c832221be58502e840c4495ff9e0add9462"
+          ],
+          "remediation_id": "REM001"
+        },
+        {
+          "rule_id": "CRD301",
+          "title": "Credential passed to Compose service",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 25
+              },
+              "field": "services.api.environment.PUBLIC_API_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:host_port_published",
+              "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "medium"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8"
+          ],
+          "path_ids": [
+            "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146"
+          ],
+          "remediation_id": "REM011"
+        },
+        {
+          "rule_id": "CRD303",
+          "title": "Credential reaches published host port",
+          "category": "docker_compose",
+          "severity": "medium",
+          "confidence": "medium",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose port mapping",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:port_exposure:20285f71bd998ac1e75725f870163134fe46426554a8af270428b61237368093"
+          ],
+          "path_ids": [
+            "path:fc4b6454163c1c7d98954516c8507a12c9cafd210804944cee34b1fb00181d53"
+          ],
+          "remediation_id": "REM012"
+        },
+        {
+          "rule_id": "CRD308",
+          "title": "Container user cannot be confirmed as non-root",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "low",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 25
+              },
+              "field": "services.api.environment.PUBLIC_API_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:host_port_published",
+              "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "medium"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8"
+          ],
+          "path_ids": [
+            "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146"
+          ],
+          "remediation_id": "REM016"
+        },
+        {
+          "rule_id": "CRD502",
+          "title": "Runtime permissions cannot be confirmed",
+          "category": "analysis_warning",
+          "severity": "informational",
+          "confidence": "unknown",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 25
+              },
+              "field": "services.api.environment.PUBLIC_API_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:host_port_published",
+              "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "medium"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8"
+          ],
+          "path_ids": [
+            "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146"
+          ],
+          "remediation_id": "REM020"
+        },
+        {
+          "rule_id": "CRD503",
+          "title": "External network exposure cannot be confirmed",
+          "category": "analysis_warning",
+          "severity": "informational",
+          "confidence": "unknown",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose port mapping",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:port_exposure:20285f71bd998ac1e75725f870163134fe46426554a8af270428b61237368093"
+          ],
+          "path_ids": [
+            "path:fc4b6454163c1c7d98954516c8507a12c9cafd210804944cee34b1fb00181d53"
+          ],
+          "remediation_id": "REM020"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic API credential discovered by the scanner",
+              "location": {
+                "path": ".env.example",
+                "line": 6
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD301",
+          "description": "Credential passed to Compose service",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 25
+              },
+              "field": "services.api.environment.PUBLIC_API_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:host_port_published",
+              "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "medium"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD303",
+          "description": "Credential reaches published host port",
+          "base_weight": 8,
+          "adjustments": [
+            {
+              "kind": "environment_profile",
+              "percent": 30,
+              "description": "Selected environment profile changed this risk contribution.",
+              "risk_or_confidence": "risk",
+              "profile_changed": true
+            }
+          ],
+          "adjusted_weight": 10,
+          "confidence_weight_percent": 70,
+          "final_contribution": 10,
+          "confidence": "medium",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": true,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose port mapping",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD308",
+          "description": "Container user cannot be confirmed as non-root",
+          "base_weight": 3,
+          "adjustments": [],
+          "adjusted_weight": 3,
+          "confidence_weight_percent": 40,
+          "final_contribution": 3,
+          "confidence": "low",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 25
+              },
+              "field": "services.api.environment.PUBLIC_API_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:host_port_published",
+              "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "medium"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD502",
+          "description": "Runtime permissions cannot be confirmed",
+          "base_weight": 0,
+          "adjustments": [],
+          "adjusted_weight": 0,
+          "confidence_weight_percent": 0,
+          "final_contribution": 0,
+          "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 25
+              },
+              "field": "services.api.environment.PUBLIC_API_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:host_port_published",
+              "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "medium"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD503",
+          "description": "External network exposure cannot be confirmed",
+          "base_weight": 0,
+          "adjustments": [],
+          "adjusted_weight": 0,
+          "confidence_weight_percent": 0,
+          "final_contribution": 0,
+          "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose port mapping",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.api.ports[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 0,
+        "medium": 1,
+        "low": 1,
+        "unknown": 2,
+        "overall": "high"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 1,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 1,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:38857861f9e463e519ce465711607258d8ab540a53606cd93ae6b6b6dcb9edd4",
+          "credential_id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+          "nodes": [
+            {
+              "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "type": "credential",
+              "label": "PUBLIC_API_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "type": "compose_service",
+              "label": "api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:0a7fdcafabccf662b3da7d65d11966349ea5e5e9330d9af55672b59d0c65c172",
+              "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:51491ce952801ec6cadc82f86f746f61290698aaacbc2a1625341374d7908023",
+              "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+              "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:52d9335d1354b02c64c467527102698c03db927ff419cf439832499f4a3959bd",
+          "credential_id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+          "nodes": [
+            {
+              "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "type": "credential",
+              "label": "PUBLIC_API_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "type": "compose_service",
+              "label": "api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:0a7fdcafabccf662b3da7d65d11966349ea5e5e9330d9af55672b59d0c65c172",
+              "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:51491ce952801ec6cadc82f86f746f61290698aaacbc2a1625341374d7908023",
+              "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146",
+          "credential_id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+          "nodes": [
+            {
+              "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "type": "credential",
+              "label": "PUBLIC_API_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "type": "compose_service",
+              "label": "api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:0a7fdcafabccf662b3da7d65d11966349ea5e5e9330d9af55672b59d0c65c172",
+              "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:b031c1529713258b086e1b582a1dd3ea490943259ef9c6cc78e42c535be48b9d",
+          "credential_id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+          "nodes": [
+            {
+              "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "type": "credential",
+              "label": "PUBLIC_API_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 6
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:4354326bb5be23d89fb49aa13a75f26271198717694e6e12f70631da06f35e4d",
+              "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "to": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:6bf104fbdafc85466353f55ccb22d504f07d125b0980920ed40a26e6c9916d4d",
+              "from": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:bedd66beb93750ad0272eb273fe80c832221be58502e840c4495ff9e0add9462",
+          "credential_id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+          "nodes": [
+            {
+              "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "type": "credential",
+              "label": "PUBLIC_API_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 6
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:4354326bb5be23d89fb49aa13a75f26271198717694e6e12f70631da06f35e4d",
+              "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "to": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:fc4b6454163c1c7d98954516c8507a12c9cafd210804944cee34b1fb00181d53",
+          "credential_id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+          "nodes": [
+            {
+              "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "type": "credential",
+              "label": "PUBLIC_API_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "type": "compose_service",
+              "label": "api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:port_exposure:20285f71bd998ac1e75725f870163134fe46426554a8af270428b61237368093",
+              "type": "port_exposure",
+              "label": "published 8443 -\u003e 443",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "confidence": "medium"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:0a7fdcafabccf662b3da7d65d11966349ea5e5e9330d9af55672b59d0c65c172",
+              "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+              "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:73d02dcb76d69ab0513c5543d502a37104272e0649d7df63312f9a8155b8b36e",
+              "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "to": "node:port_exposure:20285f71bd998ac1e75725f870163134fe46426554a8af270428b61237368093",
+              "relationship": "exposes_port",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "medium"
+            }
+          ],
+          "confidence": "medium",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [
+        "CRD502: Runtime permissions cannot be confirmed",
+        "CRD503: External network exposure cannot be confirmed"
+      ],
+      "remediation_ids": [
+        "REM001",
+        "REM011",
+        "REM012",
+        "REM016",
+        "REM020"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:bedd66beb93750ad0272eb273fe80c832221be58502e840c4495ff9e0add9462"
+          ],
+          "affected_locations": [
+            {
+              "path": ".env.example",
+              "line": 6
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        },
+        {
+          "id": "REM011",
+          "title": "Use Compose secrets for sensitive values",
+          "why": "Plain environment mappings broaden credential visibility inside a container and its tooling.",
+          "triggering_rule_ids": [
+            "CRD301"
+          ],
+          "evidence_path_ids": [
+            "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 25
+            },
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Use a Compose secret or an external secret injection mechanism supported by the deployment environment, scoped to the receiving service.",
+          "priority": 3
+        },
+        {
+          "id": "REM012",
+          "title": "Review published host ports",
+          "why": "Published ports may increase service reachability depending on host firewall and network configuration.",
+          "triggering_rule_ids": [
+            "CRD303"
+          ],
+          "evidence_path_ids": [
+            "path:fc4b6454163c1c7d98954516c8507a12c9cafd210804944cee34b1fb00181d53"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            }
+          ],
+          "confidence": "medium",
+          "suggested_action": "Remove unnecessary port publishing or bind it to an appropriate interface, then enforce host and network access controls.",
+          "priority": 3
+        },
+        {
+          "id": "REM016",
+          "title": "Use a verified non-root container user",
+          "why": "Static configuration cannot confirm a non-root runtime identity when user is omitted.",
+          "triggering_rule_ids": [
+            "CRD308"
+          ],
+          "evidence_path_ids": [
+            "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 25
+            },
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            }
+          ],
+          "confidence": "low",
+          "suggested_action": "Set and verify a dedicated numeric non-root user in the image and Compose service, with only required filesystem permissions.",
+          "priority": 4
+        },
+        {
+          "id": "REM020",
+          "title": "Verify runtime security controls",
+          "why": "Static repository analysis cannot prove effective runtime permissions or external network exposure.",
+          "triggering_rule_ids": [
+            "CRD502",
+            "CRD503"
+          ],
+          "evidence_path_ids": [
+            "path:5a312fe957ab8ba8188b71429d52d9c4cb4ec5aff3dd50f6fbcfc2983eb1a146",
+            "path:fc4b6454163c1c7d98954516c8507a12c9cafd210804944cee34b1fb00181d53"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 25
+            },
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            }
+          ],
+          "confidence": "unknown",
+          "suggested_action": "Validate the deployed service identity, capabilities, firewall, bind address, and network policy in the target environment.",
+          "priority": 4
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "type": "compose_service",
+        "label": "api",
+        "location": {
+          "path": "compose.yml",
+          "line": 3,
+          "column": 5
+        },
+        "metadata": {
+          "file": "compose.yml",
+          "host_network": "false",
+          "privileged": "false",
+          "production_like": "false",
+          "user": "",
+          "user_specified": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose service",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.api",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 25
+            },
+            "field": "services.api.environment.PUBLIC_API_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:host_port_published",
+            "description": "The service publishes a host port and may be externally reachable depending on host and network configuration.",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.api.ports[0]",
+            "source": "docker-compose",
+            "confidence": "medium"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_non_root_user",
+            "description": "Service does not declare a user; this does not prove the container runs as root.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.api.user",
+            "source": "docker-compose",
+            "confidence": "low"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+        "type": "credential",
+        "label": "PUBLIC_API_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "file",
+        "label": "compose.yml",
+        "location": {
+          "path": "compose.yml"
+        },
+        "metadata": {
+          "path": "compose.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Docker Compose project",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "file",
+        "label": ".env.example",
+        "location": {
+          "path": ".env.example"
+        },
+        "metadata": {
+          "path": ".env.example"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic API credential discovered by the scanner",
+            "location": {
+              "path": ".env.example",
+              "line": 6
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": ".env.example",
+          "line": 6
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic API credential discovered by the scanner",
+            "location": {
+              "path": ".env.example",
+              "line": 6
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:port_exposure:20285f71bd998ac1e75725f870163134fe46426554a8af270428b61237368093",
+        "type": "port_exposure",
+        "label": "published 8443 -\u003e 443",
+        "location": {
+          "path": "compose.yml",
+          "line": 7,
+          "column": 9
+        },
+        "metadata": {
+          "host_ip": "0.0.0.0",
+          "protocol": "tcp",
+          "published": "8443",
+          "runtime_exposure": "unknown",
+          "target": "443"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose port mapping",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.api.ports[0]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "medium"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:0a7fdcafabccf662b3da7d65d11966349ea5e5e9330d9af55672b59d0c65c172",
+        "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+        "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 25
+            },
+            "field": "services.api.environment.PUBLIC_API_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+        "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Compose file belongs to the selected repository.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:4354326bb5be23d89fb49aa13a75f26271198717694e6e12f70631da06f35e4d",
+        "from": "node:credential:bf379837e133dc24e34f6b26e6c8d489253ebcd081b1c9258bcef9474b793d49",
+        "to": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic API credential discovered by the scanner",
+            "location": {
+              "path": ".env.example",
+              "line": 6
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:4c30ce7fc079145ee146a8caad3e46e9b4af19adb5918fea5ecf6341c693381e",
+        "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic API credential discovered by the scanner",
+            "location": {
+              "path": ".env.example",
+              "line": 6
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:51491ce952801ec6cadc82f86f746f61290698aaacbc2a1625341374d7908023",
+        "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.api",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:6bf104fbdafc85466353f55ccb22d504f07d125b0980920ed40a26e6c9916d4d",
+        "from": "node:finding:387f121447f168f3d6286fde336156484adc3dc8f7c9d254dceeb31162be9e51",
+        "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic API credential discovered by the scanner",
+            "location": {
+              "path": ".env.example",
+              "line": 6
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:73d02dcb76d69ab0513c5543d502a37104272e0649d7df63312f9a8155b8b36e",
+        "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "to": "node:port_exposure:20285f71bd998ac1e75725f870163134fe46426554a8af270428b61237368093",
+        "type": "exposes_port",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "published_host_port",
+            "description": "Service publishes a host port; external reachability remains unknown.",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.api.ports[0]",
+            "source": "docker-compose",
+            "confidence": "medium"
+          }
+        ],
+        "confidence": "medium"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

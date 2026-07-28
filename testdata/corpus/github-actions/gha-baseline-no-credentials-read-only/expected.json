@@ -1,0 +1,502 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "gha-baseline-no-credentials-read-only",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "ci",
+      "source": "repository_context",
+      "reason": "The repository contains GitHub Actions workflows and no Docker Compose input.",
+      "assumptions": [
+        "Jobs are treated as ephemeral unless repository evidence says otherwise.",
+        "Secrets available to jobs and steps are reported.",
+        "Untrusted pull-request risk is evaluated separately."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 0,
+    "informational": 0,
+    "low": 0,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 0,
+    "threshold_exceeded": false
+  },
+  "credentials": [],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:external_action:ff2acb16c5f7785adcf019eb72326054c898ed9700ed903455e861e08f51e715",
+        "type": "external_action",
+        "label": "actions/checkout@0123456789abcdef0123456789abcdef01234567",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 15,
+          "column": 15
+        },
+        "metadata": {
+          "artifact_kind": "",
+          "docker": "false",
+          "local": "false",
+          "mutable": "false",
+          "owner": "actions",
+          "pinned_sha": "true",
+          "repository": "checkout",
+          "revision": "0123456789abcdef0123456789abcdef01234567",
+          "third_party": "false",
+          "unresolved": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Action or reusable workflow reference",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 15
+            },
+            "field": "jobs.test.steps[0].uses",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+        "type": "file",
+        "label": ".github/workflows/ci.yml",
+        "location": {
+          "path": ".github/workflows/ci.yml"
+        },
+        "metadata": {
+          "path": ".github/workflows/ci.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:job:c194cc6309ce1c62b51fc5c57e6a926e5706daa50ac758559b6193db989c2540",
+        "type": "job",
+        "label": "test",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 12,
+          "column": 5
+        },
+        "metadata": {
+          "job_id": "test",
+          "workflow": "Baseline safe CI"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow job",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 12,
+              "column": 5
+            },
+            "field": "jobs.test",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:permission:178161115d531c87aafbca702e3d690596280b1d41dc563ddcbace71df799592",
+        "type": "permission",
+        "label": "contents:read",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 8,
+          "column": 13
+        },
+        "metadata": {
+          "level": "read",
+          "scope": "contents"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Repository permission",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 8,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:2e89a93b8b188d4ca729d7c0d4e6215905b1b52de8b6688de3d06581f2319f3d",
+        "type": "step",
+        "label": "Run tests",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 16,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "true",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 16,
+              "column": 9
+            },
+            "field": "jobs.test.steps[1]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:e9d8845740cd50b9a4de0026a4f4fcbe9a773a1ecc0bb58dc726b545921ee523",
+        "type": "step",
+        "label": "Checkout",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 14,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "false",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 9
+            },
+            "field": "jobs.test.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:trigger:d8040d8bbcbb268b13a38f7c3809299208d85d9411a6278f3d777e9106b55466",
+        "type": "trigger",
+        "label": "push",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 4,
+          "column": 3
+        },
+        "metadata": {
+          "name": "push"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow trigger",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.push",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:workflow:ba7cb96c444d7c768e5f3fa7d929788a0c759b0ea34def56c57c8e39a7bf4d6c",
+        "type": "workflow",
+        "label": "Baseline safe CI",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "file": ".github/workflows/ci.yml",
+          "missing_explicit_permissions": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:17e6b4c2bb4c26b172d5c580a4c735431abbc5cee9136c7a5ae09b480c606c86",
+        "from": "node:step:e9d8845740cd50b9a4de0026a4f4fcbe9a773a1ecc0bb58dc726b545921ee523",
+        "to": "node:external_action:ff2acb16c5f7785adcf019eb72326054c898ed9700ed903455e861e08f51e715",
+        "type": "runs_action",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "action_reference",
+            "description": "Step references this action; third-party does not imply malicious.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 15
+            },
+            "field": "jobs.test.steps[0].uses",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:25421faabbeebfeb08f4c4ad689b7231e59830621d0716369bfa784d4829f31d",
+        "from": "node:workflow:ba7cb96c444d7c768e5f3fa7d929788a0c759b0ea34def56c57c8e39a7bf4d6c",
+        "to": "node:permission:178161115d531c87aafbca702e3d690596280b1d41dc563ddcbace71df799592",
+        "type": "has_permission",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "permission",
+            "description": "Explicit GitHub Actions permission.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 8,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:37795ba130d7e81a256ffd153a523eb5165a363333c9336fc0809b6ca695b2ea",
+        "from": "node:step:2e89a93b8b188d4ca729d7c0d4e6215905b1b52de8b6688de3d06581f2319f3d",
+        "to": "node:job:c194cc6309ce1c62b51fc5c57e6a926e5706daa50ac758559b6193db989c2540",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 16,
+              "column": 9
+            },
+            "field": "jobs.test.steps[1]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5542f9f3c3a995df7c892a2f15e1ae6e7eb6da4dc6112064667a4909cfea9ecc",
+        "from": "node:step:e9d8845740cd50b9a4de0026a4f4fcbe9a773a1ecc0bb58dc726b545921ee523",
+        "to": "node:job:c194cc6309ce1c62b51fc5c57e6a926e5706daa50ac758559b6193db989c2540",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 9
+            },
+            "field": "jobs.test.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5922afe8c54b9b62b40b92cf6b3d399e705a9951a5af64911239f1eb02620782",
+        "from": "node:workflow:ba7cb96c444d7c768e5f3fa7d929788a0c759b0ea34def56c57c8e39a7bf4d6c",
+        "to": "node:trigger:d8040d8bbcbb268b13a38f7c3809299208d85d9411a6278f3d777e9106b55466",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.push",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:76b0d9a356950f7ca37bcc1bc0b612f965206149e59eead5078ce5c6abdce781",
+        "from": "node:workflow:ba7cb96c444d7c768e5f3fa7d929788a0c759b0ea34def56c57c8e39a7bf4d6c",
+        "to": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a6164c64844b6560ed7beeb2c202de4a0dafdb2e02e5ebee72ab1f0f7f041e58",
+        "from": "node:job:c194cc6309ce1c62b51fc5c57e6a926e5706daa50ac758559b6193db989c2540",
+        "to": "node:workflow:ba7cb96c444d7c768e5f3fa7d929788a0c759b0ea34def56c57c8e39a7bf4d6c",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 12,
+              "column": 5
+            },
+            "field": "jobs.test",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:ab176ebd3ee32665122b87a1860e7e9f6be856a31860f7daef1cd7fdfc74ada0",
+        "from": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Workflow file belongs to the selected repository.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

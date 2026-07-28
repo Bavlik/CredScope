@@ -1,0 +1,46 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding ALPHA",
+    "StartLine": 1,
+    "File": ".env.example",
+    "Commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_ALPHA",
+    "Match": "ALPHA_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_ALPHA",
+    "Key": "ALPHA_TOKEN"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding BETA",
+    "StartLine": 2,
+    "File": ".env.example",
+    "Commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_BETA",
+    "Match": "BETA_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_BETA",
+    "Key": "BETA_TOKEN"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding GAMMA",
+    "StartLine": 3,
+    "File": ".env.example",
+    "Commit": "cccccccccccccccccccccccccccccccccccccccc",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_GAMMA",
+    "Match": "GAMMA_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_GAMMA",
+    "Key": "GAMMA_TOKEN"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding DELTA",
+    "StartLine": 4,
+    "File": ".env.example",
+    "Commit": "dddddddddddddddddddddddddddddddddddddddd",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_DELTA",
+    "Match": "DELTA_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ORDER_DELTA",
+    "Key": "DELTA_TOKEN"
+  }
+]

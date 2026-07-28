@@ -1,0 +1,24 @@
+schema_version: 1
+id: compose-credential-published-port
+title: Service consuming a credential variable with a published host port
+description: >
+  A single Compose service references a credential-shaped environment
+  variable and publishes a host port bound to all interfaces. This is the
+  positive control connecting credential availability to published-port
+  exposure context.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD301, CRD303]
+  evidence: [confirmed_static_data_flow, inferred_exposure_context]
+  edges: [available_to_service, exposes_port]
+tags: [compose, published-port, positive-control]
+forbidden_output_strings: []
+notes: >
+  No canary is required: the environment value is a ${VAR} reference, never
+  a literal secret value.

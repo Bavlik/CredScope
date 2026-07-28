@@ -1,0 +1,17 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Finding containing CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_SECRET in its description",
+    "StartLine": 21,
+    "File": "config/redact.env",
+    "Commit": "5555555555555555555555555555555555555555",
+    "Author": "Author mentioning CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_SECRET",
+    "Email": "demo@example.invalid",
+    "Date": "2026-01-01T00:00:00Z",
+    "Message": "Commit message containing CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_SECRET and CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_MATCH",
+    "Tags": ["CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_SECRET", "example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_SECRET",
+    "Match": "API_KEY=CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_MATCH",
+    "Key": "REDACTION_TEST_KEY"
+  }
+]

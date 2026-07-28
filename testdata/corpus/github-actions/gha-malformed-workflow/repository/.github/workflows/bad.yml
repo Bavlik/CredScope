@@ -1,0 +1,8 @@
+name: malformed workflow fixture
+
+on: push
+
+jobs:
+  broken:
+    runs-on: ubuntu-latest
+    steps: not-a-list

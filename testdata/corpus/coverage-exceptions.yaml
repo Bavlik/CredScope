@@ -1,0 +1,200 @@
+# Documented, justified test-corpus coverage gaps.
+#
+# Each entry names something the current corpus does not exercise, why, who
+# owns following up, and whether it blocks v1.0. Entries here are gaps in
+# *test coverage*, not known product defects — CredScope's production
+# behavior for these rules/edges/evidence kinds is unchanged and already
+# covered by internal/analysis, internal/graph, and internal/rules' own
+# existing unit tests; this corpus simply does not yet carry a dedicated,
+# reviewable fixture for each one.
+#
+# Validated by internal/repositoryquality's
+# TestCorpusCoverageExceptionsAreWellFormed (every entry must have id,
+# uncovered_item, reason, and owner) and cross-referenced against
+# testdata/corpus/COVERAGE.md.
+
+schema_version: 1
+
+exceptions:
+  - id: rule-crd103-multi-job
+    uncovered_item: "CRD103 (Credential used by multiple jobs)"
+    reason: >
+      No current case has one credential referenced by two or more distinct
+      jobs within the same workflow. gha-secret-env-and-step-context and
+      integrated-multi-finding-deterministic-ordering each reference
+      credentials from a single job.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd205-mutable-third-party-action
+    uncovered_item: "CRD205 (Third-party action uses mutable reference)"
+    reason: >
+      Third-party actions in current fixtures (gha-elevated-permissions,
+      integrated-gitleaks-actions-higher-impact) are pinned to @v1 tags but
+      no case specifically exercises a floating/mutable ref such as @main
+      to distinguish CRD205 from CRD204 (any third-party action).
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd206-job-output-propagation
+    uncovered_item: "CRD206 (Secret propagated through job output)"
+    reason: >
+      No current case has a job output that forwards a secret expression to
+      a downstream job, the specific structural shape CRD206 detects.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd207-missing-explicit-permissions
+    uncovered_item: "CRD207 (Missing explicit workflow permissions)"
+    reason: >
+      Every current GitHub Actions case declares explicit permissions
+      (either scoped-safe or deliberately broad), so no case exercises the
+      omitted-permissions-block condition CRD207 detects.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd302-privileged-service
+    uncovered_item: "CRD302 (Credential reaches privileged service)"
+    reason: >
+      compose-bind-mount-and-docker-socket exercises the Docker socket and
+      writable bind mount rules but does not set `privileged: true`, so
+      CRD302 specifically is not exercised by any current Compose case.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd305-host-network-service
+    uncovered_item: "CRD305 (Credential reaches host-network service)"
+    reason: >
+      No current Compose case sets `network_mode: host` alongside a
+      credential-holding service.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd308-container-user-uncertain
+    uncovered_item: "CRD308 (Container user cannot be confirmed as non-root)"
+    reason: >
+      No current Compose case omits a `user:` field on a credential-holding
+      service to exercise the non-root-uncertainty condition.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd401-ci-and-runtime-sharing
+    uncovered_item: "CRD401 (Credential shared across CI and runtime)"
+    reason: >
+      No current integrated case has the same credential name referenced by
+      both a GitHub Actions workflow and a Compose service simultaneously;
+      integrated-gitleaks-actions-higher-impact and
+      integrated-gitleaks-compose-published each connect one imported
+      finding to only one of the two input types.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd402-multiple-production-components
+    uncovered_item: "CRD402 (Credential reaches multiple production components)"
+    reason: >
+      No current case connects one credential to two or more independently
+      production-classified components.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd403-write-permission-and-deployment-environment
+    uncovered_item: "CRD403 (Credential reaches write permission and deployment environment)"
+    reason: >
+      integrated-gitleaks-actions-higher-impact combines several
+      higher-impact conditions but its `covers.rules` list, and this
+      corpus's manual review, has not yet confirmed CRD403's exact
+      combined-condition trigger; treated as uncovered pending a dedicated
+      or explicitly re-reviewed case rather than an unverified claim.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd404-multiple-independent-paths
+    uncovered_item: "CRD404 (Credential has multiple independent reachability paths)"
+    reason: >
+      No current case gives one credential two or more structurally
+      independent evidence paths to the same or different sinks.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd501-reusable-workflow-unresolved
+    uncovered_item: "CRD501 (Reusable workflow unresolved)"
+    reason: >
+      No current case references a local or external reusable workflow
+      (`uses: ./.github/workflows/...` or a cross-repo reusable workflow)
+      that CredScope cannot resolve. testdata/vulnerable/deploy.yml already
+      exercises this outside the corpus; a corpus-native case is a
+      reasonable follow-up.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd502-runtime-permissions-unconfirmed
+    uncovered_item: "CRD502 (Runtime permissions cannot be confirmed)"
+    reason: >
+      This analysis-limitation rule's exact trigger condition was not
+      reproduced by any current fixture without risking an unverified
+      coverage claim.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: rule-crd503-external-exposure-unconfirmed
+    uncovered_item: "CRD503 (External network exposure cannot be confirmed)"
+    reason: >
+      This analysis-limitation rule's exact trigger condition was not
+      reproduced by any current fixture without risking an unverified
+      coverage claim.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: evidence-unknown-runtime-behavior
+    uncovered_item: "unknown_runtime_behavior evidence kind"
+    reason: >
+      No current case's graph construction produces an edge whose evidence
+      kind is unknown_runtime_behavior; observed evidence kinds across the
+      corpus are confirmed_static_data_flow, inferred_exposure_context, and
+      network_topology_only.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: edge-available-to-process
+    uncovered_item: "available_to_process edge type"
+    reason: >
+      Not exercised by any case's declared covers.edges; current cases use
+      available_to_service (Compose) and configured_in/referenced_by_process
+      (GitHub Actions env bindings) as their primary availability edges.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: edge-mounted-as-secret
+    uncovered_item: "mounted_as_secret edge type"
+    reason: >
+      No current Compose case declares a top-level `secrets:` block
+      consumed via a service's `secrets:` list (Compose file-based secret
+      mounts), the shape that produces this edge type.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: edge-explicitly-forwarded-to
+    uncovered_item: "explicitly_forwarded_to edge type"
+    reason: >
+      No current case exercises explicit secret forwarding (e.g. a job
+      output or `secrets: inherit` propagation) that produces this edge
+      type; related to the CRD206 gap above.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: edge-network-reachable
+    uncovered_item: "network_reachable edge type"
+    reason: >
+      Current Compose cases use depends_on for topology-only relationships;
+      no case connects two services purely via shared/host networking
+      without a depends_on declaration.
+    owner: test-corpus-followup
+    blocks_v1: false
+
+  - id: edge-reads-env-file
+    uncovered_item: "reads_env_file edge type"
+    reason: >
+      No current Compose case uses the `env_file:` directive; all current
+      cases set environment variables inline under `environment:`.
+    owner: test-corpus-followup
+    blocks_v1: false

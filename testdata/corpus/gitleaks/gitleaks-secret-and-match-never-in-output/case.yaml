@@ -1,0 +1,26 @@
+schema_version: 1
+id: gitleaks-secret-and-match-never-in-output
+title: Secret and Match values never survive into any rendered field
+description: >
+  The Secret and Match values are distinct from each other and are also
+  embedded inside Description, Author, Message, and Tags to exercise every
+  text field the Gitleaks adapter redacts. Verifies that redaction runs
+  before any of these fields reach the domain model, and that the commit
+  message is represented only as an irreversible fingerprint.
+category: gitleaks
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD101]
+  evidence: [confirmed_static_data_flow]
+  edges: []
+tags: [gitleaks, secret-safety, redaction]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_SECRET
+  - CREDSCOPE_TEST_CANARY_GITLEAKS_REDACT_MATCH
+notes: ""

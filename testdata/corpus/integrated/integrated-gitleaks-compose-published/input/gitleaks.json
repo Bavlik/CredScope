@@ -1,0 +1,13 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic API credential discovered by the scanner",
+    "StartLine": 6,
+    "File": ".env.example",
+    "Commit": "7777777777777777777777777777777777777777",
+    "Tags": ["example", "credential"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_COMPOSE_001",
+    "Match": "PUBLIC_API_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_COMPOSE_001",
+    "Key": "PUBLIC_API_TOKEN"
+  }
+]

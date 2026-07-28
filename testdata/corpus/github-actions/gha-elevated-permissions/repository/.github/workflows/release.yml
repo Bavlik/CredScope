@@ -1,0 +1,12 @@
+name: Elevated permissions release
+
+on: workflow_dispatch
+
+permissions: write-all
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        run: publish --token "${{ secrets.RELEASE_TOKEN }}"

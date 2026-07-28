@@ -1,0 +1,24 @@
+name: Context coverage
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  WORKFLOW_LEVEL_TOKEN: ${{ secrets.WORKFLOW_LEVEL_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      JOB_LEVEL_TOKEN: ${{ secrets.JOB_LEVEL_TOKEN }}
+    steps:
+      - name: Reference workflow- and job-level tokens
+        run: echo "using $WORKFLOW_LEVEL_TOKEN and $JOB_LEVEL_TOKEN"
+      - name: Reference a step-scoped secret directly in the shell
+        env:
+          STEP_LEVEL_TOKEN: ${{ secrets.STEP_LEVEL_TOKEN }}
+        run: deploy --token "${{ secrets.STEP_LEVEL_TOKEN }}"

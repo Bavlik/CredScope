@@ -1,0 +1,46 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding A",
+    "StartLine": 4,
+    "File": "config/a.env",
+    "Commit": "1111111111111111111111111111111111111111",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_A",
+    "Match": "TOKEN=CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_A",
+    "Key": "ALPHA_TOKEN"
+  },
+  {
+    "RuleID": "aws-access-token",
+    "Description": "Synthetic finding B",
+    "StartLine": 9,
+    "File": "config/b.env",
+    "Commit": "2222222222222222222222222222222222222222",
+    "Tags": ["example", "aws"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_B",
+    "Match": "AWS_ACCESS_KEY_ID=CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_B",
+    "Key": "BETA_KEY"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding C, reported twice by the scanner",
+    "StartLine": 5,
+    "File": "config/c.env",
+    "Commit": "3333333333333333333333333333333333333333",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_C",
+    "Match": "SECRET=CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_C",
+    "Key": "GAMMA_SECRET"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding C, reported twice by the scanner",
+    "StartLine": 5,
+    "File": "config/c.env",
+    "Commit": "3333333333333333333333333333333333333333",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_C",
+    "Match": "SECRET=CREDSCOPE_TEST_CANARY_GITLEAKS_MULTI_C",
+    "Key": "GAMMA_SECRET"
+  }
+]

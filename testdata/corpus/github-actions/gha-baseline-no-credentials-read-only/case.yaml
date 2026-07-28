@@ -1,0 +1,25 @@
+schema_version: 1
+id: gha-baseline-no-credentials-read-only
+title: Explicit read-only permissions and no credential use
+description: >
+  A workflow declares explicit `permissions: contents: read`, uses only a
+  pinned first-party action, and never references any secret. This is the
+  negative control for both GitHub Actions credential-detection rules and
+  permission-escalation rules simultaneously.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [github-actions, negative-control, least-privilege]
+forbidden_output_strings: []
+notes: >
+  Zero credentials are expected in the analysis result. This case has no
+  covers.rules entries by design: it exists to prove nothing fires, not to
+  demonstrate a rule.

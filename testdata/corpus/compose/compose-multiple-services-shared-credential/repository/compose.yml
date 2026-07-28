@@ -1,0 +1,15 @@
+services:
+  api:
+    image: example.invalid/corpus/api:1.0
+    environment:
+      SHARED_TOKEN: ${SHARED_TOKEN}
+
+  worker:
+    image: example.invalid/corpus/worker:1.0
+    environment:
+      SHARED_TOKEN: ${SHARED_TOKEN}
+
+  scheduler:
+    image: example.invalid/corpus/scheduler:1.0
+    environment:
+      SHARED_TOKEN: ${SHARED_TOKEN}

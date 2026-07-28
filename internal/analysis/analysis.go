@@ -157,7 +157,16 @@ func applyRepositoryIgnores(parsed domain.ParsedRepository, options Options) (do
 		}
 		return "", false
 	}
-	workflows := parsed.Workflows[:0]
+	// Allocate independent backing arrays rather than reslicing parsed.* into
+	// [:0]: ParsedRepository is passed by value, but its slice fields share
+	// backing storage with the caller. Filtering via input[:0] then
+	// append(...) overwrites that shared storage in place, which mutates
+	// the caller's original slices even though this function's own `parsed`
+	// parameter is a value copy — a repeat call with the same caller-held
+	// ParsedRepository would then see already-filtered data. Fresh,
+	// capacity-aware slices keep this function's output fully independent
+	// of caller-owned storage.
+	workflows := make([]domain.Workflow, 0, len(parsed.Workflows))
 	for _, item := range parsed.Workflows {
 		if reason, ok := pathReason(item.File); ok {
 			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "path", Target: item.File, Reason: reason, Count: 1})
@@ -166,7 +175,7 @@ func applyRepositoryIgnores(parsed domain.ParsedRepository, options Options) (do
 		}
 	}
 	parsed.Workflows = workflows
-	compose := parsed.Compose[:0]
+	compose := make([]domain.ComposeProject, 0, len(parsed.Compose))
 	for _, item := range parsed.Compose {
 		if reason, ok := pathReason(item.File); ok {
 			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "path", Target: item.File, Reason: reason, Count: 1})
@@ -179,7 +188,7 @@ func applyRepositoryIgnores(parsed domain.ParsedRepository, options Options) (do
 	for _, item := range options.IgnoreFindings {
 		findingIDs[item.Value] = item
 	}
-	findings := parsed.Findings[:0]
+	findings := make([]domain.Finding, 0, len(parsed.Findings))
 	for _, item := range parsed.Findings {
 		if directive, ok := findingIDs[item.ID]; ok {
 			ignored = appendOrIncrement(ignored, domain.IgnoredItem{Kind: "finding", Target: item.ID, Reason: directive.Reason, Count: 1})

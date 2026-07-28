@@ -1,0 +1,25 @@
+schema_version: 1
+id: integrated-clean-repository-empty-results
+title: A workflow, a Compose file, and an empty Gitleaks report together
+description: >
+  A repository with both a GitHub Actions workflow and a Docker Compose file
+  — neither containing any credential-shaped reference — and an explicitly
+  empty imported Gitleaks report ([]). Verifies that a fully clean,
+  multi-input-type repository produces a well-formed, empty-credentials
+  analysis result rather than an error or a degenerate report.
+category: integrated
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [integrated, negative-control, clean-repository]
+forbidden_output_strings: []
+notes: >
+  Zero credentials are expected across all three input types simultaneously.

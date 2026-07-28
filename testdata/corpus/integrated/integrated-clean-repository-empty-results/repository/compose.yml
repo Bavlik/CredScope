@@ -1,0 +1,7 @@
+services:
+  web:
+    image: example.invalid/corpus/web:1.0
+    environment:
+      LOG_LEVEL: info
+    ports:
+      - "127.0.0.1:8080:80"

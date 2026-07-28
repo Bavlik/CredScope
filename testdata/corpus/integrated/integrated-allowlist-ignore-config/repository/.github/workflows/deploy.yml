@@ -1,0 +1,20 @@
+name: Allowlisted deployment
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  STAGING_DEBUG_TOKEN: ${{ secrets.STAGING_DEBUG_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      ACTIVE_PROD_TOKEN: ${{ secrets.ACTIVE_PROD_TOKEN }}
+    steps:
+      - name: Deploy with the active token
+        run: deploy --token "${{ secrets.ACTIVE_PROD_TOKEN }}"

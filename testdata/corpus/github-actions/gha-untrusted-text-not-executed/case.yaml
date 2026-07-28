@@ -1,0 +1,28 @@
+schema_version: 1
+id: gha-untrusted-text-not-executed
+title: Adversarial workflow and step names are treated as inert static text
+description: >
+  Workflow name, step names, and run text contain HTML/script-tag
+  lookalikes, shell metacharacters and command chains, and a Mermaid-diagram
+  directive lookalike. CredScope only ever reads this content as static text
+  for evidence and display purposes; it never interprets, executes, or
+  shells out to any of it.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [github-actions, injection-resistance, negative-control]
+forbidden_output_strings: []
+notes: >
+  This case has no covers.rules entries: its purpose is proving inert,
+  sanitized handling of adversarial static text, not a rule match. The
+  golden expected.json/expected.sarif freeze the exact sanitized
+  representation (HTML-escaped, control characters stripped) as a
+  regression guard.

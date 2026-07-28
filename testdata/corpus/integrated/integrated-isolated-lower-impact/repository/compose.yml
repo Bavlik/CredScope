@@ -1,0 +1,10 @@
+services:
+  dev-tool:
+    image: example.invalid/corpus/dev-tool:1.0
+    environment:
+      DEV_ONLY_TOKEN: ${DEV_ONLY_TOKEN}
+    networks:
+      - internal
+
+networks:
+  internal:

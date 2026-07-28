@@ -1,0 +1,23 @@
+schema_version: 1
+id: compose-negative-control-no-credential
+title: Service with only operational configuration and a loopback-only port
+description: >
+  A single service uses two clearly operational (non-credential) variable
+  names and publishes a port bound only to loopback. This is the negative
+  control other Compose cases are contrasted against.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: []
+  edges: []
+tags: [compose, negative-control]
+forbidden_output_strings: []
+notes: >
+  Zero credentials are expected. Loopback-only bindings remain visible as
+  exposure context but do not trigger CRD303, per docs/SCORING.md.

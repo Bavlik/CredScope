@@ -1,0 +1,27 @@
+schema_version: 1
+id: gitleaks-missing-optional-fields
+title: Finding with every optional field absent still imports safely
+description: >
+  A Gitleaks finding provides only RuleID, StartLine, and File; every
+  optional field (Commit, Author, Email, Date, Message, Tags, Secret, Match,
+  Key, Fingerprint) is entirely absent. CredScope must still import the
+  finding, deriving a stable synthetic fingerprint and a label from the rule
+  ID, instead of erroring or leaving required output fields empty in an
+  unsafe way.
+category: gitleaks
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD101]
+  evidence: [confirmed_static_data_flow]
+  edges: []
+tags: [gitleaks, missing-fields, robustness]
+forbidden_output_strings: []
+notes: >
+  No canary is declared: this fixture's Secret and Match fields are both
+  absent, so there is no raw secret-like value that could leak.

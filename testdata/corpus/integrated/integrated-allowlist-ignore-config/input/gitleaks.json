@@ -1,0 +1,24 @@
+[
+  {
+    "RuleID": "test-fixture-finding",
+    "Description": "Reviewed scanner rule in a fake fixture, allowlisted by configuration",
+    "StartLine": 1,
+    "File": ".env.example",
+    "Commit": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ALLOWLIST_IGNORED",
+    "Match": "IGNORED_FIXTURE_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ALLOWLIST_IGNORED",
+    "Key": "IGNORED_FIXTURE_TOKEN"
+  },
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Active production credential, not covered by any allowlist entry",
+    "StartLine": 2,
+    "File": ".env.example",
+    "Commit": "ffffffffffffffffffffffffffffffffffffffff",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ALLOWLIST_ACTIVE",
+    "Match": "ACTIVE_PROD_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ALLOWLIST_ACTIVE",
+    "Key": "ACTIVE_PROD_TOKEN"
+  }
+]

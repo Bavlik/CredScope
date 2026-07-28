@@ -1,0 +1,13 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic production deploy token discovered by the scanner",
+    "StartLine": 4,
+    "File": ".env.example",
+    "Commit": "6666666666666666666666666666666666666666",
+    "Tags": ["example", "credential"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ACTIONS_001",
+    "Match": "PROD_DEPLOY_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ACTIONS_001",
+    "Key": "PROD_DEPLOY_TOKEN"
+  }
+]
