@@ -1,0 +1,10 @@
+services:
+  api:
+    image: example.invalid/corpus/api:1.0
+    environment:
+      API_TOKEN: ${API_TOKEN}
+    depends_on:
+      - cache
+
+  cache:
+    image: example.invalid/corpus/cache:1.0

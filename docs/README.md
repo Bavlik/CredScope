@@ -8,6 +8,7 @@
 - [Rules](RULES.md) — the rule catalog.
 - [Scoring](SCORING.md) — the scoring policy.
 - [Threat model](THREAT_MODEL.md) — security boundaries and guarantees.
+- [Test corpus](TEST_CORPUS.md) — the deterministic, offline corpus exercising the real analysis pipeline.
 - [GitHub Action usage](github-action.md) — using CredScope as a GitHub Action.
 - [Releasing](RELEASING.md) — maintainer-only release process.
 

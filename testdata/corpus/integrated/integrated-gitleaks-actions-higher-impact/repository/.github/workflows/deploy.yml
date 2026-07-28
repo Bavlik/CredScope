@@ -1,0 +1,20 @@
+name: Production deployment
+
+on:
+  pull_request_target:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Third-party deployment helper
+        uses: example-vendor/deploy-action@v1
+        with:
+          token: ${{ secrets.PROD_DEPLOY_TOKEN }}
+      - name: Direct shell use
+        run: deploy --token "${{ secrets.PROD_DEPLOY_TOKEN }}"

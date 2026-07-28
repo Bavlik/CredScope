@@ -18,6 +18,16 @@ paths = [
 ]
 
 [[allowlists]]
+description = "Synthetic test-corpus canaries only: requires BOTH a testdata/corpus/ path AND the exact CREDSCOPE_TEST_CANARY_ namespace, never a path-only match"
+condition = "AND"
+paths = [
+  '''^testdata/corpus/''',
+]
+regexes = [
+  '''CREDSCOPE_TEST_CANARY_[A-Z0-9_]+''',
+]
+
+[[allowlists]]
 description = "Git-ignored local toolchains, build outputs, and temporary reports are never release inputs"
 paths = [
   '''^\.tools/''',
@@ -27,3 +37,16 @@ paths = [
   '''^testdata/vulnerable/\.tmp/''',
   '''^testdata/vulnerable/phase6/''',
 ]
+
+[[rules]]
+id = "generic-api-key"
+
+  [[rules.allowlists]]
+  description = "Generated corpus golden outputs contain irreversible SHA-256 identifiers only"
+  condition = "AND"
+  paths = [
+    '''^testdata/corpus/.*/expected\.(json|sarif)$''',
+  ]
+  regexes = [
+    '''^[a-f0-9]{64}$''',
+  ]

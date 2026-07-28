@@ -1,0 +1,27 @@
+schema_version: 1
+id: compose-topology-does-not-imply-flow-regression
+title: A dependency edge alone must not imply credential transmission
+description: >
+  The api service holds API_TOKEN and depends on a cache service that has
+  no credential reference of its own. This is a regression guard for the
+  exact example in docs/ARCHITECTURE.md: an API's dependency on a cache
+  does not imply the credential was transmitted to the cache. The frozen
+  golden output is the checked proof that cache never receives a
+  confirmed_static_data_flow edge for API_TOKEN.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD301]
+  evidence: [confirmed_static_data_flow, network_topology_only]
+  edges: [available_to_service, depends_on]
+tags: [compose, regression, topology-vs-flow]
+forbidden_output_strings: []
+notes: >
+  If a future change causes `cache` to gain a credential-availability edge
+  for API_TOKEN, this case's golden comparison will fail loudly rather than
+  silently accepting a false credential-transmission claim.

@@ -1,0 +1,22 @@
+name: Ordering fixture
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    env:
+      JOB_TOKEN: ${{ secrets.JOB_TOKEN }}
+    permissions:
+      contents: read
+    steps:
+      - run: deploy --token "${{ secrets.DEPLOY_TOKEN }}"
+        name: Step
+    runs-on: ubuntu-latest

@@ -1,0 +1,23 @@
+schema_version: 1
+id: compose-dependency-topology-internal-no-port
+title: Credential-holding service with a dependency, no published ports
+description: >
+  A worker service holds a credential-shaped variable, depends on a queue
+  service, and both services communicate only over an internal network with
+  no published host ports. Verifies dependency-topology graph construction
+  and confirms that internal-only network placement does not trigger the
+  published-port rule.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD301]
+  evidence: [confirmed_static_data_flow, network_topology_only]
+  edges: [available_to_service, depends_on]
+tags: [compose, dependency-topology, internal-network]
+forbidden_output_strings: []
+notes: ""

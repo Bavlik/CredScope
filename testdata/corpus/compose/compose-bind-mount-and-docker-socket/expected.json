@@ -1,0 +1,1571 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "compose-bind-mount-and-docker-socket",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "auto",
+      "source": "conservative_fallback",
+      "reason": "Repository filenames and supported inputs do not identify one environment profile with sufficient confidence.",
+      "assumptions": [
+        "Deployment environment is uncertain.",
+        "Published ports provide exposure context only.",
+        "Runtime data flow and internet exposure remain unknown."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 1,
+    "informational": 0,
+    "low": 0,
+    "medium": 1,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 42,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+        "label": "AGENT_TOKEN",
+        "type": "compose_variable",
+        "classification": "secret",
+        "classification_confidence": "medium",
+        "classification_reason": "A common secret-name suffix suggests secret material, but the name alone is not proof.",
+        "classification_source": "variable_name_heuristic",
+        "expected_secret": true,
+        "rotation_remediation_applicable": false,
+        "test_fixture_candidate": false
+      },
+      "score": 42,
+      "severity": "medium",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD301",
+          "title": "Credential passed to Compose service",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.agent.environment.AGENT_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:docker_socket_mount",
+              "description": "Service mounts the Docker control socket or pipe.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "high"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "high"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f"
+          ],
+          "path_ids": [
+            "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a"
+          ],
+          "remediation_id": "REM011"
+        },
+        {
+          "rule_id": "CRD304",
+          "title": "Credential reaches Docker socket mount",
+          "category": "docker_compose",
+          "severity": "critical",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose volume mount",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:volume_mount:9384becf46c85277d8d71b98027fc1d54c714bc469af844a77291ef2f9a01bfa"
+          ],
+          "path_ids": [
+            "path:f45e0dd9a64db347ebd807d03114851dbec7557a7ade8ea3e0f1552af570ac63"
+          ],
+          "remediation_id": "REM014"
+        },
+        {
+          "rule_id": "CRD307",
+          "title": "Credential reaches writable host bind mount",
+          "category": "docker_compose",
+          "severity": "high",
+          "confidence": "high",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose volume mount",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose volume mount",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:volume_mount:9384becf46c85277d8d71b98027fc1d54c714bc469af844a77291ef2f9a01bfa",
+            "node:volume_mount:e1d7baea8e2077be01015f640dd06522ca17d877c19c5e625043befbe817d939"
+          ],
+          "path_ids": [
+            "path:9130ba9d6d3cc4d30fa2981890ceb871cba44938ba94266699a0dfc47d3a868c",
+            "path:f45e0dd9a64db347ebd807d03114851dbec7557a7ade8ea3e0f1552af570ac63"
+          ],
+          "remediation_id": "REM018"
+        },
+        {
+          "rule_id": "CRD308",
+          "title": "Container user cannot be confirmed as non-root",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "low",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.agent.environment.AGENT_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:docker_socket_mount",
+              "description": "Service mounts the Docker control socket or pipe.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "high"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "high"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f"
+          ],
+          "path_ids": [
+            "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a"
+          ],
+          "remediation_id": "REM016"
+        },
+        {
+          "rule_id": "CRD502",
+          "title": "Runtime permissions cannot be confirmed",
+          "category": "analysis_warning",
+          "severity": "informational",
+          "confidence": "unknown",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.agent.environment.AGENT_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:docker_socket_mount",
+              "description": "Service mounts the Docker control socket or pipe.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "high"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "high"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f"
+          ],
+          "path_ids": [
+            "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a"
+          ],
+          "remediation_id": "REM020"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD301",
+          "description": "Credential passed to Compose service",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.agent.environment.AGENT_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:docker_socket_mount",
+              "description": "Service mounts the Docker control socket or pipe.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "high"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "high"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD304",
+          "description": "Credential reaches Docker socket mount",
+          "base_weight": 20,
+          "adjustments": [],
+          "adjusted_weight": 20,
+          "confidence_weight_percent": 100,
+          "final_contribution": 20,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose volume mount",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD307",
+          "description": "Credential reaches writable host bind mount",
+          "base_weight": 10,
+          "adjustments": [
+            {
+              "kind": "affected_components",
+              "percent": 10,
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            }
+          ],
+          "adjusted_weight": 11,
+          "confidence_weight_percent": 90,
+          "final_contribution": 11,
+          "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose volume mount",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose volume mount",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD308",
+          "description": "Container user cannot be confirmed as non-root",
+          "base_weight": 3,
+          "adjustments": [],
+          "adjusted_weight": 3,
+          "confidence_weight_percent": 40,
+          "final_contribution": 3,
+          "confidence": "low",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.agent.environment.AGENT_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:docker_socket_mount",
+              "description": "Service mounts the Docker control socket or pipe.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "high"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "high"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD502",
+          "description": "Runtime permissions cannot be confirmed",
+          "base_weight": 0,
+          "adjustments": [],
+          "adjusted_weight": 0,
+          "confidence_weight_percent": 0,
+          "final_contribution": 0,
+          "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.agent.environment.AGENT_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:docker_socket_mount",
+              "description": "Service mounts the Docker control socket or pipe.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.agent.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "field": "services.agent.volumes[0]",
+              "source": "docker-compose",
+              "confidence": "high"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:writable_host_bind_mount",
+              "description": "Service has a writable bind mount from the host.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "field": "services.agent.volumes[1]",
+              "source": "docker-compose",
+              "confidence": "high"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 1,
+        "medium": 0,
+        "low": 1,
+        "unknown": 1,
+        "overall": "high"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 1,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 2
+      },
+      "evidence_paths": [
+        {
+          "id": "path:7900a6b4d4032bb10d99c8ae36c21417a7e705096141825b21f925c5bf88d6cc",
+          "credential_id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+          "nodes": [
+            {
+              "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "type": "credential",
+              "label": "AGENT_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "type": "compose_service",
+              "label": "agent",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:5b568ff5deaf0b0177739d2e132f12bbf8264505d728eb4191d1c66b7796d150",
+              "from": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "to": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:8be83fc8420733f51c300f660f45d558aeeda32134d67b8c96e68b5696af2272",
+              "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a",
+          "credential_id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+          "nodes": [
+            {
+              "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "type": "credential",
+              "label": "AGENT_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "type": "compose_service",
+              "label": "agent",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:5b568ff5deaf0b0177739d2e132f12bbf8264505d728eb4191d1c66b7796d150",
+              "from": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "to": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:9130ba9d6d3cc4d30fa2981890ceb871cba44938ba94266699a0dfc47d3a868c",
+          "credential_id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+          "nodes": [
+            {
+              "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "type": "credential",
+              "label": "AGENT_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "type": "compose_service",
+              "label": "agent",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:volume_mount:e1d7baea8e2077be01015f640dd06522ca17d877c19c5e625043befbe817d939",
+              "type": "volume_mount",
+              "label": "./data:/app/data",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:5b568ff5deaf0b0177739d2e132f12bbf8264505d728eb4191d1c66b7796d150",
+              "from": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "to": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:3f660cc12b6c6bb17d8e62572ed8155daef4d7c6da4f48183387d9797721960c",
+              "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "to": "node:volume_mount:e1d7baea8e2077be01015f640dd06522ca17d877c19c5e625043befbe817d939",
+              "relationship": "mounts_volume",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:c6569d3a2043030df044d499a6693d9624f542f2c3b5548ce755a6a8df654e3f",
+          "credential_id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+          "nodes": [
+            {
+              "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "type": "credential",
+              "label": "AGENT_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "type": "compose_service",
+              "label": "agent",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:5b568ff5deaf0b0177739d2e132f12bbf8264505d728eb4191d1c66b7796d150",
+              "from": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "to": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:8be83fc8420733f51c300f660f45d558aeeda32134d67b8c96e68b5696af2272",
+              "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+              "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:f45e0dd9a64db347ebd807d03114851dbec7557a7ade8ea3e0f1552af570ac63",
+          "credential_id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+          "nodes": [
+            {
+              "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "type": "credential",
+              "label": "AGENT_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "type": "compose_service",
+              "label": "agent",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:volume_mount:9384becf46c85277d8d71b98027fc1d54c714bc469af844a77291ef2f9a01bfa",
+              "type": "volume_mount",
+              "label": "/var/run/docker.sock:/var/run/docker.sock",
+              "location": {
+                "path": "compose.yml",
+                "line": 7,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:5b568ff5deaf0b0177739d2e132f12bbf8264505d728eb4191d1c66b7796d150",
+              "from": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+              "to": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:5f1425b4ce69ebfaf6f3f4cdd320c02b227265ac74d607ddfe735ab169046318",
+              "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+              "to": "node:volume_mount:9384becf46c85277d8d71b98027fc1d54c714bc469af844a77291ef2f9a01bfa",
+              "relationship": "mounts_volume",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [
+        "CRD502: Runtime permissions cannot be confirmed"
+      ],
+      "remediation_ids": [
+        "REM011",
+        "REM014",
+        "REM016",
+        "REM018",
+        "REM020"
+      ],
+      "remediations": [
+        {
+          "id": "REM014",
+          "title": "Remove Docker socket mounts",
+          "why": "Access to the Docker socket commonly provides control over the container host.",
+          "triggering_rule_ids": [
+            "CRD304"
+          ],
+          "evidence_path_ids": [
+            "path:f45e0dd9a64db347ebd807d03114851dbec7557a7ade8ea3e0f1552af570ac63"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Remove the socket mount; if an integration is unavoidable, use a narrowly authorized proxy and isolate the workload.",
+          "priority": 1
+        },
+        {
+          "id": "REM018",
+          "title": "Restrict writable host bind mounts",
+          "why": "Writable host binds let the container modify host files within the mounted path.",
+          "triggering_rule_ids": [
+            "CRD307"
+          ],
+          "evidence_path_ids": [
+            "path:9130ba9d6d3cc4d30fa2981890ceb871cba44938ba94266699a0dfc47d3a868c",
+            "path:f45e0dd9a64db347ebd807d03114851dbec7557a7ade8ea3e0f1552af570ac63"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            }
+          ],
+          "confidence": "high",
+          "suggested_action": "Remove the bind mount, make it read-only, or replace it with a narrowly scoped managed volume.",
+          "priority": 2
+        },
+        {
+          "id": "REM011",
+          "title": "Use Compose secrets for sensitive values",
+          "why": "Plain environment mappings broaden credential visibility inside a container and its tooling.",
+          "triggering_rule_ids": [
+            "CRD301"
+          ],
+          "evidence_path_ids": [
+            "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Use a Compose secret or an external secret injection mechanism supported by the deployment environment, scoped to the receiving service.",
+          "priority": 3
+        },
+        {
+          "id": "REM016",
+          "title": "Use a verified non-root container user",
+          "why": "Static configuration cannot confirm a non-root runtime identity when user is omitted.",
+          "triggering_rule_ids": [
+            "CRD308"
+          ],
+          "evidence_path_ids": [
+            "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            }
+          ],
+          "confidence": "low",
+          "suggested_action": "Set and verify a dedicated numeric non-root user in the image and Compose service, with only required filesystem permissions.",
+          "priority": 4
+        },
+        {
+          "id": "REM020",
+          "title": "Verify runtime security controls",
+          "why": "Static repository analysis cannot prove effective runtime permissions or external network exposure.",
+          "triggering_rule_ids": [
+            "CRD502"
+          ],
+          "evidence_path_ids": [
+            "path:8c87ed94505f3f6b26bff7d22088be05064d4f1dc37d5649909793ea2afa4e6a"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            }
+          ],
+          "confidence": "unknown",
+          "suggested_action": "Validate the deployed service identity, capabilities, firewall, bind address, and network policy in the target environment.",
+          "priority": 4
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+        "type": "compose_service",
+        "label": "agent",
+        "location": {
+          "path": "compose.yml",
+          "line": 3,
+          "column": 5
+        },
+        "metadata": {
+          "file": "compose.yml",
+          "host_network": "false",
+          "privileged": "false",
+          "production_like": "false",
+          "user": "",
+          "user_specified": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose service",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.agent",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            "field": "services.agent.environment.AGENT_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:docker_socket_mount",
+            "description": "Service mounts the Docker control socket or pipe.",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.agent.volumes[0]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_non_root_user",
+            "description": "Service does not declare a user; this does not prove the container runs as root.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.agent.user",
+            "source": "docker-compose",
+            "confidence": "low"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:writable_host_bind_mount",
+            "description": "Service has a writable bind mount from the host.",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.agent.volumes[0]",
+            "source": "docker-compose",
+            "confidence": "high"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:writable_host_bind_mount",
+            "description": "Service has a writable bind mount from the host.",
+            "location": {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            },
+            "field": "services.agent.volumes[1]",
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+        "type": "credential",
+        "label": "AGENT_TOKEN",
+        "metadata": {
+          "credential_type": "compose_variable"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "file",
+        "label": "compose.yml",
+        "location": {
+          "path": "compose.yml"
+        },
+        "metadata": {
+          "path": "compose.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Docker Compose project",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:volume_mount:9384becf46c85277d8d71b98027fc1d54c714bc469af844a77291ef2f9a01bfa",
+        "type": "volume_mount",
+        "label": "/var/run/docker.sock:/var/run/docker.sock",
+        "location": {
+          "path": "compose.yml",
+          "line": 7,
+          "column": 9
+        },
+        "metadata": {
+          "docker_socket": "true",
+          "host_bind": "true",
+          "read_only": "false",
+          "source": "/var/run/docker.sock",
+          "target": "/var/run/docker.sock",
+          "type": "",
+          "writable_host_bind": "true"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose volume mount",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.agent.volumes[0]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:volume_mount:e1d7baea8e2077be01015f640dd06522ca17d877c19c5e625043befbe817d939",
+        "type": "volume_mount",
+        "label": "./data:/app/data",
+        "location": {
+          "path": "compose.yml",
+          "line": 8,
+          "column": 9
+        },
+        "metadata": {
+          "docker_socket": "false",
+          "host_bind": "true",
+          "read_only": "false",
+          "source": "./data",
+          "target": "/app/data",
+          "type": "",
+          "writable_host_bind": "true"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose volume mount",
+            "location": {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            },
+            "field": "services.agent.volumes[1]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+        "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Compose file belongs to the selected repository.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:3f660cc12b6c6bb17d8e62572ed8155daef4d7c6da4f48183387d9797721960c",
+        "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+        "to": "node:volume_mount:e1d7baea8e2077be01015f640dd06522ca17d877c19c5e625043befbe817d939",
+        "type": "mounts_volume",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "volume_mount",
+            "description": "Service declares this volume mount.",
+            "location": {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 9
+            },
+            "field": "services.agent.volumes[1]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5b568ff5deaf0b0177739d2e132f12bbf8264505d728eb4191d1c66b7796d150",
+        "from": "node:credential:981e26f8ea5a1ca36cb9c1d2950372fd974d58f287975cad6bffb5e93fdfc89e",
+        "to": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            "field": "services.agent.environment.AGENT_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5f1425b4ce69ebfaf6f3f4cdd320c02b227265ac74d607ddfe735ab169046318",
+        "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+        "to": "node:volume_mount:9384becf46c85277d8d71b98027fc1d54c714bc469af844a77291ef2f9a01bfa",
+        "type": "mounts_volume",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "volume_mount",
+            "description": "Service declares this volume mount.",
+            "location": {
+              "path": "compose.yml",
+              "line": 7,
+              "column": 9
+            },
+            "field": "services.agent.volumes[0]",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:8be83fc8420733f51c300f660f45d558aeeda32134d67b8c96e68b5696af2272",
+        "from": "node:compose_service:dd4e2383dd08b7fa5c6afaeca38f1633222436aa8847804480bff4816aba665f",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.agent",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

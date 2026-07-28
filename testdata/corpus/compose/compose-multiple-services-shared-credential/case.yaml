@@ -1,0 +1,22 @@
+schema_version: 1
+id: compose-multiple-services-shared-credential
+title: The same credential variable is referenced by three services
+description: >
+  Three independent services (api, worker, scheduler) each reference the
+  same credential-shaped variable name. Verifies that CredScope recognizes
+  cross-service credential sharing as a distinct, higher-impact condition
+  compared to a credential confined to a single service.
+category: compose
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD301, CRD306]
+  evidence: [confirmed_static_data_flow]
+  edges: [available_to_service]
+tags: [compose, shared-credential, positive-control]
+forbidden_output_strings: []
+notes: ""

@@ -1,0 +1,3 @@
+[
+  {"RuleID": "generic-api-key", "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_MALFORMED_001", "File": "config/broken.env",
+]

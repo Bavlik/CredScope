@@ -1,0 +1,492 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "gitleaks-secret-and-match-never-in-output",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "auto",
+      "source": "conservative_fallback",
+      "reason": "Repository filenames and supported inputs do not identify one environment profile with sufficient confidence.",
+      "assumptions": [
+        "Deployment environment is uncertain.",
+        "Published ports provide exposure context only.",
+        "Runtime data flow and internet exposure remain unknown."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 1,
+    "informational": 1,
+    "low": 0,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 15,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+        "label": "REDACTION_TEST_KEY",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:262db37486f5ee452e868057e46ec5e5a3b4d2d2e89b775b651ad704b235ec54"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 15,
+      "severity": "informational",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Finding containing [REDACTED] in its description",
+              "location": {
+                "path": "config/redact.env",
+                "line": 21
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53"
+          ],
+          "path_ids": [
+            "path:e09746b4928bc6b7d2cbf4488f99cff6dd34da808933fa5f3a68a864f958aaf6"
+          ],
+          "remediation_id": "REM001"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Finding containing [REDACTED] in its description",
+              "location": {
+                "path": "config/redact.env",
+                "line": 21
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 1,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 0,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:53eab83fb4ea4ea9636a1ace6208434de1e6d8720538e7a532a07d1c5461edc3",
+          "credential_id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+          "nodes": [
+            {
+              "id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+              "type": "credential",
+              "label": "REDACTION_TEST_KEY",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/redact.env",
+                "line": 21
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+              "type": "file",
+              "label": "config/redact.env",
+              "location": {
+                "path": "config/redact.env"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:8dec66ef7e06259bb556df1f09e132a984a6b9acb932211df77f319613019fcf",
+              "from": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+              "to": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:8c3e9df9c97968da3a719a16d230b5e7f847f2b7b4da8789222444396c29e6af",
+              "from": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "to": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:aefa319a2aaf9690a604455eb0b16564d73ca23192e7f677c41e2e07ecbe7ce8",
+          "credential_id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+          "nodes": [
+            {
+              "id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+              "type": "credential",
+              "label": "REDACTION_TEST_KEY",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/redact.env",
+                "line": 21
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+              "type": "file",
+              "label": "config/redact.env",
+              "location": {
+                "path": "config/redact.env"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:8dec66ef7e06259bb556df1f09e132a984a6b9acb932211df77f319613019fcf",
+              "from": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+              "to": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:8c3e9df9c97968da3a719a16d230b5e7f847f2b7b4da8789222444396c29e6af",
+              "from": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "to": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:c28e50121f1205392e6fd52398454fd7f73c1ddee348a36c7968725f7225b74a",
+              "from": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:e09746b4928bc6b7d2cbf4488f99cff6dd34da808933fa5f3a68a864f958aaf6",
+          "credential_id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+          "nodes": [
+            {
+              "id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+              "type": "credential",
+              "label": "REDACTION_TEST_KEY",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": "config/redact.env",
+                "line": 21
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:8dec66ef7e06259bb556df1f09e132a984a6b9acb932211df77f319613019fcf",
+              "from": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+              "to": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:e09746b4928bc6b7d2cbf4488f99cff6dd34da808933fa5f3a68a864f958aaf6"
+          ],
+          "affected_locations": [
+            {
+              "path": "config/redact.env",
+              "line": 21
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+        "type": "credential",
+        "label": "REDACTION_TEST_KEY",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+        "type": "file",
+        "label": "config/redact.env",
+        "location": {
+          "path": "config/redact.env"
+        },
+        "metadata": {
+          "path": "config/redact.env"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Finding containing [REDACTED] in its description",
+            "location": {
+              "path": "config/redact.env",
+              "line": 21
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": "config/redact.env",
+          "line": 21
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Finding containing [REDACTED] in its description",
+            "location": {
+              "path": "config/redact.env",
+              "line": 21
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:8c3e9df9c97968da3a719a16d230b5e7f847f2b7b4da8789222444396c29e6af",
+        "from": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+        "to": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Finding containing [REDACTED] in its description",
+            "location": {
+              "path": "config/redact.env",
+              "line": 21
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:8dec66ef7e06259bb556df1f09e132a984a6b9acb932211df77f319613019fcf",
+        "from": "node:credential:b887391bc35949b782c827fbddd4949c0e214877fbf57a9e35375c84ce00b6a5",
+        "to": "node:finding:b41735637fbd4b2a32c53047ccf25af31eb27aac926e76ac39e99946edf04d53",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Finding containing [REDACTED] in its description",
+            "location": {
+              "path": "config/redact.env",
+              "line": 21
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:c28e50121f1205392e6fd52398454fd7f73c1ddee348a36c7968725f7225b74a",
+        "from": "node:file:d219541b72a4466b962ade23dc80a1da2340d4ad877801a9cec15dcdc00f2aba",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Finding containing [REDACTED] in its description",
+            "location": {
+              "path": "config/redact.env",
+              "line": 21
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

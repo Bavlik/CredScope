@@ -1,0 +1,2414 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "compose-multiple-services-shared-credential",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "auto",
+      "source": "conservative_fallback",
+      "reason": "Repository filenames and supported inputs do not identify one environment profile with sufficient confidence.",
+      "assumptions": [
+        "Deployment environment is uncertain.",
+        "Published ports provide exposure context only.",
+        "Runtime data flow and internet exposure remain unknown."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 1,
+    "informational": 0,
+    "low": 1,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 34,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+        "label": "SHARED_TOKEN",
+        "type": "compose_variable",
+        "classification": "secret",
+        "classification_confidence": "medium",
+        "classification_reason": "A common secret-name suffix suggests secret material, but the name alone is not proof.",
+        "classification_source": "variable_name_heuristic",
+        "expected_secret": true,
+        "rotation_remediation_applicable": false,
+        "test_fixture_candidate": false
+      },
+      "score": 34,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD301",
+          "title": "Credential passed to Compose service",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+            "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "remediation_id": "REM011"
+        },
+        {
+          "rule_id": "CRD306",
+          "title": "Credential shared across multiple services",
+          "category": "docker_compose",
+          "severity": "medium",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+            "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "remediation_id": "REM007"
+        },
+        {
+          "rule_id": "CRD308",
+          "title": "Container user cannot be confirmed as non-root",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "low",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+            "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "remediation_id": "REM016"
+        },
+        {
+          "rule_id": "CRD404",
+          "title": "Credential has multiple independent reachability paths",
+          "category": "cross_component",
+          "severity": "medium",
+          "confidence": "high",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+            "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "remediation_id": "REM007"
+        },
+        {
+          "rule_id": "CRD502",
+          "title": "Runtime permissions cannot be confirmed",
+          "category": "analysis_warning",
+          "severity": "informational",
+          "confidence": "unknown",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+            "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "remediation_id": "REM020"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD301",
+          "description": "Credential passed to Compose service",
+          "base_weight": 8,
+          "adjustments": [
+            {
+              "kind": "affected_components",
+              "percent": 20,
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            }
+          ],
+          "adjusted_weight": 10,
+          "confidence_weight_percent": 100,
+          "final_contribution": 10,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD306",
+          "description": "Credential shared across multiple services",
+          "base_weight": 8,
+          "adjustments": [
+            {
+              "kind": "affected_components",
+              "percent": 20,
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            }
+          ],
+          "adjusted_weight": 10,
+          "confidence_weight_percent": 100,
+          "final_contribution": 10,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD308",
+          "description": "Container user cannot be confirmed as non-root",
+          "base_weight": 3,
+          "adjustments": [
+            {
+              "kind": "affected_components",
+              "percent": 20,
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            }
+          ],
+          "adjusted_weight": 4,
+          "confidence_weight_percent": 40,
+          "final_contribution": 4,
+          "confidence": "low",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD404",
+          "description": "Credential has multiple independent reachability paths",
+          "base_weight": 8,
+          "adjustments": [
+            {
+              "kind": "affected_components",
+              "percent": 20,
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            }
+          ],
+          "adjusted_weight": 10,
+          "confidence_weight_percent": 90,
+          "final_contribution": 10,
+          "confidence": "high",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD502",
+          "description": "Runtime permissions cannot be confirmed",
+          "base_weight": 0,
+          "adjustments": [
+            {
+              "kind": "affected_components",
+              "percent": 20,
+              "description": "Bounded 10% increase for each additional independently affected node (maximum 30%).",
+              "risk_or_confidence": "risk",
+              "profile_changed": false
+            }
+          ],
+          "adjusted_weight": 0,
+          "confidence_weight_percent": 0,
+          "final_contribution": 0,
+          "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 10,
+                "column": 21
+              },
+              "field": "services.worker.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 15,
+                "column": 21
+              },
+              "field": "services.scheduler.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 21
+              },
+              "field": "services.api.environment.SHARED_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "field": "services.scheduler.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.api.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 1,
+        "medium": 0,
+        "low": 1,
+        "unknown": 1,
+        "overall": "high"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 3,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+          "credential_id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+          "nodes": [
+            {
+              "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "type": "credential",
+              "label": "SHARED_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "type": "compose_service",
+              "label": "api",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:4730083e694dd9f24b620a3c6cbb4b6f458945c3ca7ef825fde5ef9b850b08c9",
+              "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:07064525d5df0e0c709407c8af8ba2df80cc2b39cc6458cd90717972b8c5f4da",
+          "credential_id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+          "nodes": [
+            {
+              "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "type": "credential",
+              "label": "SHARED_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "type": "compose_service",
+              "label": "scheduler",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:27023aa2db17e5eab821aa9066501a70988204995e0a8b35ed1d7c5830eb450b",
+              "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "to": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:0309fae92ec42af07fab7c635d318f066cb0a90e661c4d4180975cf8cf1721a3",
+              "from": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+              "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:1dbff93d5b1562aa967dbf15c175732a3e21df6c8526f64739320d3317c06756",
+          "credential_id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+          "nodes": [
+            {
+              "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "type": "credential",
+              "label": "SHARED_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "type": "compose_service",
+              "label": "scheduler",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:27023aa2db17e5eab821aa9066501a70988204995e0a8b35ed1d7c5830eb450b",
+              "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "to": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:0309fae92ec42af07fab7c635d318f066cb0a90e661c4d4180975cf8cf1721a3",
+              "from": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+          "credential_id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+          "nodes": [
+            {
+              "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "type": "credential",
+              "label": "SHARED_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "type": "compose_service",
+              "label": "worker",
+              "location": {
+                "path": "compose.yml",
+                "line": 8,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d2a608bbcacae617ac378830e5401b328c5b58a598a74b6e06413476a471a4c4",
+              "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323",
+          "credential_id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+          "nodes": [
+            {
+              "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "type": "credential",
+              "label": "SHARED_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "type": "compose_service",
+              "label": "scheduler",
+              "location": {
+                "path": "compose.yml",
+                "line": 13,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:27023aa2db17e5eab821aa9066501a70988204995e0a8b35ed1d7c5830eb450b",
+              "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+              "to": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        }
+      ],
+      "warnings": [
+        "CRD502: Runtime permissions cannot be confirmed"
+      ],
+      "remediation_ids": [
+        "REM007",
+        "REM011",
+        "REM016",
+        "REM020"
+      ],
+      "remediations": [
+        {
+          "id": "REM007",
+          "title": "Restrict credential scope",
+          "why": "The credential reaches more workflow or service scope than may be necessary.",
+          "triggering_rule_ids": [
+            "CRD306",
+            "CRD404"
+          ],
+          "evidence_path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 15,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers.",
+          "priority": 3
+        },
+        {
+          "id": "REM011",
+          "title": "Use Compose secrets for sensitive values",
+          "why": "Plain environment mappings broaden credential visibility inside a container and its tooling.",
+          "triggering_rule_ids": [
+            "CRD301"
+          ],
+          "evidence_path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 15,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Use a Compose secret or an external secret injection mechanism supported by the deployment environment, scoped to the receiving service.",
+          "priority": 3
+        },
+        {
+          "id": "REM016",
+          "title": "Use a verified non-root container user",
+          "why": "Static configuration cannot confirm a non-root runtime identity when user is omitted.",
+          "triggering_rule_ids": [
+            "CRD308"
+          ],
+          "evidence_path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 15,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            }
+          ],
+          "confidence": "low",
+          "suggested_action": "Set and verify a dedicated numeric non-root user in the image and Compose service, with only required filesystem permissions.",
+          "priority": 4
+        },
+        {
+          "id": "REM020",
+          "title": "Verify runtime security controls",
+          "why": "Static repository analysis cannot prove effective runtime permissions or external network exposure.",
+          "triggering_rule_ids": [
+            "CRD502"
+          ],
+          "evidence_path_ids": [
+            "path:003e230603471f057b70602562e7e6e1b9b216fb32039661d40840f318f78d9e",
+            "path:820a0f492a91dfb640e79fc84dee17a2de596578ff0e4f6d7e17f55aa1f772a1",
+            "path:a1163f76a169504b6e37aa0848107de7254b21633fc3b94c2ca14e7d72230323"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 15,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            }
+          ],
+          "confidence": "unknown",
+          "suggested_action": "Validate the deployed service identity, capabilities, firewall, bind address, and network policy in the target environment.",
+          "priority": 4
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "type": "compose_service",
+        "label": "api",
+        "location": {
+          "path": "compose.yml",
+          "line": 3,
+          "column": 5
+        },
+        "metadata": {
+          "file": "compose.yml",
+          "host_network": "false",
+          "privileged": "false",
+          "production_like": "false",
+          "user": "",
+          "user_specified": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose service",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.api",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            "field": "services.api.environment.SHARED_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_non_root_user",
+            "description": "Service does not declare a user; this does not prove the container runs as root.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.api.user",
+            "source": "docker-compose",
+            "confidence": "low"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "type": "compose_service",
+        "label": "scheduler",
+        "location": {
+          "path": "compose.yml",
+          "line": 13,
+          "column": 5
+        },
+        "metadata": {
+          "file": "compose.yml",
+          "host_network": "false",
+          "privileged": "false",
+          "production_like": "false",
+          "user": "",
+          "user_specified": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose service",
+            "location": {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            "field": "services.scheduler",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 15,
+              "column": 21
+            },
+            "field": "services.scheduler.environment.SHARED_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_non_root_user",
+            "description": "Service does not declare a user; this does not prove the container runs as root.",
+            "location": {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            "field": "services.scheduler.user",
+            "source": "docker-compose",
+            "confidence": "low"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "compose_service",
+        "label": "worker",
+        "location": {
+          "path": "compose.yml",
+          "line": 8,
+          "column": 5
+        },
+        "metadata": {
+          "file": "compose.yml",
+          "host_network": "false",
+          "privileged": "false",
+          "production_like": "false",
+          "user": "",
+          "user_specified": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose service",
+            "location": {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            },
+            "field": "services.worker",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 21
+            },
+            "field": "services.worker.environment.SHARED_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_non_root_user",
+            "description": "Service does not declare a user; this does not prove the container runs as root.",
+            "location": {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            },
+            "field": "services.worker.user",
+            "source": "docker-compose",
+            "confidence": "low"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+        "type": "credential",
+        "label": "SHARED_TOKEN",
+        "metadata": {
+          "credential_type": "compose_variable"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "file",
+        "label": "compose.yml",
+        "location": {
+          "path": "compose.yml"
+        },
+        "metadata": {
+          "path": "compose.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Docker Compose project",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:0309fae92ec42af07fab7c635d318f066cb0a90e661c4d4180975cf8cf1721a3",
+        "from": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 13,
+              "column": 5
+            },
+            "field": "services.scheduler",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:0d3a2874a6187f06e820925551a756d38f0ae02adb9bb6d1c959830162a349d6",
+        "from": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 8,
+              "column": 5
+            },
+            "field": "services.worker",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:27023aa2db17e5eab821aa9066501a70988204995e0a8b35ed1d7c5830eb450b",
+        "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+        "to": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 15,
+              "column": 21
+            },
+            "field": "services.scheduler.environment.SHARED_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+        "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Compose file belongs to the selected repository.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:4730083e694dd9f24b620a3c6cbb4b6f458945c3ca7ef825fde5ef9b850b08c9",
+        "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+        "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 21
+            },
+            "field": "services.api.environment.SHARED_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:51491ce952801ec6cadc82f86f746f61290698aaacbc2a1625341374d7908023",
+        "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.api",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5407131187272025bfa1c18a21813efbf888bade2e34d6a9db1d57354fd2d7ad",
+        "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "to": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "type": "network_reachable",
+        "evidence_kind": "network_topology_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_network",
+            "description": "Services share a Compose network; this is topology only and does not imply credential transmission.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "id": "edge:6d9b75eddfe8fb1c89f9cceae12df8e948f4c403c4187aaf5b640a1049c33468",
+        "from": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "type": "network_reachable",
+        "evidence_kind": "network_topology_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_network",
+            "description": "Services share a Compose network; this is topology only and does not imply credential transmission.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "id": "edge:812fa89d021097cd46064f103dbd1f01b93c6169ea8772d61b6ceec6ed4e5d3a",
+        "from": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "network_reachable",
+        "evidence_kind": "network_topology_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_network",
+            "description": "Services share a Compose network; this is topology only and does not imply credential transmission.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "id": "edge:9baac2ced8be8accb5dac22663632697a5247e8c02756c381804697bec9d31b9",
+        "from": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "network_reachable",
+        "evidence_kind": "network_topology_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_network",
+            "description": "Services share a Compose network; this is topology only and does not imply credential transmission.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "id": "edge:af70beb575167ea237cde0ae953f721e69e248d768372248fd79cb750e89fde0",
+        "from": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "to": "node:compose_service:657c2bbdb2e531773b924f784e81159ea8c14820e64cbdeb499bf7b9d86246a8",
+        "type": "network_reachable",
+        "evidence_kind": "network_topology_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_network",
+            "description": "Services share a Compose network; this is topology only and does not imply credential transmission.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "id": "edge:d0e27e2096c5be882a0e6f77711dac8282b4d08f3b897b2d3ed0f5c7fb218548",
+        "from": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "to": "node:compose_service:a77de5fa4a64ca2c641d0d583fd289f4f66b7c964d9f890b666c133c1f01203e",
+        "type": "network_reachable",
+        "evidence_kind": "network_topology_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_network",
+            "description": "Services share a Compose network; this is topology only and does not imply credential transmission.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "high"
+      },
+      {
+        "id": "edge:d2a608bbcacae617ac378830e5401b328c5b58a598a74b6e06413476a471a4c4",
+        "from": "node:credential:e5fe73944b095c8a359d1e0938daaa24ebc81d7c0bbf7e4c946ba32dc8d8b689",
+        "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 10,
+              "column": 21
+            },
+            "field": "services.worker.environment.SHARED_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

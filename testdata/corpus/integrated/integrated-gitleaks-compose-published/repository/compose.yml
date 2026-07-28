@@ -1,0 +1,7 @@
+services:
+  api:
+    image: example.invalid/corpus/api:1.0
+    environment:
+      PUBLIC_API_TOKEN: ${PUBLIC_API_TOKEN}
+    ports:
+      - "0.0.0.0:8443:443/tcp"

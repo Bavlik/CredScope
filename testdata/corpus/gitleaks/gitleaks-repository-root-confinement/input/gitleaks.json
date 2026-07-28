@@ -1,0 +1,12 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Adversarial finding path attempting parent traversal",
+    "StartLine": 1,
+    "File": "../../../../etc/passwd",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_TRAVERSAL_001",
+    "Match": "SECRET=CREDSCOPE_TEST_CANARY_GITLEAKS_TRAVERSAL_001",
+    "Key": "TRAVERSAL_ATTEMPT"
+  }
+]

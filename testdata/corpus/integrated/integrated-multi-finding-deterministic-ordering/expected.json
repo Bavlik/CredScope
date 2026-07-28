@@ -1,0 +1,4215 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "integrated-multi-finding-deterministic-ordering",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "auto",
+      "source": "conservative_fallback",
+      "reason": "Repository filenames and supported inputs do not identify one environment profile with sufficient confidence.",
+      "assumptions": [
+        "Deployment environment is uncertain.",
+        "Published ports provide exposure context only.",
+        "Runtime data flow and internet exposure remain unknown."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 4,
+    "informational": 0,
+    "low": 4,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 26,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+        "label": "DELTA_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:2a05ea57ab7788fdb4c2dfc32765b35e9c34bcb54446c3c95d5b10c9e83b5243"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 26,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding DELTA",
+              "location": {
+                "path": ".env.example",
+                "line": 4
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f"
+          ],
+          "path_ids": [
+            "path:80158a239f6a718a6ad58ed42edcdc23b3d7444023e618d34223eeb45830b802"
+          ],
+          "remediation_id": "REM001"
+        },
+        {
+          "rule_id": "CRD301",
+          "title": "Credential passed to Compose service",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0"
+          ],
+          "remediation_id": "REM011"
+        },
+        {
+          "rule_id": "CRD308",
+          "title": "Container user cannot be confirmed as non-root",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "low",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0"
+          ],
+          "remediation_id": "REM016"
+        },
+        {
+          "rule_id": "CRD502",
+          "title": "Runtime permissions cannot be confirmed",
+          "category": "analysis_warning",
+          "severity": "informational",
+          "confidence": "unknown",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0"
+          ],
+          "remediation_id": "REM020"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding DELTA",
+              "location": {
+                "path": ".env.example",
+                "line": 4
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD301",
+          "description": "Credential passed to Compose service",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD308",
+          "description": "Container user cannot be confirmed as non-root",
+          "base_weight": 3,
+          "adjustments": [],
+          "adjusted_weight": 3,
+          "confidence_weight_percent": 40,
+          "final_contribution": 3,
+          "confidence": "low",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD502",
+          "description": "Runtime permissions cannot be confirmed",
+          "base_weight": 0,
+          "adjustments": [],
+          "adjusted_weight": 0,
+          "confidence_weight_percent": 0,
+          "final_contribution": 0,
+          "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 0,
+        "medium": 0,
+        "low": 1,
+        "unknown": 1,
+        "overall": "high"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 1,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:09d230bc0bf7f7cac948555cf8150898313290c6772409cab56062c38ad95f85",
+          "credential_id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+          "nodes": [
+            {
+              "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "type": "credential",
+              "label": "DELTA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 4
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f6176e829f465e22d7d09e2d51c8b3b3938a1ac704f559080e6653d5d07fa6ef",
+              "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "to": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:75653830d1db1b723997fb0b4055393d8e5711405f3f1c39fb3c5b57ca79c38b",
+              "from": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:dc82e21b39da98bb24313116697b06fb7a05327b3946ea40f47eb9df46e3980c",
+              "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:80158a239f6a718a6ad58ed42edcdc23b3d7444023e618d34223eeb45830b802",
+          "credential_id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+          "nodes": [
+            {
+              "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "type": "credential",
+              "label": "DELTA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 4
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f6176e829f465e22d7d09e2d51c8b3b3938a1ac704f559080e6653d5d07fa6ef",
+              "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "to": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:957ec3f1b532e3131bfa9390caf126bd9e7913200f0f4ebbe522392802b9984a",
+          "credential_id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+          "nodes": [
+            {
+              "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "type": "credential",
+              "label": "DELTA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 4
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f6176e829f465e22d7d09e2d51c8b3b3938a1ac704f559080e6653d5d07fa6ef",
+              "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "to": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:75653830d1db1b723997fb0b4055393d8e5711405f3f1c39fb3c5b57ca79c38b",
+              "from": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0",
+          "credential_id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+          "nodes": [
+            {
+              "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "type": "credential",
+              "label": "DELTA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "type": "compose_service",
+              "label": "worker",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:563552a7caeb3f0d3fe2cbcfdddd5a64bbb23b1f09b64017a8c7346937a5e3fc",
+              "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:adaf4b5ce5f01b5e7291b2255a41c4dc0b168023fb7855a2ec5b3b2146cd6a10",
+          "credential_id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+          "nodes": [
+            {
+              "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "type": "credential",
+              "label": "DELTA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "type": "compose_service",
+              "label": "worker",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:563552a7caeb3f0d3fe2cbcfdddd5a64bbb23b1f09b64017a8c7346937a5e3fc",
+              "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+              "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:c46dac864129522ec114fcdff1949f3da3eff4c8fb66fffb6f316d8f9afa67c1",
+              "from": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [
+        "CRD502: Runtime permissions cannot be confirmed"
+      ],
+      "remediation_ids": [
+        "REM001",
+        "REM011",
+        "REM016",
+        "REM020"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:80158a239f6a718a6ad58ed42edcdc23b3d7444023e618d34223eeb45830b802"
+          ],
+          "affected_locations": [
+            {
+              "path": ".env.example",
+              "line": 4
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        },
+        {
+          "id": "REM011",
+          "title": "Use Compose secrets for sensitive values",
+          "why": "Plain environment mappings broaden credential visibility inside a container and its tooling.",
+          "triggering_rule_ids": [
+            "CRD301"
+          ],
+          "evidence_path_ids": [
+            "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Use a Compose secret or an external secret injection mechanism supported by the deployment environment, scoped to the receiving service.",
+          "priority": 3
+        },
+        {
+          "id": "REM016",
+          "title": "Use a verified non-root container user",
+          "why": "Static configuration cannot confirm a non-root runtime identity when user is omitted.",
+          "triggering_rule_ids": [
+            "CRD308"
+          ],
+          "evidence_path_ids": [
+            "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            }
+          ],
+          "confidence": "low",
+          "suggested_action": "Set and verify a dedicated numeric non-root user in the image and Compose service, with only required filesystem permissions.",
+          "priority": 4
+        },
+        {
+          "id": "REM020",
+          "title": "Verify runtime security controls",
+          "why": "Static repository analysis cannot prove effective runtime permissions or external network exposure.",
+          "triggering_rule_ids": [
+            "CRD502"
+          ],
+          "evidence_path_ids": [
+            "path:97fad986423e504d55be0aed57bad95d25735c8aa55a9981002931bf3d8290a0"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            }
+          ],
+          "confidence": "unknown",
+          "suggested_action": "Validate the deployed service identity, capabilities, firewall, bind address, and network policy in the target environment.",
+          "priority": 4
+        }
+      ]
+    },
+    {
+      "credential": {
+        "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+        "label": "GAMMA_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:d9ff69a8a77e0211b0b299c3de5e016e97d9b044b5d94c53796006d32315c54e"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 26,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding GAMMA",
+              "location": {
+                "path": ".env.example",
+                "line": 3
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138"
+          ],
+          "path_ids": [
+            "path:215ef7275864fe9f0e898310204b3a8eb3e89d3b68c925526d02ffe46b1bc2eb"
+          ],
+          "remediation_id": "REM001"
+        },
+        {
+          "rule_id": "CRD301",
+          "title": "Credential passed to Compose service",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5"
+          ],
+          "remediation_id": "REM011"
+        },
+        {
+          "rule_id": "CRD308",
+          "title": "Container user cannot be confirmed as non-root",
+          "category": "docker_compose",
+          "severity": "low",
+          "confidence": "low",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5"
+          ],
+          "remediation_id": "REM016"
+        },
+        {
+          "rule_id": "CRD502",
+          "title": "Runtime permissions cannot be confirmed",
+          "category": "analysis_warning",
+          "severity": "informational",
+          "confidence": "unknown",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ],
+          "affected_node_ids": [
+            "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e"
+          ],
+          "path_ids": [
+            "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5"
+          ],
+          "remediation_id": "REM020"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding GAMMA",
+              "location": {
+                "path": ".env.example",
+                "line": 3
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD301",
+          "description": "Credential passed to Compose service",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD308",
+          "description": "Container user cannot be confirmed as non-root",
+          "base_weight": 3,
+          "adjustments": [],
+          "adjusted_weight": 3,
+          "confidence_weight_percent": 40,
+          "final_contribution": 3,
+          "confidence": "low",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD502",
+          "description": "Runtime permissions cannot be confirmed",
+          "base_weight": 0,
+          "adjustments": [],
+          "adjusted_weight": 0,
+          "confidence_weight_percent": 0,
+          "final_contribution": 0,
+          "confidence": "unknown",
+          "condition_status": "inferred",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Compose service",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 5,
+                "column": 20
+              },
+              "field": "services.worker.environment.GAMMA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:credential_passed_to_service",
+              "description": "A credential-like variable reference is passed to this service.",
+              "location": {
+                "path": "compose.yml",
+                "line": 6,
+                "column": 20
+              },
+              "field": "services.worker.environment.DELTA_TOKEN",
+              "source": "docker-compose",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:missing_explicit_non_root_user",
+              "description": "Service does not declare a user; this does not prove the container runs as root.",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "field": "services.worker.user",
+              "source": "docker-compose",
+              "confidence": "low"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 0,
+        "medium": 0,
+        "low": 1,
+        "unknown": 1,
+        "overall": "high"
+      },
+      "reachable": {
+        "workflows": 0,
+        "jobs": 0,
+        "services": 1,
+        "permissions": 0,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:18f687e946396c7b4a5e4cfc4331b79df76268aebfb96f3ae6804597f39f4785",
+          "credential_id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+          "nodes": [
+            {
+              "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "type": "credential",
+              "label": "GAMMA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 3
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:7b453d23887158ba56d51e98a2a790d4b690fc255b2009c9a0db4556b24a304e",
+              "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "to": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:f35fd6f86790906f2eb3431dbfc59cf2c051917348a92d024afbd5408f19e2cf",
+              "from": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:215ef7275864fe9f0e898310204b3a8eb3e89d3b68c925526d02ffe46b1bc2eb",
+          "credential_id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+          "nodes": [
+            {
+              "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "type": "credential",
+              "label": "GAMMA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 3
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:7b453d23887158ba56d51e98a2a790d4b690fc255b2009c9a0db4556b24a304e",
+              "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "to": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:51b73e5b4e7ddf651bb37e6d5925e98a20549bbeb47fe375bd4a4ce7eaa09048",
+          "credential_id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+          "nodes": [
+            {
+              "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "type": "credential",
+              "label": "GAMMA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 3
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:7b453d23887158ba56d51e98a2a790d4b690fc255b2009c9a0db4556b24a304e",
+              "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "to": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:f35fd6f86790906f2eb3431dbfc59cf2c051917348a92d024afbd5408f19e2cf",
+              "from": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:09d6db1840628fd25c9b8530d03cd4aebdf21edf7b976039fc036f0ed15f78b9",
+              "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:a568b55c49f39e75a6daf42d80a92b06b09bd9324631cb2ac368ea23b995a9a5",
+          "credential_id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+          "nodes": [
+            {
+              "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "type": "credential",
+              "label": "GAMMA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "type": "compose_service",
+              "label": "worker",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "type": "file",
+              "label": "compose.yml",
+              "location": {
+                "path": "compose.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:a8f909bced466b52815e6e484ece4836e207584d0b186cbd59e60041f1a53f95",
+              "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:c46dac864129522ec114fcdff1949f3da3eff4c8fb66fffb6f316d8f9afa67c1",
+              "from": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5",
+          "credential_id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+          "nodes": [
+            {
+              "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "type": "credential",
+              "label": "GAMMA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "type": "compose_service",
+              "label": "worker",
+              "location": {
+                "path": "compose.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:a8f909bced466b52815e6e484ece4836e207584d0b186cbd59e60041f1a53f95",
+              "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+              "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+              "relationship": "available_to_service",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        }
+      ],
+      "warnings": [
+        "CRD502: Runtime permissions cannot be confirmed"
+      ],
+      "remediation_ids": [
+        "REM001",
+        "REM011",
+        "REM016",
+        "REM020"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:215ef7275864fe9f0e898310204b3a8eb3e89d3b68c925526d02ffe46b1bc2eb"
+          ],
+          "affected_locations": [
+            {
+              "path": ".env.example",
+              "line": 3
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        },
+        {
+          "id": "REM011",
+          "title": "Use Compose secrets for sensitive values",
+          "why": "Plain environment mappings broaden credential visibility inside a container and its tooling.",
+          "triggering_rule_ids": [
+            "CRD301"
+          ],
+          "evidence_path_ids": [
+            "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Use a Compose secret or an external secret injection mechanism supported by the deployment environment, scoped to the receiving service.",
+          "priority": 3
+        },
+        {
+          "id": "REM016",
+          "title": "Use a verified non-root container user",
+          "why": "Static configuration cannot confirm a non-root runtime identity when user is omitted.",
+          "triggering_rule_ids": [
+            "CRD308"
+          ],
+          "evidence_path_ids": [
+            "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            }
+          ],
+          "confidence": "low",
+          "suggested_action": "Set and verify a dedicated numeric non-root user in the image and Compose service, with only required filesystem permissions.",
+          "priority": 4
+        },
+        {
+          "id": "REM020",
+          "title": "Verify runtime security controls",
+          "why": "Static repository analysis cannot prove effective runtime permissions or external network exposure.",
+          "triggering_rule_ids": [
+            "CRD502"
+          ],
+          "evidence_path_ids": [
+            "path:c1a83cfb0165770b972d53868ab227b6c499297221de37751355c1e64a3742b5"
+          ],
+          "affected_locations": [
+            {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            }
+          ],
+          "confidence": "unknown",
+          "suggested_action": "Validate the deployed service identity, capabilities, firewall, bind address, and network policy in the target environment.",
+          "priority": 4
+        }
+      ]
+    },
+    {
+      "credential": {
+        "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "label": "ALPHA_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:f95bd1c7aa9f1d6813c57a9316e476e62e8a8dccfce31d37a0ab8a2ae83f1329"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 23,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding ALPHA",
+              "location": {
+                "path": ".env.example",
+                "line": 1
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c"
+          ],
+          "path_ids": [
+            "path:b2b2d9debaa4123da8a4b9be7ed2ae57a18366f2b02caf5d7e4b14b1f9160874"
+          ],
+          "remediation_id": "REM001"
+        },
+        {
+          "rule_id": "CRD102",
+          "title": "Credential referenced by workflow",
+          "category": "github_actions",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34"
+          ],
+          "path_ids": [
+            "path:30400d64bbc782b957a6cdf314b3617fdbf758d07aeaecf4ee55e1cb89c39d5b"
+          ],
+          "remediation_id": "REM007"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding ALPHA",
+              "location": {
+                "path": ".env.example",
+                "line": 1
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD102",
+          "description": "Credential referenced by workflow",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 1,
+        "jobs": 1,
+        "services": 0,
+        "permissions": 1,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:09d6d9c42b623f0d6855ebc952b2ca2a683a702c8190d164c9a4f3f90da1948a",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:ed5c46178c52c937f403ea351ade2663675654a8089902e0d638826e0d6650c8",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:0c65425155932fd15120f0f1703665d1c9d3ca858cd745bc44d9e12bf4062d3d",
+              "from": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:5f112d72d450d8a272b3a22d12447b52f68536ba76ee52b5952c95d8bb1b62af",
+              "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:1ae8c4f9ffad1f83a5c679e0849e638fe87e953efa1c0dd74ed19c8dba6c5cc5",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+              "type": "job",
+              "label": "build",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 12,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:0d3e3d1210b18dbe12014acb8e43a0543fb187eb0a54eb5008c9194a501489eb",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+              "relationship": "explicitly_forwarded_to",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:30400d64bbc782b957a6cdf314b3617fdbf758d07aeaecf4ee55e1cb89c39d5b",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f4e832cf927efd00cf9a0d69418f9490a6a2d445663dce91c1be512d7ac71976",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:3c0ebd7b767f20276b094d8db6430c3d87290b458376282b80d3e140ac925463",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:permission:6e7e3b259c1ee9c7c6c1495388c4eb55994e9f3cf23793c0cfbefea8bc483ee5",
+              "type": "permission",
+              "label": "contents:read",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 8,
+                "column": 13
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f4e832cf927efd00cf9a0d69418f9490a6a2d445663dce91c1be512d7ac71976",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:525d59151307d3c33eed77f3cb9ba192b687633259fc20cdbd5bf089de96f093",
+              "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "to": "node:permission:6e7e3b259c1ee9c7c6c1495388c4eb55994e9f3cf23793c0cfbefea8bc483ee5",
+              "relationship": "has_permission",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:98813594161e7b20e6087125f32da2e8ae3eec8f09eb9bc8ff70c8c8fbb78c39",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:ed5c46178c52c937f403ea351ade2663675654a8089902e0d638826e0d6650c8",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:0c65425155932fd15120f0f1703665d1c9d3ca858cd745bc44d9e12bf4062d3d",
+              "from": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:b2b2d9debaa4123da8a4b9be7ed2ae57a18366f2b02caf5d7e4b14b1f9160874",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 1
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:ed5c46178c52c937f403ea351ade2663675654a8089902e0d638826e0d6650c8",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:c1603c1e76491a2985c3d7437c4d63c015c243447f90c71365bbaa6ddf7a5fbe",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+              "type": "step",
+              "label": "Use both tokens",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 17,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d59f948153b91fcc64e5b530bdf9ca9ab5600d1dce4920a23471fff4e8a32057",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+              "relationship": "available_to_process",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:d2129a5a488ec585be78a98b139c33bf12f6d116c57b5e4e2a1a717eea913964",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:trigger:f19c79d671db8c2fd907371d4ee2c4f363782034599d89ebd94cdae6dbd4c052",
+              "type": "trigger",
+              "label": "push",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 4,
+                "column": 3
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f4e832cf927efd00cf9a0d69418f9490a6a2d445663dce91c1be512d7ac71976",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:f54cf6c8cf31495585cce0fd875c7f9316ac8c91dfd1acac9d399902cd91cacf",
+              "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "to": "node:trigger:f19c79d671db8c2fd907371d4ee2c4f363782034599d89ebd94cdae6dbd4c052",
+              "relationship": "triggered_by",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:d4e41403b8b9024f67125b0701d6142a7435627fc83e0e84087d71b832bec8f3",
+          "credential_id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+          "nodes": [
+            {
+              "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "type": "credential",
+              "label": "ALPHA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+              "type": "file",
+              "label": ".github/workflows/ci.yml",
+              "location": {
+                "path": ".github/workflows/ci.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:f4e832cf927efd00cf9a0d69418f9490a6a2d445663dce91c1be512d7ac71976",
+              "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:56d186ebfc6613760e58f8230c303f42402d78f81e05ba14106472a94326c770",
+              "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "to": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001",
+        "REM007"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:b2b2d9debaa4123da8a4b9be7ed2ae57a18366f2b02caf5d7e4b14b1f9160874"
+          ],
+          "affected_locations": [
+            {
+              "path": ".env.example",
+              "line": 1
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        },
+        {
+          "id": "REM007",
+          "title": "Restrict credential scope",
+          "why": "The credential reaches more workflow or service scope than may be necessary.",
+          "triggering_rule_ids": [
+            "CRD102"
+          ],
+          "evidence_path_ids": [
+            "path:30400d64bbc782b957a6cdf314b3617fdbf758d07aeaecf4ee55e1cb89c39d5b"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers.",
+          "priority": 3
+        }
+      ]
+    },
+    {
+      "credential": {
+        "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "label": "BETA_TOKEN",
+        "type": "generic-api-key",
+        "fingerprints": [
+          "sha256:0c860314e7722cc6e2b756e15c8d2dc7bce0d3a0c0c1bb3352bebe2366203b08"
+        ],
+        "classification": "secret",
+        "classification_confidence": "confirmed",
+        "classification_reason": "An imported secret-scanner finding independently indicates secret-like content.",
+        "classification_source": "imported_scanner_finding",
+        "expected_secret": true,
+        "rotation_remediation_applicable": true,
+        "test_fixture_candidate": false
+      },
+      "score": 23,
+      "severity": "low",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD101",
+          "title": "Credential finding imported",
+          "category": "credential_exposure",
+          "severity": "informational",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding BETA",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2"
+          ],
+          "path_ids": [
+            "path:fa02c90e8c37221a9602bb97c12ff893867bcbc882ad49e13598201810d7da65"
+          ],
+          "remediation_id": "REM001"
+        },
+        {
+          "rule_id": "CRD102",
+          "title": "Credential referenced by workflow",
+          "category": "github_actions",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34"
+          ],
+          "path_ids": [
+            "path:6100670ec9c202f18dcc5a0fcd5fd7e95235206b946401cbbf7f5c7758377021"
+          ],
+          "remediation_id": "REM007"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD101",
+          "description": "Credential finding imported",
+          "base_weight": 15,
+          "adjustments": [],
+          "adjusted_weight": 15,
+          "confidence_weight_percent": 100,
+          "final_contribution": 15,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "generic-api-key",
+              "type": "scanner_finding",
+              "description": "Synthetic finding BETA",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "field": "finding",
+              "source": "gitleaks",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD102",
+          "description": "Credential referenced by workflow",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 2,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 1,
+        "jobs": 1,
+        "services": 0,
+        "permissions": 1,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:1d974c07b6f4b5abf073343dbabb80898dd3dc5c2865c0ae22923b1330030d0b",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e5e60a93f74a7bbdc71c9ef58519fcbc66e97edf82828c4f2d2438433736461e",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:78a654735ab2fefd3b7b0a7f7bf6f8f028ace12a33e6d860c49f76b0f925efba",
+              "from": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:5f112d72d450d8a272b3a22d12447b52f68536ba76ee52b5952c95d8bb1b62af",
+              "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:27767e47b930ce03feb3fb51bebbb1a1435fe3b3f135782d5e9ec26dc64778b2",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+              "type": "job",
+              "label": "build",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 12,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:52e23395e3b00c53cf7743cfb3a9462fa49c22d1d13773668286af2fb0467de8",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:4339d6ffd658b4b7ade665a1ad07eaf3aa14631d278bc0b5588b6f9b2e7300d9",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "type": "file",
+              "label": ".env.example",
+              "location": {
+                "path": ".env.example"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e5e60a93f74a7bbdc71c9ef58519fcbc66e97edf82828c4f2d2438433736461e",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:78a654735ab2fefd3b7b0a7f7bf6f8f028ace12a33e6d860c49f76b0f925efba",
+              "from": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:4cf871b1ffac02884875a80f79b8bb21324757124082e64f5d2ab75d5ec65539",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+              "type": "step",
+              "label": "Use both tokens",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 17,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:32945c35c72253abc4cbf9084461483e4f07a605b7850c29492de9da462d1759",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+              "relationship": "available_to_process",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:6100670ec9c202f18dcc5a0fcd5fd7e95235206b946401cbbf7f5c7758377021",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:082dc4d1f477f81d138d8f517845aff02e8de1a321bfdbcc03a00fd8dc3b708f",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:83a432cc0a317fe123233d336e408f2237561c7f2480753b758c002370e29db7",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:permission:6e7e3b259c1ee9c7c6c1495388c4eb55994e9f3cf23793c0cfbefea8bc483ee5",
+              "type": "permission",
+              "label": "contents:read",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 8,
+                "column": 13
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:082dc4d1f477f81d138d8f517845aff02e8de1a321bfdbcc03a00fd8dc3b708f",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:525d59151307d3c33eed77f3cb9ba192b687633259fc20cdbd5bf089de96f093",
+              "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "to": "node:permission:6e7e3b259c1ee9c7c6c1495388c4eb55994e9f3cf23793c0cfbefea8bc483ee5",
+              "relationship": "has_permission",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:9030b2f38f6f729cf71fbcaaeb689c705326f9300b91894751afbdb203e83b12",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:trigger:f19c79d671db8c2fd907371d4ee2c4f363782034599d89ebd94cdae6dbd4c052",
+              "type": "trigger",
+              "label": "push",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 4,
+                "column": 3
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:082dc4d1f477f81d138d8f517845aff02e8de1a321bfdbcc03a00fd8dc3b708f",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:f54cf6c8cf31495585cce0fd875c7f9316ac8c91dfd1acac9d399902cd91cacf",
+              "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "to": "node:trigger:f19c79d671db8c2fd907371d4ee2c4f363782034599d89ebd94cdae6dbd4c052",
+              "relationship": "triggered_by",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:d9fe0c4546c1d0b276915f20069812b65d59b8b7f8a2616cc979d0415bc3cf51",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "type": "workflow",
+              "label": "Multi-finding CI",
+              "location": {
+                "path": ".github/workflows/ci.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+              "type": "file",
+              "label": ".github/workflows/ci.yml",
+              "location": {
+                "path": ".github/workflows/ci.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:082dc4d1f477f81d138d8f517845aff02e8de1a321bfdbcc03a00fd8dc3b708f",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:56d186ebfc6613760e58f8230c303f42402d78f81e05ba14106472a94326c770",
+              "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+              "to": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:fa02c90e8c37221a9602bb97c12ff893867bcbc882ad49e13598201810d7da65",
+          "credential_id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+          "nodes": [
+            {
+              "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "type": "credential",
+              "label": "BETA_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "type": "finding",
+              "label": "generic-api-key",
+              "location": {
+                "path": ".env.example",
+                "line": 2
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:e5e60a93f74a7bbdc71c9ef58519fcbc66e97edf82828c4f2d2438433736461e",
+              "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+              "to": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM001",
+        "REM007"
+      ],
+      "remediations": [
+        {
+          "id": "REM001",
+          "title": "Rotate the exposed credential",
+          "why": "A scanner finding indicates credential material was present in repository content.",
+          "triggering_rule_ids": [
+            "CRD101"
+          ],
+          "evidence_path_ids": [
+            "path:fa02c90e8c37221a9602bb97c12ff893867bcbc882ad49e13598201810d7da65"
+          ],
+          "affected_locations": [
+            {
+              "path": ".env.example",
+              "line": 2
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Revoke or rotate the credential through its provider, update authorized consumers, and remove exposed history using the provider's incident procedure.",
+          "priority": 1
+        },
+        {
+          "id": "REM007",
+          "title": "Restrict credential scope",
+          "why": "The credential reaches more workflow or service scope than may be necessary.",
+          "triggering_rule_ids": [
+            "CRD102"
+          ],
+          "evidence_path_ids": [
+            "path:6100670ec9c202f18dcc5a0fcd5fd7e95235206b946401cbbf7f5c7758377021"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers.",
+          "priority": 3
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "compose_service",
+        "label": "worker",
+        "location": {
+          "path": "compose.yml",
+          "line": 3,
+          "column": 5
+        },
+        "metadata": {
+          "file": "compose.yml",
+          "host_network": "false",
+          "privileged": "false",
+          "production_like": "false",
+          "user": "",
+          "user_specified": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Compose service",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.worker",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            "field": "services.worker.environment.GAMMA_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:credential_passed_to_service",
+            "description": "A credential-like variable reference is passed to this service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            },
+            "field": "services.worker.environment.DELTA_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_non_root_user",
+            "description": "Service does not declare a user; this does not prove the container runs as root.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.worker.user",
+            "source": "docker-compose",
+            "confidence": "low"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+        "type": "credential",
+        "label": "GAMMA_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "type": "credential",
+        "label": "ALPHA_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "type": "credential",
+        "label": "BETA_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+        "type": "credential",
+        "label": "DELTA_TOKEN",
+        "metadata": {
+          "credential_type": "generic-api-key"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+        "type": "file",
+        "label": ".github/workflows/ci.yml",
+        "location": {
+          "path": ".github/workflows/ci.yml"
+        },
+        "metadata": {
+          "path": ".github/workflows/ci.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "file",
+        "label": "compose.yml",
+        "location": {
+          "path": "compose.yml"
+        },
+        "metadata": {
+          "path": "compose.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Docker Compose project",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "file",
+        "label": ".env.example",
+        "location": {
+          "path": ".env.example"
+        },
+        "metadata": {
+          "path": ".env.example"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding ALPHA",
+            "location": {
+              "path": ".env.example",
+              "line": 1
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding BETA",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding DELTA",
+            "location": {
+              "path": ".env.example",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding GAMMA",
+            "location": {
+              "path": ".env.example",
+              "line": 3
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": ".env.example",
+          "line": 4
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding DELTA",
+            "location": {
+              "path": ".env.example",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": ".env.example",
+          "line": 3
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding GAMMA",
+            "location": {
+              "path": ".env.example",
+              "line": 3
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": ".env.example",
+          "line": 2
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding BETA",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+        "type": "finding",
+        "label": "generic-api-key",
+        "location": {
+          "path": ".env.example",
+          "line": 1
+        },
+        "metadata": {
+          "rule_id": "generic-api-key",
+          "scanner": "gitleaks"
+        },
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding ALPHA",
+            "location": {
+              "path": ".env.example",
+              "line": 1
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "type": "job",
+        "label": "build",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 12,
+          "column": 5
+        },
+        "metadata": {
+          "job_id": "build",
+          "workflow": "Multi-finding CI"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow job",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 12,
+              "column": 5
+            },
+            "field": "jobs.build",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:secret_copied_to_environment",
+            "description": "A secret reference is copied into job-level environment scope.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 20
+            },
+            "field": "job.build.env.ALPHA_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:secret_copied_to_environment",
+            "description": "A secret reference is copied into job-level environment scope.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 19
+            },
+            "field": "job.build.env.BETA_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:permission:6e7e3b259c1ee9c7c6c1495388c4eb55994e9f3cf23793c0cfbefea8bc483ee5",
+        "type": "permission",
+        "label": "contents:read",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 8,
+          "column": 13
+        },
+        "metadata": {
+          "level": "read",
+          "scope": "contents"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Repository permission",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 8,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+        "type": "step",
+        "label": "Use both tokens",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 17,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "true",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 17,
+              "column": 9
+            },
+            "field": "jobs.build.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:trigger:f19c79d671db8c2fd907371d4ee2c4f363782034599d89ebd94cdae6dbd4c052",
+        "type": "trigger",
+        "label": "push",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 4,
+          "column": 3
+        },
+        "metadata": {
+          "name": "push"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow trigger",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.push",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "type": "workflow",
+        "label": "Multi-finding CI",
+        "location": {
+          "path": ".github/workflows/ci.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "file": ".github/workflows/ci.yml",
+          "missing_explicit_permissions": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:05c16a2106d390474970dca210d460b45b6a78ea81917d7043facc288077df0c",
+        "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding GAMMA",
+            "location": {
+              "path": ".env.example",
+              "line": 3
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:082dc4d1f477f81d138d8f517845aff02e8de1a321bfdbcc03a00fd8dc3b708f",
+        "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 19
+            },
+            "field": "jobs.build",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:09d6db1840628fd25c9b8530d03cd4aebdf21edf7b976039fc036f0ed15f78b9",
+        "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding DELTA",
+            "location": {
+              "path": ".env.example",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:0c65425155932fd15120f0f1703665d1c9d3ca858cd745bc44d9e12bf4062d3d",
+        "from": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+        "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding ALPHA",
+            "location": {
+              "path": ".env.example",
+              "line": 1
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:0d3e3d1210b18dbe12014acb8e43a0543fb187eb0a54eb5008c9194a501489eb",
+        "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "type": "explicitly_forwarded_to",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_environment",
+            "description": "Reference is explicitly forwarded into job-level environment scope.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 20
+            },
+            "field": "job.build.env.ALPHA_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:1ea49b68e6ed1d18e24a1b6fea1901fd1312885ce411d669b0410b9cc8947ba9",
+        "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 20
+            },
+            "field": "jobs.build",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:253982a6715feac05b67b6e5f7870fee6510efe610ae7946c1a1d4f4254a250d",
+        "from": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 12,
+              "column": 5
+            },
+            "field": "jobs.build",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:2cb7c5f99503c54745ffacb974019af11a22728b541ab9cbdd0c4c134431f4a6",
+        "from": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Compose file belongs to the selected repository.",
+            "location": {
+              "path": "compose.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:32945c35c72253abc4cbf9084461483e4f07a605b7850c29492de9da462d1759",
+        "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "to": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+        "type": "available_to_process",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "inherited_environment",
+            "description": "Environment reference is available to this workflow step.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 19
+            },
+            "field": "job.build.env.BETA_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:525d59151307d3c33eed77f3cb9ba192b687633259fc20cdbd5bf089de96f093",
+        "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "to": "node:permission:6e7e3b259c1ee9c7c6c1495388c4eb55994e9f3cf23793c0cfbefea8bc483ee5",
+        "type": "has_permission",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "permission",
+            "description": "Explicit GitHub Actions permission.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 8,
+              "column": 13
+            },
+            "field": "workflow.permissions.contents",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:52e23395e3b00c53cf7743cfb3a9462fa49c22d1d13773668286af2fb0467de8",
+        "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 19
+            },
+            "field": "jobs.build",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:563552a7caeb3f0d3fe2cbcfdddd5a64bbb23b1f09b64017a8c7346937a5e3fc",
+        "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+        "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 6,
+              "column": 20
+            },
+            "field": "services.worker.environment.DELTA_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:56d186ebfc6613760e58f8230c303f42402d78f81e05ba14106472a94326c770",
+        "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "to": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:5f112d72d450d8a272b3a22d12447b52f68536ba76ee52b5952c95d8bb1b62af",
+        "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding ALPHA",
+            "location": {
+              "path": ".env.example",
+              "line": 1
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:75653830d1db1b723997fb0b4055393d8e5711405f3f1c39fb3c5b57ca79c38b",
+        "from": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+        "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding DELTA",
+            "location": {
+              "path": ".env.example",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:78a654735ab2fefd3b7b0a7f7bf6f8f028ace12a33e6d860c49f76b0f925efba",
+        "from": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+        "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding BETA",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:7b453d23887158ba56d51e98a2a790d4b690fc255b2009c9a0db4556b24a304e",
+        "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+        "to": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding GAMMA",
+            "location": {
+              "path": ".env.example",
+              "line": 3
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a8f909bced466b52815e6e484ece4836e207584d0b186cbd59e60041f1a53f95",
+        "from": "node:credential:000f2f3c159822c9cf29b1fa0b0e142165f712ac2c28ae6adb1b061be24c2cf2",
+        "to": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "type": "available_to_service",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_credential_reference",
+            "description": "Reference is available to this Compose service.",
+            "location": {
+              "path": "compose.yml",
+              "line": 5,
+              "column": 20
+            },
+            "field": "services.worker.environment.GAMMA_TOKEN",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:ab176ebd3ee32665122b87a1860e7e9f6be856a31860f7daef1cd7fdfc74ada0",
+        "from": "node:file:9db1a0581a2eab396bfbd7ab208cc62bb350ec901378ad74c3df421e41133805",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Workflow file belongs to the selected repository.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:c46dac864129522ec114fcdff1949f3da3eff4c8fb66fffb6f316d8f9afa67c1",
+        "from": "node:compose_service:bfd5f1e2e05909c38183d2755282e2af3288309ffbef9f944c8649e241bab12e",
+        "to": "node:file:a3e649d9d9b419892070a6c4c8385cf62f0d55e8588325523a33ab1e85974eea",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "compose_service",
+            "description": "Service is defined in this Compose file.",
+            "location": {
+              "path": "compose.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "services.worker",
+            "source": "docker-compose",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:d59f948153b91fcc64e5b530bdf9ca9ab5600d1dce4920a23471fff4e8a32057",
+        "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "to": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+        "type": "available_to_process",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "inherited_environment",
+            "description": "Environment reference is available to this workflow step.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 20
+            },
+            "field": "job.build.env.ALPHA_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:dc82e21b39da98bb24313116697b06fb7a05327b3946ea40f47eb9df46e3980c",
+        "from": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding BETA",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:e2bbc6f3ef46c30d99637c08ab89ac100e240653d4999a9b939824b7523b5f71",
+        "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "type": "explicitly_forwarded_to",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_environment",
+            "description": "Reference is explicitly forwarded into job-level environment scope.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 15,
+              "column": 19
+            },
+            "field": "job.build.env.BETA_TOKEN",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:e5e60a93f74a7bbdc71c9ef58519fcbc66e97edf82828c4f2d2438433736461e",
+        "from": "node:credential:b0e018d804c640f98bc158304055ce72af205c6a43bdadc28ca5126a14575e84",
+        "to": "node:finding:9f2db9636c5b4bfbf2894d681ee8bca9ec679056e8dfd08d60970c5efa3a46b2",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding BETA",
+            "location": {
+              "path": ".env.example",
+              "line": 2
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:e6e716a6bc152a97a8a59237d94cbc7df5678358c9898ee887af991e3504e5b6",
+        "from": "node:step:8bab61460bed6d12dbbe63f71141c69786545b9a7dba4c6887692c969118b90a",
+        "to": "node:job:fa9b55477324f1eca0df4357e5ba593dffaa574a4d6fededa61037fff5729267",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 17,
+              "column": 9
+            },
+            "field": "jobs.build.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:ed5c46178c52c937f403ea351ade2663675654a8089902e0d638826e0d6650c8",
+        "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "to": "node:finding:d9f2c805d9322bbd7022c49425c6f410af4d71d261ddc66115f95cb81435b39c",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding ALPHA",
+            "location": {
+              "path": ".env.example",
+              "line": 1
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:f35fd6f86790906f2eb3431dbfc59cf2c051917348a92d024afbd5408f19e2cf",
+        "from": "node:finding:95e232393b73d85b20cd996d246256aaf690c588726813c633164418ba552138",
+        "to": "node:file:d9f213cc1ad941463978dd95637c7273083f65703b27beb91edd6b859286617f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding GAMMA",
+            "location": {
+              "path": ".env.example",
+              "line": 3
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:f4e832cf927efd00cf9a0d69418f9490a6a2d445663dce91c1be512d7ac71976",
+        "from": "node:credential:8cd7a167810aa99e572d1bffc79c3a60230b2a479e875cb2d0fb25b44842e271",
+        "to": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 14,
+              "column": 20
+            },
+            "field": "jobs.build",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:f54cf6c8cf31495585cce0fd875c7f9316ac8c91dfd1acac9d399902cd91cacf",
+        "from": "node:workflow:6fdc954323f68aad9b0a1ad4a8b108314b3faaaca1910665b9aaaf1d536b6f34",
+        "to": "node:trigger:f19c79d671db8c2fd907371d4ee2c4f363782034599d89ebd94cdae6dbd4c052",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/ci.yml",
+              "line": 4,
+              "column": 3
+            },
+            "field": "on.push",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:f6176e829f465e22d7d09e2d51c8b3b3938a1ac704f559080e6653d5d07fa6ef",
+        "from": "node:credential:c1a4df366ce116ac93e1d1a40a59e9c72e6dd203321fb0ac2884ac6a25a440c4",
+        "to": "node:finding:61830c578f5809ca42895b8fd36405cc9fa7fe28b58e71086c9c5b71a9ccf98f",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "generic-api-key",
+            "type": "scanner_finding",
+            "description": "Synthetic finding DELTA",
+            "location": {
+              "path": ".env.example",
+              "line": 4
+            },
+            "field": "finding",
+            "source": "gitleaks",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

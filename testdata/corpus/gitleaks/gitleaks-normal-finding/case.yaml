@@ -1,0 +1,25 @@
+schema_version: 1
+id: gitleaks-normal-finding
+title: Single imported Gitleaks finding with no repository context
+description: >
+  A minimal Gitleaks JSON report imports exactly one credential finding into
+  a repository with no GitHub Actions workflows or Docker Compose files.
+  This is the baseline positive control for scanner-finding import: it
+  verifies classification, irreversible fingerprinting, and the CRD101 rule
+  match for a finding with no further graph context.
+category: gitleaks
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD101]
+  evidence: [confirmed_static_data_flow]
+  edges: []
+tags: [gitleaks, positive-control, baseline]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_GITLEAKS_NORMAL_001
+notes: ""

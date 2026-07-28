@@ -1,0 +1,7 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "StartLine": 3,
+    "File": "config/minimal.env"
+  }
+]

@@ -1,0 +1,6 @@
+services:
+  worker:
+    image: example.invalid/corpus/worker:1.0
+    environment:
+      GAMMA_TOKEN: ${GAMMA_TOKEN}
+      DELTA_TOKEN: ${DELTA_TOKEN}

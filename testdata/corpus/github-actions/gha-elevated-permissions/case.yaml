@@ -1,0 +1,22 @@
+schema_version: 1
+id: gha-elevated-permissions
+title: Broad write-all permissions increase operational impact
+description: >
+  A workflow declares top-level `permissions: write-all` and uses a secret
+  directly in a shell command. Verifies that CredScope's broadest
+  permission-escalation rule fires and materially increases the credential's
+  risk contribution relative to a scoped-permission baseline.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD202, CRD203, CRD102]
+  evidence: [confirmed_static_data_flow]
+  edges: [configured_in, referenced_by_process, has_permission]
+tags: [github-actions, permissions, positive-control]
+forbidden_output_strings: []
+notes: ""

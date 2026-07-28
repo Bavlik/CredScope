@@ -1,0 +1,17 @@
+services:
+  worker:
+    image: example.invalid/corpus/worker:1.0
+    environment:
+      WORKER_TOKEN: ${WORKER_TOKEN}
+    networks:
+      - internal
+    depends_on:
+      - queue
+
+  queue:
+    image: example.invalid/corpus/queue:1.0
+    networks:
+      - internal
+
+networks:
+  internal:

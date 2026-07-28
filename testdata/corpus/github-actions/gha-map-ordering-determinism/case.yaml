@@ -1,0 +1,33 @@
+schema_version: 1
+id: gha-map-ordering-determinism
+title: Differently ordered YAML mapping keys produce identical output
+description: >
+  Two workflow files describe the exact same semantic workflow (same
+  triggers, permissions, env bindings, job, and step) but with YAML mapping
+  keys written in a different order at the top level, job level, and step
+  level. CredScope's determinism promise requires the rendered analysis
+  output to be byte-identical regardless of source key ordering, since
+  ordering is not semantically meaningful in a YAML mapping.
+category: github-actions
+inputs:
+  repository: repository
+  alternate_repository: repository-alt
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: [CRD102, CRD203]
+  evidence: [confirmed_static_data_flow]
+  edges: [configured_in, referenced_by_process]
+tags: [github-actions, determinism, regression]
+forbidden_output_strings: []
+notes: >
+  The corpus runner analyzes both repository/ and repository-alt/ and
+  asserts identical per-credential classification, score, severity, and
+  matched rule IDs between them (evidence line numbers and the
+  content-addressed IDs derived from them are intentionally excluded from
+  this comparison, since they legitimately differ when the same content
+  moves to a different source line). repository/'s own rendered output is
+  additionally compared byte-for-byte against the committed golden files,
+  which do freeze exact line numbers.

@@ -1,0 +1,13 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic development-only credential discovered by the scanner",
+    "StartLine": 2,
+    "File": ".env.local.example",
+    "Commit": "8888888888888888888888888888888888888888",
+    "Tags": ["example", "development"],
+    "Secret": "CREDSCOPE_TEST_CANARY_INTEGRATED_ISOLATED_001",
+    "Match": "DEV_ONLY_TOKEN=CREDSCOPE_TEST_CANARY_INTEGRATED_ISOLATED_001",
+    "Key": "DEV_ONLY_TOKEN"
+  }
+]

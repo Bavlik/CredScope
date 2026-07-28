@@ -1,0 +1,13 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic finding reported with a scanner-container absolute path",
+    "StartLine": 7,
+    "File": "/repo/config/settings.env",
+    "Commit": "4444444444444444444444444444444444444444",
+    "Tags": ["example"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_PREFIX_001",
+    "Match": "TOKEN=CREDSCOPE_TEST_CANARY_GITLEAKS_PREFIX_001",
+    "Key": "CONTAINER_REPORTED_TOKEN"
+  }
+]

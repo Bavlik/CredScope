@@ -1,0 +1,10 @@
+version: 2
+profile: production
+
+ignore:
+  findings:
+    - value: test-fixture-finding
+      reason: Reviewed scanner rule in a fake fixture; not a real credential
+  variables:
+    - value: STAGING_DEBUG_TOKEN
+      reason: Known false positive; internal debug flag, not a credential

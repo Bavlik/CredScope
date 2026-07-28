@@ -1,0 +1,24 @@
+schema_version: 1
+id: gitleaks-path-prefix-normalization
+title: Absolute container-reported path is normalized against a configured prefix
+description: >
+  Gitleaks is often run inside a scanning container that reports absolute
+  paths such as /repo/config/settings.env. With gitleaks.path_prefix set to
+  the exact container mount point, CredScope must strip that prefix and
+  normalize the remainder to a clean repository-relative path.
+category: gitleaks
+inputs:
+  repository: repository
+  gitleaks: input/gitleaks.json
+config:
+  config_file: config/.credscope.yml
+expect:
+  result: success
+covers:
+  rules: [CRD101]
+  evidence: [confirmed_static_data_flow]
+  edges: []
+tags: [gitleaks, path-prefix, normalization]
+forbidden_output_strings:
+  - CREDSCOPE_TEST_CANARY_GITLEAKS_PREFIX_001
+notes: ""

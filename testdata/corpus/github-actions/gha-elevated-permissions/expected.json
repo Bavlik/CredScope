@@ -1,0 +1,1191 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "gha-elevated-permissions",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "ci",
+      "source": "repository_context",
+      "reason": "The repository contains GitHub Actions workflows and no Docker Compose input.",
+      "assumptions": [
+        "Jobs are treated as ephemeral unless repository evidence says otherwise.",
+        "Secrets available to jobs and steps are reported.",
+        "Untrusted pull-request risk is evaluated separately."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 1,
+    "informational": 0,
+    "low": 0,
+    "medium": 1,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 52,
+    "threshold_exceeded": false
+  },
+  "credentials": [
+    {
+      "credential": {
+        "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+        "label": "RELEASE_TOKEN",
+        "type": "secret",
+        "classification": "secret",
+        "classification_confidence": "high",
+        "classification_reason": "The source syntax explicitly identifies a secret reference; static analysis does not prove its value.",
+        "classification_source": "source_syntax",
+        "expected_secret": true,
+        "rotation_remediation_applicable": false,
+        "test_fixture_candidate": false
+      },
+      "score": 52,
+      "severity": "medium",
+      "policy_version": "v2",
+      "rule_catalog_version": "v2",
+      "matched_rules": [
+        {
+          "rule_id": "CRD102",
+          "title": "Credential referenced by workflow",
+          "category": "github_actions",
+          "severity": "low",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:write_permission",
+              "description": "all permission is write-capable.",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "field": "workflow.permissions",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f"
+          ],
+          "path_ids": [
+            "path:2cd480f862f6feb4e33c26084b5c46c2e04fd2b85e9650ced5df6842ed65b011"
+          ],
+          "remediation_id": "REM007"
+        },
+        {
+          "rule_id": "CRD201",
+          "title": "Workflow grants write permission",
+          "category": "github_actions",
+          "severity": "high",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Repository permission",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "field": "workflow.permissions",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:permission:e18d0e703decf69d905171c4ce5679ba6d6559d22239feaabc99e12ff5f6cc30"
+          ],
+          "path_ids": [
+            "path:df5404e27ee1e144000446532d83898a11b461e9f4090db01ae08c4d59ef2b4a"
+          ],
+          "remediation_id": "REM003"
+        },
+        {
+          "rule_id": "CRD202",
+          "title": "Workflow grants write-all",
+          "category": "github_actions",
+          "severity": "critical",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Repository permission",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "field": "workflow.permissions",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:permission:e18d0e703decf69d905171c4ce5679ba6d6559d22239feaabc99e12ff5f6cc30"
+          ],
+          "path_ids": [
+            "path:df5404e27ee1e144000446532d83898a11b461e9f4090db01ae08c4d59ef2b4a"
+          ],
+          "remediation_id": "REM003"
+        },
+        {
+          "rule_id": "CRD203",
+          "title": "Secret passed to shell",
+          "category": "github_actions",
+          "severity": "high",
+          "confidence": "confirmed",
+          "evidence": [
+            {
+              "rule_id": "",
+              "type": "shell_credential_reference",
+              "description": "Reference is used by this workflow step.",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 12,
+                "column": 14
+              },
+              "field": "jobs.release.steps[0]",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ],
+          "affected_node_ids": [
+            "node:step:74be2953f9688dfe86597ba2891a8c462a2c14ed2839fb9289da4b5938486f53"
+          ],
+          "path_ids": [
+            "path:3cb5c49cb0941fbb360d9cf8e14c4c8e7be08b0990fc70a5804006b88d47bf33"
+          ],
+          "remediation_id": "REM008"
+        }
+      ],
+      "contributions": [
+        {
+          "rule_id": "CRD102",
+          "description": "Credential referenced by workflow",
+          "base_weight": 8,
+          "adjustments": [],
+          "adjusted_weight": 8,
+          "confidence_weight_percent": 100,
+          "final_contribution": 8,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "GitHub Actions workflow",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "source": "github-actions",
+              "confidence": "confirmed"
+            },
+            {
+              "rule_id": "",
+              "type": "signal:write_permission",
+              "description": "all permission is write-capable.",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "field": "workflow.permissions",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD201",
+          "description": "Workflow grants write permission",
+          "base_weight": 12,
+          "adjustments": [],
+          "adjusted_weight": 12,
+          "confidence_weight_percent": 100,
+          "final_contribution": 12,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Repository permission",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "field": "workflow.permissions",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD202",
+          "description": "Workflow grants write-all",
+          "base_weight": 20,
+          "adjustments": [],
+          "adjusted_weight": 20,
+          "confidence_weight_percent": 100,
+          "final_contribution": 20,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "description": "Repository permission",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "field": "workflow.permissions",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        },
+        {
+          "rule_id": "CRD203",
+          "description": "Secret passed to shell",
+          "base_weight": 12,
+          "adjustments": [],
+          "adjusted_weight": 12,
+          "confidence_weight_percent": 100,
+          "final_contribution": 12,
+          "confidence": "confirmed",
+          "condition_status": "confirmed",
+          "risk_or_confidence": "risk",
+          "profile_changed": false,
+          "evidence": [
+            {
+              "rule_id": "",
+              "type": "shell_credential_reference",
+              "description": "Reference is used by this workflow step.",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 12,
+                "column": 14
+              },
+              "field": "jobs.release.steps[0]",
+              "source": "github-actions",
+              "confidence": "confirmed"
+            }
+          ]
+        }
+      ],
+      "confidence": {
+        "confirmed": 4,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+        "unknown": 0,
+        "overall": "confirmed"
+      },
+      "reachable": {
+        "workflows": 1,
+        "jobs": 1,
+        "services": 0,
+        "permissions": 1,
+        "environments": 0,
+        "external_actions": 0,
+        "published_ports": 0,
+        "volume_mounts": 0
+      },
+      "evidence_paths": [
+        {
+          "id": "path:2cd480f862f6feb4e33c26084b5c46c2e04fd2b85e9650ced5df6842ed65b011",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "type": "workflow",
+              "label": "Elevated permissions release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d1ed1f8947d67b603d1d6c7bba5fc43a5673078b68158c7021d9c63a1642f8db",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:3cb5c49cb0941fbb360d9cf8e14c4c8e7be08b0990fc70a5804006b88d47bf33",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:step:74be2953f9688dfe86597ba2891a8c462a2c14ed2839fb9289da4b5938486f53",
+              "type": "step",
+              "label": "Publish release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 11,
+                "column": 9
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:2f92690f054f5ca9382a78075348d3eeb70f964db0557dd7d11e851644c7790a",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:step:74be2953f9688dfe86597ba2891a8c462a2c14ed2839fb9289da4b5938486f53",
+              "relationship": "referenced_by_process",
+              "evidence_kind": "confirmed_static_data_flow",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "confirmed_static_data_flow"
+        },
+        {
+          "id": "path:81ac6ed34e8b2a313a7ef8b9073e18a1b2f6a79ec05bb2c75d35e8494b1767a0",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "type": "workflow",
+              "label": "Elevated permissions release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+              "type": "file",
+              "label": ".github/workflows/release.yml",
+              "location": {
+                "path": ".github/workflows/release.yml"
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d1ed1f8947d67b603d1d6c7bba5fc43a5673078b68158c7021d9c63a1642f8db",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:403228eef1f885e5b9686f955537512f8540dafaa699db02b316d530abdfc9bc",
+              "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "to": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:a82b7966921ce01eb20638664f16f6a691e7cfabb430746a8121bdf09083d6b7",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "type": "workflow",
+              "label": "Elevated permissions release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+              "type": "file",
+              "label": ".github/workflows/release.yml",
+              "location": {
+                "path": ".github/workflows/release.yml"
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "type": "repository",
+              "label": "repository",
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d1ed1f8947d67b603d1d6c7bba5fc43a5673078b68158c7021d9c63a1642f8db",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:403228eef1f885e5b9686f955537512f8540dafaa699db02b316d530abdfc9bc",
+              "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "to": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:f524af07472744b4233a6b08c3472fbf93fd56dc7db25f6f9e9ec07dd7b48b26",
+              "from": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+              "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+              "relationship": "detected_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:a8f8172a0330afde8b4a0c6cecfd9449cf21f7647e7ab07037858e70e60d22dd",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:job:392746447f8228d833eb7ffbb104034cc4b206957b6953ce473255a617aacea1",
+              "type": "job",
+              "label": "release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 9,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:8bd7e9c851b014b95f57455a992753d1c9af021be78916d67be62c28f95c574f",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:job:392746447f8228d833eb7ffbb104034cc4b206957b6953ce473255a617aacea1",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:cdb7199a01ae4ed0a9e3556312364ee9d4c68ae97b178ab08d6d749273448862",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "type": "workflow",
+              "label": "Elevated permissions release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:trigger:45b559593892418195f82c95d96924b5cdadcb50051a851955913181fb077b4f",
+              "type": "trigger",
+              "label": "workflow_dispatch",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 3,
+                "column": 5
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d1ed1f8947d67b603d1d6c7bba5fc43a5673078b68158c7021d9c63a1642f8db",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:344700669d0ae08e042c2f87933f9fa9480aac53667d9076457001dc349bb5ec",
+              "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "to": "node:trigger:45b559593892418195f82c95d96924b5cdadcb50051a851955913181fb077b4f",
+              "relationship": "triggered_by",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        },
+        {
+          "id": "path:df5404e27ee1e144000446532d83898a11b461e9f4090db01ae08c4d59ef2b4a",
+          "credential_id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+          "nodes": [
+            {
+              "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "type": "credential",
+              "label": "RELEASE_TOKEN",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "type": "workflow",
+              "label": "Elevated permissions release",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 1,
+                "column": 1
+              },
+              "confidence": "confirmed"
+            },
+            {
+              "id": "node:permission:e18d0e703decf69d905171c4ce5679ba6d6559d22239feaabc99e12ff5f6cc30",
+              "type": "permission",
+              "label": "all:write-all",
+              "location": {
+                "path": ".github/workflows/release.yml",
+                "line": 5,
+                "column": 14
+              },
+              "confidence": "confirmed"
+            }
+          ],
+          "edges": [
+            {
+              "id": "edge:d1ed1f8947d67b603d1d6c7bba5fc43a5673078b68158c7021d9c63a1642f8db",
+              "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+              "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "relationship": "configured_in",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            },
+            {
+              "id": "edge:b215f38be881721c0794498d133567774899f28f8d0f4af473f4257c008c93ba",
+              "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+              "to": "node:permission:e18d0e703decf69d905171c4ce5679ba6d6559d22239feaabc99e12ff5f6cc30",
+              "relationship": "has_permission",
+              "evidence_kind": "inferred_exposure_context",
+              "confidence": "confirmed"
+            }
+          ],
+          "confidence": "confirmed",
+          "evidence_kind": "inferred_exposure_context"
+        }
+      ],
+      "warnings": [],
+      "remediation_ids": [
+        "REM003",
+        "REM007",
+        "REM008"
+      ],
+      "remediations": [
+        {
+          "id": "REM003",
+          "title": "Reduce GitHub Actions permissions",
+          "why": "Write-capable workflow tokens can alter repository or package state.",
+          "triggering_rule_ids": [
+            "CRD201",
+            "CRD202"
+          ],
+          "evidence_path_ids": [
+            "path:df5404e27ee1e144000446532d83898a11b461e9f4090db01ae08c4d59ef2b4a"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/release.yml",
+              "line": 5,
+              "column": 14
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Declare only the specific read or write scopes required by the affected job, preferring job-level least privilege.",
+          "priority": 2
+        },
+        {
+          "id": "REM008",
+          "title": "Avoid passing secrets through shell commands",
+          "why": "Shell interpolation can expose credentials through command construction, tracing, process arguments, or error output.",
+          "triggering_rule_ids": [
+            "CRD203"
+          ],
+          "evidence_path_ids": [
+            "path:3cb5c49cb0941fbb360d9cf8e14c4c8e7be08b0990fc70a5804006b88d47bf33"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/release.yml",
+              "line": 12,
+              "column": 14
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Pass the secret through the narrowest supported secret input or environment scope and prevent command tracing; do not interpolate it into command text.",
+          "priority": 2
+        },
+        {
+          "id": "REM007",
+          "title": "Restrict credential scope",
+          "why": "The credential reaches more workflow or service scope than may be necessary.",
+          "triggering_rule_ids": [
+            "CRD102"
+          ],
+          "evidence_path_ids": [
+            "path:2cd480f862f6feb4e33c26084b5c46c2e04fd2b85e9650ced5df6842ed65b011"
+          ],
+          "affected_locations": [
+            {
+              "path": ".github/workflows/release.yml",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "path": ".github/workflows/release.yml",
+              "line": 5,
+              "column": 14
+            }
+          ],
+          "confidence": "confirmed",
+          "suggested_action": "Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers.",
+          "priority": 3
+        }
+      ]
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+        "type": "credential",
+        "label": "RELEASE_TOKEN",
+        "metadata": {
+          "credential_type": "secret"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+        "type": "file",
+        "label": ".github/workflows/release.yml",
+        "location": {
+          "path": ".github/workflows/release.yml"
+        },
+        "metadata": {
+          "path": ".github/workflows/release.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:job:392746447f8228d833eb7ffbb104034cc4b206957b6953ce473255a617aacea1",
+        "type": "job",
+        "label": "release",
+        "location": {
+          "path": ".github/workflows/release.yml",
+          "line": 9,
+          "column": 5
+        },
+        "metadata": {
+          "job_id": "release",
+          "workflow": "Elevated permissions release"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow job",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 9,
+              "column": 5
+            },
+            "field": "jobs.release",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:secret_passed_to_shell",
+            "description": "A secret reference is interpolated into an inert shell command.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 12,
+              "column": 14
+            },
+            "field": "jobs.release.steps[0].run",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:permission:e18d0e703decf69d905171c4ce5679ba6d6559d22239feaabc99e12ff5f6cc30",
+        "type": "permission",
+        "label": "all:write-all",
+        "location": {
+          "path": ".github/workflows/release.yml",
+          "line": 5,
+          "column": 14
+        },
+        "metadata": {
+          "level": "write-all",
+          "scope": "all"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Repository permission",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 5,
+              "column": 14
+            },
+            "field": "workflow.permissions",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:74be2953f9688dfe86597ba2891a8c462a2c14ed2839fb9289da4b5938486f53",
+        "type": "step",
+        "label": "Publish release",
+        "location": {
+          "path": ".github/workflows/release.yml",
+          "line": 11,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "true",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 11,
+              "column": 9
+            },
+            "field": "jobs.release.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:trigger:45b559593892418195f82c95d96924b5cdadcb50051a851955913181fb077b4f",
+        "type": "trigger",
+        "label": "workflow_dispatch",
+        "location": {
+          "path": ".github/workflows/release.yml",
+          "line": 3,
+          "column": 5
+        },
+        "metadata": {
+          "name": "workflow_dispatch"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow trigger",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "on",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+        "type": "workflow",
+        "label": "Elevated permissions release",
+        "location": {
+          "path": ".github/workflows/release.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "file": ".github/workflows/release.yml",
+          "missing_explicit_permissions": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:write_permission",
+            "description": "all permission is write-capable.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 5,
+              "column": 14
+            },
+            "field": "workflow.permissions",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:13e093e87fcfe4306540fb06bc67784ecbbc357879466c629dcc535499b67110",
+        "from": "node:job:392746447f8228d833eb7ffbb104034cc4b206957b6953ce473255a617aacea1",
+        "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 9,
+              "column": 5
+            },
+            "field": "jobs.release",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:2d6d82430784ddda52713a27e497380f2016c9fb06923c5f84601ef13fd38cf3",
+        "from": "node:step:74be2953f9688dfe86597ba2891a8c462a2c14ed2839fb9289da4b5938486f53",
+        "to": "node:job:392746447f8228d833eb7ffbb104034cc4b206957b6953ce473255a617aacea1",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 11,
+              "column": 9
+            },
+            "field": "jobs.release.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:2f92690f054f5ca9382a78075348d3eeb70f964db0557dd7d11e851644c7790a",
+        "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+        "to": "node:step:74be2953f9688dfe86597ba2891a8c462a2c14ed2839fb9289da4b5938486f53",
+        "type": "referenced_by_process",
+        "evidence_kind": "confirmed_static_data_flow",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "shell_credential_reference",
+            "description": "Reference is used by this workflow step.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 12,
+              "column": 14
+            },
+            "field": "jobs.release.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:344700669d0ae08e042c2f87933f9fa9480aac53667d9076457001dc349bb5ec",
+        "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+        "to": "node:trigger:45b559593892418195f82c95d96924b5cdadcb50051a851955913181fb077b4f",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 3,
+              "column": 5
+            },
+            "field": "on",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:403228eef1f885e5b9686f955537512f8540dafaa699db02b316d530abdfc9bc",
+        "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+        "to": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:8bd7e9c851b014b95f57455a992753d1c9af021be78916d67be62c28f95c574f",
+        "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+        "to": "node:job:392746447f8228d833eb7ffbb104034cc4b206957b6953ce473255a617aacea1",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "job_credential_reference",
+            "description": "Job contains this reference.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 12,
+              "column": 14
+            },
+            "field": "jobs.release",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:b215f38be881721c0794498d133567774899f28f8d0f4af473f4257c008c93ba",
+        "from": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+        "to": "node:permission:e18d0e703decf69d905171c4ce5679ba6d6559d22239feaabc99e12ff5f6cc30",
+        "type": "has_permission",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "permission",
+            "description": "Explicit GitHub Actions permission.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 5,
+              "column": 14
+            },
+            "field": "workflow.permissions",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:d1ed1f8947d67b603d1d6c7bba5fc43a5673078b68158c7021d9c63a1642f8db",
+        "from": "node:credential:365e60c2b19509080d2139f47ff03c512b2b449d161e89f559ca0413dcf9586e",
+        "to": "node:workflow:220c9ce2c0bde0b84afd7fd54b9c6e39b7930284ced6b062e092571a8b330a7f",
+        "type": "configured_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "credential_reference",
+            "description": "Workflow contains this reference.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 12,
+              "column": 14
+            },
+            "field": "jobs.release",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:f524af07472744b4233a6b08c3472fbf93fd56dc7db25f6f9e9ec07dd7b48b26",
+        "from": "node:file:33d77334a2b98936ee5337e72ce351778bef7970206ec2e3faa9a31fa43acda8",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Workflow file belongs to the selected repository.",
+            "location": {
+              "path": ".github/workflows/release.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

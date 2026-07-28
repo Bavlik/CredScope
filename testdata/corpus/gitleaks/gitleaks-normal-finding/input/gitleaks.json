@@ -1,0 +1,17 @@
+[
+  {
+    "RuleID": "generic-api-key",
+    "Description": "Synthetic isolated credential finding",
+    "StartLine": 12,
+    "File": "config/settings.env",
+    "Commit": "0000000000000000000000000000000000000000",
+    "Author": "Corpus Fixture",
+    "Email": "fixtures@example.invalid",
+    "Date": "2026-01-01T00:00:00Z",
+    "Message": "Synthetic fixture commit",
+    "Tags": ["example", "credential"],
+    "Secret": "CREDSCOPE_TEST_CANARY_GITLEAKS_NORMAL_001",
+    "Match": "API_KEY=CREDSCOPE_TEST_CANARY_GITLEAKS_NORMAL_001",
+    "Key": "ISOLATED_API_KEY"
+  }
+]
