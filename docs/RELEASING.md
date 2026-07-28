@@ -16,6 +16,12 @@ go vet ./...
 .\scripts\release-check.ps1 -Version <X.Y.Z> -ExpectedBranch main
 ```
 
+`release-check.ps1` intentionally does not require WinGet manifests for
+`<X.Y.Z>` to exist at this step: they cannot exist yet, since step 7 below
+generates them from the real published release archives and checksums
+step 5 produces. Requiring them here would make the check impossible to
+pass for any version that has not been released before.
+
 4. Create and push an annotated tag:
 
 ```powershell

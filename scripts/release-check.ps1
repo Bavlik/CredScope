@@ -50,6 +50,13 @@ try {
         throw "VERSION contains '$versionFile'; expected '$Version'."
     }
 
+    # WinGet manifests are deliberately NOT required here. They can only be
+    # generated after this version's GitHub Release archives are published
+    # and their real SHA-256 checksums exist (scripts/update-winget-manifest.ps1
+    # downloads them), which happens after tagging -- not before. Requiring
+    # packaging/winget/Bavlik.CredScope/$Version/*.yaml at this pre-tag stage
+    # made it impossible to ever pass this check for a version that hasn't
+    # been released yet. See docs/RELEASING.md for the full release order.
     $requiredFiles = @(
         'LICENSE',
         'NOTICE',
@@ -61,10 +68,7 @@ try {
         'docs/RELEASING.md',
         'docs/RULES.md',
         'docs/SCORING.md',
-        'docs/THREAT_MODEL.md',
-        "packaging/winget/Bavlik.CredScope/$Version/Bavlik.CredScope.yaml",
-        "packaging/winget/Bavlik.CredScope/$Version/Bavlik.CredScope.installer.yaml",
-        "packaging/winget/Bavlik.CredScope/$Version/Bavlik.CredScope.locale.en-US.yaml"
+        'docs/THREAT_MODEL.md'
     )
     foreach ($requiredFile in $requiredFiles) {
         if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
@@ -72,14 +76,11 @@ try {
         }
     }
 
-    foreach ($manifest in $requiredFiles | Where-Object { $_.EndsWith('.yaml', [System.StringComparison]::OrdinalIgnoreCase) }) {
-        $manifestText = Get-Content -LiteralPath $manifest -Raw
-        if ($manifestText -notmatch "(?m)^PackageVersion:\s*$([regex]::Escape($Version))\s*$") {
-            throw "WinGet manifest version mismatch: $manifest"
-        }
-    }
-    if ((Get-Content -LiteralPath 'CHANGELOG.md' -Raw) -notmatch [regex]::Escape("v$Version")) {
-        throw "CHANGELOG.md does not mention v$Version."
+    # CHANGELOG.md headings use the plain semantic version ("## [0.2.3] -
+    # 2026-07-27"), never a "v"-prefixed form, so the check must match that
+    # real heading shape instead of looking for the literal text "v0.2.3".
+    if ((Get-Content -LiteralPath 'CHANGELOG.md' -Raw) -notmatch "(?m)^## \[$([regex]::Escape($Version))\] - \d{4}-\d{2}-\d{2}\s*$") {
+        throw "CHANGELOG.md does not contain a '## [$Version] - YYYY-MM-DD' heading."
     }
 
     & git show-ref --verify --quiet "refs/tags/v$Version"

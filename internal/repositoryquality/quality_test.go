@@ -551,6 +551,108 @@ func TestReleaseDocumentationReflectsCurrentVersion(t *testing.T) {
 	}
 }
 
+// TestReleaseCheckDoesNotRequireUnpublishedWinGetManifests guards against a
+// regression of the release-check ordering bug: scripts/release-check.ps1
+// runs BEFORE a version is tagged and its GitHub Release archives exist, so
+// it must not require packaging/winget/Bavlik.CredScope/<version>/*.yaml --
+// those can only be generated afterward, from real published checksums (see
+// docs/RELEASING.md and debian equivalents of "don't check for artifacts
+// that can't exist yet").
+func TestReleaseCheckDoesNotRequireUnpublishedWinGetManifests(t *testing.T) {
+	root := repositoryRoot(t)
+	script := readTextFile(t, filepath.Join(root, "scripts", "release-check.ps1"))
+
+	// Explanatory comments are allowed to mention "packaging/winget" (and do,
+	// to document why it's deliberately absent); what must never reappear is
+	// an actual $requiredFiles array entry building that path.
+	requiredFilesStart := strings.Index(script, "$requiredFiles = @(")
+	if requiredFilesStart < 0 {
+		t.Fatal("release-check.ps1 no longer defines $requiredFiles; update this test")
+	}
+	requiredFilesEnd := strings.Index(script[requiredFilesStart:], ")")
+	if requiredFilesEnd < 0 {
+		t.Fatal("could not find the end of the $requiredFiles array in release-check.ps1")
+	}
+	requiredFilesBlock := script[requiredFilesStart : requiredFilesStart+requiredFilesEnd]
+	if strings.Contains(requiredFilesBlock, "packaging/winget") {
+		t.Fatal("release-check.ps1's $requiredFiles must not require WinGet manifests before a version is tagged and released")
+	}
+	if strings.Contains(script, "WinGet manifest version mismatch") {
+		t.Fatal("release-check.ps1 must not validate WinGet manifest PackageVersion before a version is tagged and released")
+	}
+
+	// The other pre-tag safeguards must remain intact: clean worktree,
+	// expected branch, VERSION match, required documentation, no existing
+	// local/remote tag, go test, go vet, goreleaser check.
+	for _, marker := range []string{
+		`git status --porcelain=v1 --untracked-files=all`,
+		`$branch -ne $ExpectedBranch`,
+		`$versionFile -ne $Version`,
+		`'docs/ARCHITECTURE.md'`,
+		`'docs/THREAT_MODEL.md'`,
+		`refs/tags/v$Version`,
+		`git ls-remote --exit-code --tags origin`,
+		`'test', './...'`,
+		`'vet', './...'`,
+		`@('check')`,
+	} {
+		if !strings.Contains(script, marker) {
+			t.Fatalf("release-check.ps1 is missing an expected pre-tag safeguard: %q", marker)
+		}
+	}
+}
+
+// TestReleaseCheckChangelogPatternMatchesRealHeadings guards against the
+// other half of the release-check ordering bug: the CHANGELOG.md check must
+// recognize the real heading shape ("## [0.2.3] - 2026-07-27"), not require
+// the literal text "v0.2.3", which never appears in a changelog heading.
+func TestReleaseCheckChangelogPatternMatchesRealHeadings(t *testing.T) {
+	root := repositoryRoot(t)
+	script := readTextFile(t, filepath.Join(root, "scripts", "release-check.ps1"))
+
+	if strings.Contains(script, `[regex]::Escape("v$Version")`) {
+		t.Fatal(`release-check.ps1 must not require the literal text "v<version>" inside CHANGELOG.md; changelog headings never use a "v" prefix`)
+	}
+
+	version := strings.TrimSpace(readTextFile(t, filepath.Join(root, "VERSION")))
+	changelog := readTextFile(t, filepath.Join(root, "CHANGELOG.md"))
+	headingPattern := regexp.MustCompile(`(?m)^## \[` + regexp.QuoteMeta(version) + `\] - \d{4}-\d{2}-\d{2}\s*$`)
+	if !headingPattern.MatchString(changelog) {
+		t.Fatalf("CHANGELOG.md does not contain a '## [%s] - YYYY-MM-DD' heading that release-check.ps1's pattern would recognize", version)
+	}
+}
+
+// TestReleasingDocumentsWinGetAsPostRelease confirms docs/RELEASING.md still
+// orders WinGet manifest generation strictly after tagging and publishing
+// GitHub Release assets, matching what scripts/release-check.ps1 (pre-tag)
+// and scripts/update-winget-manifest.ps1 (post-release) actually enforce.
+func TestReleasingDocumentsWinGetAsPostRelease(t *testing.T) {
+	root := repositoryRoot(t)
+	releasing := readTextFile(t, filepath.Join(root, "docs", "RELEASING.md"))
+
+	checkIndex := strings.Index(releasing, "release-check.ps1")
+	tagIndex := strings.Index(releasing, "git tag")
+	publishIndex := strings.Index(releasing, "release workflow succeeds and publishes the archives")
+	wingetGenerateIndex := strings.Index(releasing, "update-winget-manifest.ps1")
+	wingetValidateIndex := strings.Index(releasing, "winget validate")
+
+	for name, index := range map[string]int{
+		"release-check.ps1 step":     checkIndex,
+		"git tag step":               tagIndex,
+		"publish archives step":      publishIndex,
+		"update-winget-manifest.ps1": wingetGenerateIndex,
+		"winget validate":            wingetValidateIndex,
+	} {
+		if index < 0 {
+			t.Fatalf("docs/RELEASING.md is missing the %s", name)
+		}
+	}
+
+	if !(checkIndex < tagIndex && tagIndex < publishIndex && publishIndex < wingetGenerateIndex && wingetGenerateIndex < wingetValidateIndex) {
+		t.Fatalf("docs/RELEASING.md must order: pre-tag release check -> tag -> publish release assets -> generate WinGet manifests -> validate WinGet manifests (indexes: %d, %d, %d, %d, %d)", checkIndex, tagIndex, publishIndex, wingetGenerateIndex, wingetValidateIndex)
+	}
+}
+
 // TestVerifyReportsApprovesOnlyTheSingleBavlikWebsiteLink exercises the
 // scripts/verify-reports.go external-resource guard as the CI smoke test
 // invokes it: it must accept the one approved footer link and still reject
