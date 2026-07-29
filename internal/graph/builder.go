@@ -7,12 +7,19 @@ import (
 
 	"github.com/Bavlik/CredScope/internal/classification"
 	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/reusableworkflow"
 	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
 
 type BuildOptions struct {
 	Classifications  map[string]domain.Classification
 	IgnoredVariables map[string]domain.IgnoredItem
+	// ReusableWorkflows carries the resolver's direct-call outcomes, computed
+	// once by the caller (typically internal/analysis) before graph
+	// construction. A zero-value Result is safe: every reusable workflow
+	// call is then represented exactly as an unresolved call, matching the
+	// pre-resolver behavior.
+	ReusableWorkflows reusableworkflow.Result
 }
 
 type BuildResult struct {
@@ -24,11 +31,13 @@ type BuildResult struct {
 }
 
 type builder struct {
-	graph       *mutableGraph
-	credentials map[string]*credentialState
-	warnings    map[string]struct{}
-	options     BuildOptions
-	ignored     map[string]domain.IgnoredItem
+	graph         *mutableGraph
+	credentials   map[string]*credentialState
+	warnings      map[string]struct{}
+	options       BuildOptions
+	ignored       map[string]domain.IgnoredItem
+	resolvedCalls map[string]reusableworkflow.DirectCall
+	workflowNames map[string]string
 }
 
 type credentialState struct {
@@ -48,12 +57,20 @@ func Build(parsed domain.ParsedRepository) BuildResult {
 }
 
 func BuildWithOptions(parsed domain.ParsedRepository, options BuildOptions) BuildResult {
-	b := &builder{graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{}), options: options, ignored: make(map[string]domain.IgnoredItem)}
+	resolvedCalls := make(map[string]reusableworkflow.DirectCall, len(options.ReusableWorkflows.DirectCalls))
+	for _, call := range options.ReusableWorkflows.DirectCalls {
+		resolvedCalls[call.CallerWorkflow+"\x00"+call.CallerJobID] = call
+	}
+	b := &builder{graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{}), options: options, ignored: make(map[string]domain.IgnoredItem), resolvedCalls: resolvedCalls}
 	b.build(parsed)
 	return b.finish()
 }
 
 func (b *builder) build(parsed domain.ParsedRepository) {
+	b.workflowNames = make(map[string]string, len(parsed.Workflows))
+	for _, workflow := range parsed.Workflows {
+		b.workflowNames[workflow.File] = workflow.Name
+	}
 	repoID := b.graph.addNode(domain.NodeRepository, "selected-repository", "repository", nil, map[string]string{"scope": "selected_root"}, nil, domain.ConfidenceConfirmed)
 	for _, finding := range parsed.Findings {
 		credentialID := b.credential(finding.Credential.Label, finding.Credential.Type, finding.Credential.Fingerprint, "", true, finding.TestFixtureCandidate)
@@ -217,9 +234,7 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 		}
 	}
 	if job.ReusableWorkflow != nil {
-		action := job.ReusableWorkflow
-		nodeID := b.graph.addNode(domain.NodeReusableWorkflow, nodeKey(jobKey, action.Reference), action.Reference, locationPtr(action.Evidence), actionMetadata(*action, !job.ReusableResolved), []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
-		b.graph.addEdge(jobID, nodeID, domain.EdgeCallsWorkflow, []domain.Evidence{evidence("reusable_workflow", action.Evidence, "Reusable workflow reference was recorded but not resolved.", domain.ConfidenceUnknown)}, domain.ConfidenceUnknown)
+		b.reusableWorkflowCall(workflow, jobID, jobKey, job)
 	}
 	for outputIndex, output := range job.Outputs {
 		for _, ref := range output.References {
@@ -237,6 +252,37 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 			}
 		}
 	}
+}
+
+// reusableWorkflowCall represents a job-level `uses:` reusable workflow call.
+// It preserves the pre-resolver "unresolved" representation exactly for every
+// status other than resolved_local. For a resolved local call it additionally
+// links the call-site node to the already-created target workflow node using
+// EvidenceStructuralCallOnly, which traversal never walks through: the edge
+// is a truthful structural fact, not credential data flow or exposure
+// evidence, so it cannot by itself make CRD501 fire or expose the callee's
+// secrets/permissions to whatever credential reaches the caller.
+func (b *builder) reusableWorkflowCall(workflow domain.Workflow, jobID, jobKey string, job domain.WorkflowJob) {
+	action := job.ReusableWorkflow
+	call, hasCall := b.resolvedCalls[workflow.File+"\x00"+job.ID]
+	resolved := hasCall && call.Status == reusableworkflow.StatusResolvedLocal
+	nodeID := b.graph.addNode(domain.NodeReusableWorkflow, nodeKey(jobKey, action.Reference), action.Reference, locationPtr(action.Evidence), actionMetadata(*action, !resolved), []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
+	if !resolved {
+		b.graph.addEdge(jobID, nodeID, domain.EdgeCallsWorkflow, []domain.Evidence{evidence("reusable_workflow", action.Evidence, "Reusable workflow reference was recorded but not resolved.", domain.ConfidenceUnknown)}, domain.ConfidenceUnknown)
+		return
+	}
+	b.graph.addEdge(jobID, nodeID, domain.EdgeCallsWorkflow, []domain.Evidence{evidence("reusable_workflow", action.Evidence, "Reusable workflow reference was resolved to a local workflow.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+	targetName, ok := b.workflowNames[call.TargetWorkflow]
+	if !ok {
+		return
+	}
+	targetID := workflowNodeID(call.TargetWorkflow, targetName)
+	structuralEvidence := []domain.Evidence{evidence("resolved_reusable_call", action.Evidence, "Caller structurally invokes this reusable workflow; this is not credential data flow or permission exposure.", domain.ConfidenceConfirmed)}
+	b.graph.addTypedEdge(nodeID, targetID, domain.EdgeCallsWorkflow, domain.EvidenceStructuralCallOnly, structuralEvidence, domain.ConfidenceConfirmed)
+}
+
+func workflowNodeID(file, name string) string {
+	return stableID("node:"+string(domain.NodeWorkflow), nodeKey(file, name))
 }
 
 func (b *builder) step(jobID, jobKey string, index int, step domain.WorkflowStep) string {
