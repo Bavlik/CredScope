@@ -10,6 +10,14 @@ import (
 const (
 	DefaultMaxDepth         = 12
 	DefaultMaxEvidencePaths = 10000
+	// MaxReusableWorkflowHops mirrors the resolver's maximum reusable
+	// workflow chain of 10 total workflows, expressed as a hop count: 10
+	// workflows means at most 9 caller-to-callee forwarding transitions.
+	// This is enforced per traversal path, independently of DefaultMaxDepth,
+	// because the same forwarding edge can be shallow from one credential
+	// and over-depth from another — it is never deleted or globally
+	// suppressed, only refused past the ninth transition on a given path.
+	MaxReusableWorkflowHops = 9
 )
 
 // Traverse returns every distinct path prefix reachable from start. A node may
@@ -55,14 +63,25 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 	startNode := pathNode(nodes[start])
 	var paths []domain.EvidencePath
 	limitExceeded := false
-	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence, domain.EvidenceKind)
-	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence, pathKind domain.EvidenceKind) {
+	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence, domain.EvidenceKind, int)
+	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence, pathKind domain.EvidenceKind, reusableHops int) {
 		for _, edge := range adjacent[current] {
 			if limitExceeded {
 				return
 			}
 			if visited[edge.To] {
 				continue
+			}
+			nextReusableHops := reusableHops
+			if isReusableWorkflowHop(edge) {
+				nextReusableHops++
+				if nextReusableHops > MaxReusableWorkflowHops {
+					// Refuse this specific transition on this specific path;
+					// the edge itself is untouched and may still be walked
+					// from a shallower starting point in a different Traverse
+					// call.
+					continue
+				}
 			}
 			nextNodes := appendCopy(pathNodes, pathNode(nodes[edge.To]))
 			nextEdges := appendEdge(pathEdges, domain.PathEdge{ID: edge.ID, From: edge.From, To: edge.To, Relationship: edge.Type, EvidenceKind: edge.EvidenceKind, Evidence: edge.Evidence, Confidence: edge.Confidence})
@@ -81,10 +100,10 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 			}
 			nextVisited := cloneVisited(visited)
 			nextVisited[edge.To] = true
-			walk(edge.To, nextNodes, nextEdges, nextVisited, nextConfidence, nextKind)
+			walk(edge.To, nextNodes, nextEdges, nextVisited, nextConfidence, nextKind, nextReusableHops)
 		}
 	}
-	walk(start, []domain.PathNode{startNode}, nil, map[string]bool{start: true}, domain.ConfidenceConfirmed, domain.EvidenceConfirmedDataFlow)
+	walk(start, []domain.PathNode{startNode}, nil, map[string]bool{start: true}, domain.ConfidenceConfirmed, domain.EvidenceConfirmedDataFlow, 0)
 	byID := make(map[string]domain.EvidencePath, len(paths))
 	for _, path := range paths {
 		byID[path.ID] = path
@@ -95,6 +114,14 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 	}
 	sort.Slice(paths, func(i, j int) bool { return paths[i].ID < paths[j].ID })
 	return paths, limitExceeded
+}
+
+// isReusableWorkflowHop reports whether edge is a confirmed reusable-workflow
+// secret-forwarding transition (set only by builder's
+// forwardReusableWorkflowSecret), as opposed to an ordinary
+// EdgeExplicitlyForwardedTo edge unrelated to reusable workflows.
+func isReusableWorkflowHop(edge domain.Edge) bool {
+	return edge.Metadata[reusableWorkflowHopMetadataKey] == reusableWorkflowHopMetadataValue
 }
 
 func combineEvidenceKind(current, next domain.EvidenceKind) domain.EvidenceKind {
