@@ -108,23 +108,24 @@ type ReusableWorkflowSecret struct {
 }
 
 type WorkflowJob struct {
-	ID                      string                   `json:"id"`
-	Name                    string                   `json:"name,omitempty"`
-	Needs                   []string                 `json:"needs"`
-	Permissions             []Permission             `json:"permissions"`
-	Environment             []EnvironmentBinding     `json:"environment"`
-	EnvironmentName         string                   `json:"environment_name,omitempty"`
-	EnvironmentEvidence     *Evidence                `json:"environment_evidence,omitempty"`
-	ReusableWorkflow        *ActionReference         `json:"reusable_workflow,omitempty"`
-	ReusableResolved        bool                     `json:"reusable_resolved"`
-	ReusableWorkflowInputs  []ReusableWorkflowInput  `json:"reusable_workflow_inputs,omitempty"`
-	ReusableWorkflowSecrets []ReusableWorkflowSecret `json:"reusable_workflow_secrets,omitempty"`
-	ReusableSecretsInherit  bool                     `json:"reusable_secrets_inherit,omitempty"`
-	Steps                   []WorkflowStep           `json:"steps"`
-	Outputs                 []WorkflowOutput         `json:"outputs"`
-	References              []Reference              `json:"references"`
-	Signals                 []StructuralSignal       `json:"signals"`
-	Evidence                Evidence                 `json:"evidence"`
+	ID                             string                   `json:"id"`
+	Name                           string                   `json:"name,omitempty"`
+	Needs                          []string                 `json:"needs"`
+	Permissions                    []Permission             `json:"permissions"`
+	Environment                    []EnvironmentBinding     `json:"environment"`
+	EnvironmentName                string                   `json:"environment_name,omitempty"`
+	EnvironmentEvidence            *Evidence                `json:"environment_evidence,omitempty"`
+	ReusableWorkflow               *ActionReference         `json:"reusable_workflow,omitempty"`
+	ReusableResolved               bool                     `json:"reusable_resolved"`
+	ReusableWorkflowInputs         []ReusableWorkflowInput  `json:"reusable_workflow_inputs,omitempty"`
+	ReusableWorkflowSecrets        []ReusableWorkflowSecret `json:"reusable_workflow_secrets,omitempty"`
+	ReusableSecretsInherit         bool                     `json:"reusable_secrets_inherit,omitempty"`
+	ReusableSecretsInheritEvidence *Evidence                `json:"reusable_secrets_inherit_evidence,omitempty"`
+	Steps                          []WorkflowStep           `json:"steps"`
+	Outputs                        []WorkflowOutput         `json:"outputs"`
+	References                     []Reference              `json:"references"`
+	Signals                        []StructuralSignal       `json:"signals"`
+	Evidence                       Evidence                 `json:"evidence"`
 }
 
 // ReusableWorkflowInputDefault preserves a workflow_call input's declared

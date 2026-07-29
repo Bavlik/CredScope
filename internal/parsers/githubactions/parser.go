@@ -499,6 +499,10 @@ func parseJob(file, id string, node *yaml.Node) (domain.WorkflowJob, error) {
 		if err != nil {
 			return job, err
 		}
+		if job.ReusableSecretsInherit {
+			inheritEvidence := evidence(file, secretsNode, "jobs."+id+".secrets", "Reusable workflow secrets: inherit declaration", domain.ConfidenceConfirmed)
+			job.ReusableSecretsInheritEvidence = &inheritEvidence
+		}
 	}
 	if steps, ok, err := yamlsafe.MappingValue(node, "steps"); err != nil {
 		return job, structuralError(file, node, "jobs."+id+".steps", err)
