@@ -194,13 +194,14 @@ type Node struct {
 }
 
 type Edge struct {
-	ID           string       `json:"id"`
-	From         string       `json:"from"`
-	To           string       `json:"to"`
-	Type         EdgeType     `json:"type"`
-	EvidenceKind EvidenceKind `json:"evidence_kind"`
-	Evidence     []Evidence   `json:"evidence,omitempty"`
-	Confidence   Confidence   `json:"confidence"`
+	ID           string            `json:"id"`
+	From         string            `json:"from"`
+	To           string            `json:"to"`
+	Type         EdgeType          `json:"type"`
+	EvidenceKind EvidenceKind      `json:"evidence_kind"`
+	Metadata     map[string]string `json:"metadata,omitempty"`
+	Evidence     []Evidence        `json:"evidence,omitempty"`
+	Confidence   Confidence        `json:"confidence"`
 }
 
 type ScoreFactor struct {

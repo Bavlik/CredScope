@@ -31,13 +31,13 @@ type BuildResult struct {
 }
 
 type builder struct {
-	graph         *mutableGraph
-	credentials   map[string]*credentialState
-	warnings      map[string]struct{}
-	options       BuildOptions
-	ignored       map[string]domain.IgnoredItem
-	resolvedCalls map[string]reusableworkflow.DirectCall
-	workflowNames map[string]string
+	graph           *mutableGraph
+	credentials     map[string]*credentialState
+	warnings        map[string]struct{}
+	options         BuildOptions
+	ignored         map[string]domain.IgnoredItem
+	resolvedCalls   map[string]reusableworkflow.DirectCall
+	workflowsByFile map[string]domain.Workflow
 }
 
 type credentialState struct {
@@ -67,9 +67,9 @@ func BuildWithOptions(parsed domain.ParsedRepository, options BuildOptions) Buil
 }
 
 func (b *builder) build(parsed domain.ParsedRepository) {
-	b.workflowNames = make(map[string]string, len(parsed.Workflows))
+	b.workflowsByFile = make(map[string]domain.Workflow, len(parsed.Workflows))
 	for _, workflow := range parsed.Workflows {
-		b.workflowNames[workflow.File] = workflow.Name
+		b.workflowsByFile[workflow.File] = workflow
 	}
 	repoID := b.graph.addNode(domain.NodeRepository, "selected-repository", "repository", nil, map[string]string{"scope": "selected_root"}, nil, domain.ConfidenceConfirmed)
 	for _, finding := range parsed.Findings {
@@ -89,6 +89,12 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	for _, workflow := range parsed.Workflows {
 		b.workflow(repoID, workflow)
 	}
+	// Secret forwarding runs only after every workflow (including every
+	// callee) has been fully processed above, because it must reuse the
+	// credential nodes callees already created from their own genuine
+	// secret usage rather than fabricate alias nodes from the contract
+	// declaration alone.
+	b.propagateReusableWorkflowSecrets(parsed.Workflows)
 	for _, project := range parsed.Compose {
 		b.compose(repoID, project)
 	}
@@ -272,17 +278,132 @@ func (b *builder) reusableWorkflowCall(workflow domain.Workflow, jobID, jobKey s
 		return
 	}
 	b.graph.addEdge(jobID, nodeID, domain.EdgeCallsWorkflow, []domain.Evidence{evidence("reusable_workflow", action.Evidence, "Reusable workflow reference was resolved to a local workflow.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
-	targetName, ok := b.workflowNames[call.TargetWorkflow]
+	target, ok := b.workflowsByFile[call.TargetWorkflow]
 	if !ok {
 		return
 	}
-	targetID := workflowNodeID(call.TargetWorkflow, targetName)
+	targetID := workflowNodeID(call.TargetWorkflow, target.Name)
 	structuralEvidence := []domain.Evidence{evidence("resolved_reusable_call", action.Evidence, "Caller structurally invokes this reusable workflow; this is not credential data flow or permission exposure.", domain.ConfidenceConfirmed)}
 	b.graph.addTypedEdge(nodeID, targetID, domain.EdgeCallsWorkflow, domain.EvidenceStructuralCallOnly, structuralEvidence, domain.ConfidenceConfirmed)
 }
 
 func workflowNodeID(file, name string) string {
 	return stableID("node:"+string(domain.NodeWorkflow), nodeKey(file, name))
+}
+
+// propagateReusableWorkflowSecrets connects a caller's explicit job-level
+// `secrets:` forwarding to the callee's declared workflow_call.secrets
+// contract, but only for calls the resolver marked resolved_local, only for
+// caller values it can statically prove are a single literal secret
+// reference, and only for aliases the callee genuinely uses (i.e. a
+// credential node already exists for that alias from the callee's own
+// normal processing above). This is a single flat pass over every job in
+// every workflow: it never recurses, so it cannot loop on a reusable-call
+// cycle, and nested forwarding chains (A->B->C) fall out naturally because
+// each hop independently reuses the same content-addressed credential
+// nodes — graph traversal, not this pass, is what walks the resulting
+// multi-hop chain.
+func (b *builder) propagateReusableWorkflowSecrets(workflows []domain.Workflow) {
+	for _, caller := range workflows {
+		for _, job := range caller.Jobs {
+			if len(job.ReusableWorkflowSecrets) == 0 {
+				continue
+			}
+			call, hasCall := b.resolvedCalls[caller.File+"\x00"+job.ID]
+			if !hasCall || call.Status != reusableworkflow.StatusResolvedLocal {
+				continue
+			}
+			target, ok := b.workflowsByFile[call.TargetWorkflow]
+			if !ok || target.WorkflowCall == nil {
+				continue
+			}
+			declared := make(map[string]bool, len(target.WorkflowCall.Secrets))
+			for _, secretDef := range target.WorkflowCall.Secrets {
+				declared[secretDef.Name] = true
+			}
+			for _, binding := range job.ReusableWorkflowSecrets {
+				if !declared[binding.Name] {
+					b.warnings[fmt.Sprintf("Reusable workflow job %q in %q forwards secret alias %q that is not declared in %q's workflow_call.secrets contract; no forwarding edge was created.", job.ID, caller.File, binding.Name, target.File)] = struct{}{}
+					continue
+				}
+				sourceRef, ok := singleSecretReference(binding.References)
+				if !ok {
+					continue
+				}
+				b.forwardReusableWorkflowSecret(caller, job.ID, binding, sourceRef, target)
+			}
+		}
+	}
+}
+
+// singleSecretReference reports the caller-side value's sole secrets.<name>
+// reference. It deliberately refuses anything else the parser may have
+// found in that same value — zero secret references (a literal string, or
+// an expression over env/inputs/vars/github context), or more than one
+// (concatenation of multiple secrets) — since neither can be treated as a
+// single confirmed forwarded credential.
+func singleSecretReference(refs []domain.Reference) (domain.Reference, bool) {
+	var found domain.Reference
+	count := 0
+	for _, ref := range refs {
+		if ref.Kind == domain.ReferenceSecret {
+			found = ref
+			count++
+		}
+	}
+	return found, count == 1
+}
+
+// referencesNamed collects every already-parsed Reference of the given kind
+// and name from a workflow's aggregated reference list; used here to find
+// the callee's own usage evidence for a forwarded secret alias.
+func referencesNamed(refs []domain.Reference, kind domain.ReferenceKind, name string) []domain.Reference {
+	var result []domain.Reference
+	for _, ref := range refs {
+		if ref.Kind == kind && ref.Name == name {
+			result = append(result, ref)
+		}
+	}
+	return result
+}
+
+// forwardReusableWorkflowSecret links the caller's already-existing source
+// credential node to the callee's already-existing alias credential node
+// with a confirmed, security-traversable EdgeExplicitlyForwardedTo edge.
+// The alias's credential node is looked up, never created here: if the
+// callee's own processing never produced one, the alias was declared but
+// never actually used, and no forwarding edge is created — this call alone
+// must not fabricate a credential that only exists as a contract name.
+func (b *builder) forwardReusableWorkflowSecret(caller domain.Workflow, jobID string, binding domain.ReusableWorkflowSecret, sourceRef domain.Reference, target domain.Workflow) {
+	targetState, ok := b.credentials[strings.ToUpper(binding.Name)]
+	if !ok {
+		return
+	}
+	sourceCredentialID := b.reference(sourceRef)
+	if sourceCredentialID == "" || sourceCredentialID == targetState.id {
+		return
+	}
+	evidenceItems := []domain.Evidence{
+		evidence("reusable_secret_forwarding_caller", binding.Evidence, "Caller explicitly forwards this secret to the reusable workflow's declared secret alias \""+binding.Name+"\" in "+target.File+".", domain.ConfidenceConfirmed),
+	}
+	for _, usage := range referencesNamed(target.References, domain.ReferenceSecret, binding.Name) {
+		evidenceItems = append(evidenceItems, evidence("reusable_secret_forwarding_callee_usage", usage.Evidence, "Reusable workflow "+target.File+" uses the forwarded secret under alias \""+binding.Name+"\".", domain.ConfidenceConfirmed))
+	}
+	// Metadata is folded into the edge's content-addressed identity (see
+	// addTypedEdgeWithMetadata) so two distinct caller jobs never collapse
+	// into one edge merely because they forward the same source secret to
+	// the same callee alias, and so downstream consumers (including
+	// traversal's reusable-workflow hop cap) can read the resolved call
+	// identity directly instead of parsing evidence text.
+	metadata := map[string]string{
+		"caller_workflow":              caller.File,
+		"caller_job_id":                jobID,
+		"target_workflow":              target.File,
+		"callee_alias":                 binding.Name,
+		"source_secret":                sourceRef.Name,
+		reusableWorkflowHopMetadataKey: reusableWorkflowHopMetadataValue,
+	}
+	b.graph.addTypedEdgeWithMetadata(sourceCredentialID, targetState.id, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, metadata, evidenceItems, domain.ConfidenceConfirmed)
 }
 
 func (b *builder) step(jobID, jobKey string, index int, step domain.WorkflowStep) string {

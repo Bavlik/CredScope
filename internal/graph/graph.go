@@ -25,6 +25,16 @@ const (
 	DefaultMaxGraphEdges = 250000
 )
 
+// reusableWorkflowHopMetadataKey/Value mark an EdgeExplicitlyForwardedTo edge
+// as a confirmed reusable-workflow secret-forwarding transition between a
+// caller and a callee, distinct from ordinary (non-reusable-workflow)
+// forwarding edges. Traversal uses this to enforce the reusable workflow
+// chain's maximum depth per path, independent of the edge's own identity.
+const (
+	reusableWorkflowHopMetadataKey   = "reusable_workflow_hop"
+	reusableWorkflowHopMetadataValue = "true"
+)
+
 func newMutable() *mutableGraph {
 	return newMutableWithLimits(DefaultMaxGraphNodes, DefaultMaxGraphEdges)
 
@@ -78,6 +88,45 @@ func (g *mutableGraph) addTypedEdge(from, to string, kind domain.EdgeType, evide
 		g.edges[id] = domain.Edge{ID: id, From: from, To: to, Type: kind, EvidenceKind: evidenceKind, Evidence: evidence, Confidence: confidence}
 	}
 	return id
+}
+
+// addTypedEdgeWithMetadata is addTypedEdge plus deterministic typed edge
+// metadata folded into the content-addressed edge identity. Used where an
+// edge's identity must be pinned to explicit fields (e.g. which specific
+// caller job forwarded which specific source secret) rather than left to
+// incidentally differ via evidence text alone.
+func (g *mutableGraph) addTypedEdgeWithMetadata(from, to string, kind domain.EdgeType, evidenceKind domain.EvidenceKind, metadata map[string]string, evidence []domain.Evidence, confidence domain.Confidence) string {
+	if from == "" || to == "" {
+		return ""
+	}
+	evidence = uniqueEvidence(evidence)
+	key := from + "\x00" + to + "\x00" + string(kind) + "\x00" + string(evidenceKind) + "\x00" + metadataKey(metadata) + "\x00" + evidenceKey(evidence)
+	id := stableID("edge", key)
+	if _, ok := g.edges[id]; ok {
+		return id
+	}
+	if len(g.edges) >= g.maxEdges {
+		g.limitExceeded = true
+		return ""
+	}
+	g.edges[id] = domain.Edge{ID: id, From: from, To: to, Type: kind, EvidenceKind: evidenceKind, Metadata: cloneMap(metadata), Evidence: evidence, Confidence: confidence}
+	return id
+}
+
+func metadataKey(metadata map[string]string) string {
+	if len(metadata) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(metadata))
+	for key := range metadata {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	parts := make([]string, 0, len(keys))
+	for _, key := range keys {
+		parts = append(parts, key+"="+metadata[key])
+	}
+	return strings.Join(parts, "\x1f")
 }
 
 func defaultEvidenceKind(kind domain.EdgeType) domain.EvidenceKind {
