@@ -90,21 +90,41 @@ type WorkflowStep struct {
 	Evidence    Evidence             `json:"evidence"`
 }
 
+// ReusableWorkflowInput is a single job-level `with:` entry on a reusable
+// workflow call. References capture expressions found in the caller-side value.
+type ReusableWorkflowInput struct {
+	Name       string      `json:"name"`
+	References []Reference `json:"references"`
+	Evidence   Evidence    `json:"evidence"`
+}
+
+// ReusableWorkflowSecret is a single job-level `secrets:` entry on a reusable
+// workflow call. Name is the callee-side secret alias; References capture
+// expressions found in the caller-side value (e.g. secrets.PROD_TOKEN).
+type ReusableWorkflowSecret struct {
+	Name       string      `json:"name"`
+	References []Reference `json:"references"`
+	Evidence   Evidence    `json:"evidence"`
+}
+
 type WorkflowJob struct {
-	ID                  string               `json:"id"`
-	Name                string               `json:"name,omitempty"`
-	Needs               []string             `json:"needs"`
-	Permissions         []Permission         `json:"permissions"`
-	Environment         []EnvironmentBinding `json:"environment"`
-	EnvironmentName     string               `json:"environment_name,omitempty"`
-	EnvironmentEvidence *Evidence            `json:"environment_evidence,omitempty"`
-	ReusableWorkflow    *ActionReference     `json:"reusable_workflow,omitempty"`
-	ReusableResolved    bool                 `json:"reusable_resolved"`
-	Steps               []WorkflowStep       `json:"steps"`
-	Outputs             []WorkflowOutput     `json:"outputs"`
-	References          []Reference          `json:"references"`
-	Signals             []StructuralSignal   `json:"signals"`
-	Evidence            Evidence             `json:"evidence"`
+	ID                      string                   `json:"id"`
+	Name                    string                   `json:"name,omitempty"`
+	Needs                   []string                 `json:"needs"`
+	Permissions             []Permission             `json:"permissions"`
+	Environment             []EnvironmentBinding     `json:"environment"`
+	EnvironmentName         string                   `json:"environment_name,omitempty"`
+	EnvironmentEvidence     *Evidence                `json:"environment_evidence,omitempty"`
+	ReusableWorkflow        *ActionReference         `json:"reusable_workflow,omitempty"`
+	ReusableResolved        bool                     `json:"reusable_resolved"`
+	ReusableWorkflowInputs  []ReusableWorkflowInput  `json:"reusable_workflow_inputs,omitempty"`
+	ReusableWorkflowSecrets []ReusableWorkflowSecret `json:"reusable_workflow_secrets,omitempty"`
+	ReusableSecretsInherit  bool                     `json:"reusable_secrets_inherit,omitempty"`
+	Steps                   []WorkflowStep           `json:"steps"`
+	Outputs                 []WorkflowOutput         `json:"outputs"`
+	References              []Reference              `json:"references"`
+	Signals                 []StructuralSignal       `json:"signals"`
+	Evidence                Evidence                 `json:"evidence"`
 }
 
 type Workflow struct {

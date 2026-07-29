@@ -291,6 +291,22 @@ func parseJob(file, id string, node *yaml.Node) (domain.WorkflowJob, error) {
 		job.ReusableWorkflow = &action
 		job.ReusableResolved = false
 	}
+	if with, ok, err := yamlsafe.MappingValue(node, "with"); err != nil {
+		return job, structuralError(file, node, "jobs."+id+".with", err)
+	} else if ok {
+		job.ReusableWorkflowInputs, err = parseReusableWorkflowInputs(file, id, with)
+		if err != nil {
+			return job, err
+		}
+	}
+	if secretsNode, ok, err := yamlsafe.MappingValue(node, "secrets"); err != nil {
+		return job, structuralError(file, node, "jobs."+id+".secrets", err)
+	} else if ok {
+		job.ReusableWorkflowSecrets, job.ReusableSecretsInherit, err = parseReusableWorkflowSecrets(file, id, secretsNode)
+		if err != nil {
+			return job, err
+		}
+	}
 	if steps, ok, err := yamlsafe.MappingValue(node, "steps"); err != nil {
 		return job, structuralError(file, node, "jobs."+id+".steps", err)
 	} else if ok {
@@ -413,6 +429,62 @@ func parseOutputs(file, jobID string, node *yaml.Node) ([]domain.WorkflowOutput,
 	}
 	sort.Slice(outputs, func(i, j int) bool { return outputs[i].Name < outputs[j].Name })
 	return outputs, nil
+}
+
+func parseReusableWorkflowInputs(file, jobID string, node *yaml.Node) ([]domain.ReusableWorkflowInput, error) {
+	if node.Kind != yaml.MappingNode {
+		return nil, &ParseError{Path: file, Line: node.Line, Field: "jobs." + jobID + ".with", Msg: "with must be a mapping"}
+	}
+	entries, err := yamlsafe.MappingEntries(node)
+	if err != nil {
+		return nil, structuralError(file, node, "jobs."+jobID+".with", err)
+	}
+	inputs := make([]domain.ReusableWorkflowInput, 0, len(entries))
+	for _, entry := range entries {
+		name := sanitizer.Identifier(entry[0].Value)
+		field := "jobs." + jobID + ".with." + name
+		if entry[1].Kind != yaml.ScalarNode {
+			return nil, &ParseError{Path: file, Line: entry[1].Line, Field: field, Msg: "reusable workflow input value must be a scalar"}
+		}
+		inputs = append(inputs, domain.ReusableWorkflowInput{
+			Name:       name,
+			References: extractReferences(file, entry[1], field, entry[1].Value),
+			Evidence:   evidence(file, entry[1], field, "Reusable workflow input", domain.ConfidenceConfirmed),
+		})
+	}
+	sort.Slice(inputs, func(i, j int) bool { return inputs[i].Name < inputs[j].Name })
+	return inputs, nil
+}
+
+func parseReusableWorkflowSecrets(file, jobID string, node *yaml.Node) ([]domain.ReusableWorkflowSecret, bool, error) {
+	if node.Kind == yaml.ScalarNode {
+		if safeText(node.Value) != "inherit" {
+			return nil, false, &ParseError{Path: file, Line: node.Line, Field: "jobs." + jobID + ".secrets", Msg: `secrets scalar value must be "inherit"`}
+		}
+		return nil, true, nil
+	}
+	if node.Kind != yaml.MappingNode {
+		return nil, false, &ParseError{Path: file, Line: node.Line, Field: "jobs." + jobID + ".secrets", Msg: `secrets must be a mapping or "inherit"`}
+	}
+	entries, err := yamlsafe.MappingEntries(node)
+	if err != nil {
+		return nil, false, structuralError(file, node, "jobs."+jobID+".secrets", err)
+	}
+	secrets := make([]domain.ReusableWorkflowSecret, 0, len(entries))
+	for _, entry := range entries {
+		name := sanitizer.Identifier(entry[0].Value)
+		field := "jobs." + jobID + ".secrets." + name
+		if entry[1].Kind != yaml.ScalarNode {
+			return nil, false, &ParseError{Path: file, Line: entry[1].Line, Field: field, Msg: "secret value must be a scalar"}
+		}
+		secrets = append(secrets, domain.ReusableWorkflowSecret{
+			Name:       name,
+			References: extractReferences(file, entry[1], field, entry[1].Value),
+			Evidence:   evidence(file, entry[1], field, "Reusable workflow secret", domain.ConfidenceConfirmed),
+		})
+	}
+	sort.Slice(secrets, func(i, j int) bool { return secrets[i].Name < secrets[j].Name })
+	return secrets, false, nil
 }
 
 func classifyAction(file string, node *yaml.Node, field string) domain.ActionReference {
