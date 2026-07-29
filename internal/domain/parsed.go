@@ -127,18 +127,60 @@ type WorkflowJob struct {
 	Evidence                Evidence                 `json:"evidence"`
 }
 
+// ReusableWorkflowInputDefault preserves a workflow_call input's declared
+// scalar default without collapsing its type. Type is one of "string",
+// "boolean", or "number"; exactly one of the pointer fields matching Type is
+// non-nil. Pointers (not omitempty value fields) so that zero-valued
+// defaults such as false, 0, or "" still serialize explicitly.
+type ReusableWorkflowInputDefault struct {
+	Type    string   `json:"type"`
+	String  *string  `json:"string,omitempty"`
+	Boolean *bool    `json:"boolean,omitempty"`
+	Number  *float64 `json:"number,omitempty"`
+}
+
+// ReusableWorkflowInputDefinition is one declared `on.workflow_call.inputs`
+// entry on the callee side of a reusable workflow contract.
+type ReusableWorkflowInputDefinition struct {
+	Name        string                        `json:"name"`
+	Description string                        `json:"description,omitempty"`
+	Required    bool                          `json:"required"`
+	Type        string                        `json:"type"`
+	Default     *ReusableWorkflowInputDefault `json:"default,omitempty"`
+	Evidence    Evidence                      `json:"evidence"`
+}
+
+// ReusableWorkflowSecretDefinition is one declared `on.workflow_call.secrets`
+// entry on the callee side of a reusable workflow contract.
+type ReusableWorkflowSecretDefinition struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Required    bool     `json:"required"`
+	Evidence    Evidence `json:"evidence"`
+}
+
+// ReusableWorkflowContract is the callee-side declaration made by a
+// `workflow_call` trigger. A non-nil, empty contract means the workflow
+// declared `workflow_call` without inputs or secrets.
+type ReusableWorkflowContract struct {
+	Inputs   []ReusableWorkflowInputDefinition  `json:"inputs,omitempty"`
+	Secrets  []ReusableWorkflowSecretDefinition `json:"secrets,omitempty"`
+	Evidence Evidence                           `json:"evidence"`
+}
+
 type Workflow struct {
-	Name                       string               `json:"name"`
-	File                       string               `json:"file"`
-	Triggers                   []WorkflowTrigger    `json:"triggers"`
-	Permissions                []Permission         `json:"permissions"`
-	MissingExplicitPermissions bool                 `json:"missing_explicit_permissions"`
-	Environment                []EnvironmentBinding `json:"environment"`
-	Jobs                       []WorkflowJob        `json:"jobs"`
-	References                 []Reference          `json:"references"`
-	Signals                    []StructuralSignal   `json:"signals"`
-	Warnings                   []ParseWarning       `json:"warnings"`
-	Evidence                   Evidence             `json:"evidence"`
+	Name                       string                    `json:"name"`
+	File                       string                    `json:"file"`
+	Triggers                   []WorkflowTrigger         `json:"triggers"`
+	Permissions                []Permission              `json:"permissions"`
+	MissingExplicitPermissions bool                      `json:"missing_explicit_permissions"`
+	Environment                []EnvironmentBinding      `json:"environment"`
+	Jobs                       []WorkflowJob             `json:"jobs"`
+	WorkflowCall               *ReusableWorkflowContract `json:"workflow_call,omitempty"`
+	References                 []Reference               `json:"references"`
+	Signals                    []StructuralSignal        `json:"signals"`
+	Warnings                   []ParseWarning            `json:"warnings"`
+	Evidence                   Evidence                  `json:"evidence"`
 }
 
 type ComposePort struct {

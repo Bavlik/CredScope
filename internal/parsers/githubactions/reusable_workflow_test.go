@@ -12,8 +12,13 @@ import (
 
 func parseInlineWorkflow(t *testing.T, content string) (domain.Workflow, error) {
 	t.Helper()
+	return parseInlineWorkflowNamed(t, "caller.yml", content)
+}
+
+func parseInlineWorkflowNamed(t *testing.T, filename, content string) (domain.Workflow, error) {
+	t.Helper()
 	root := t.TempDir()
-	path := filepath.Join(root, ".github", "workflows", "caller.yml")
+	path := filepath.Join(root, ".github", "workflows", filename)
 	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		t.Fatal(err)
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/Bavlik/CredScope/internal/graph"
 	profilepkg "github.com/Bavlik/CredScope/internal/profile"
 	"github.com/Bavlik/CredScope/internal/remediation"
+	"github.com/Bavlik/CredScope/internal/reusableworkflow"
 	"github.com/Bavlik/CredScope/internal/rules"
 	"github.com/Bavlik/CredScope/internal/scoring"
 )
@@ -44,7 +45,12 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	for _, item := range options.IgnoreVariables {
 		ignoredVariables[strings.ToUpper(item.Value)] = domain.IgnoredItem{Kind: "variable", Target: strings.ToUpper(item.Value), Reason: item.Reason}
 	}
-	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables})
+	// Resolve reusable-workflow calls exactly once, against the same
+	// (already ignore-filtered) workflow set the graph is built from, then
+	// hand the result to graph construction explicitly. Resolve reads
+	// parsed.Workflows only; it never mutates them.
+	resolved := reusableworkflow.Resolve(parsed.Workflows)
+	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved})
 	if built.LimitExceeded {
 		return domain.AnalysisResult{}, fmt.Errorf("analysis graph exceeded the safety limit of %d nodes or %d edges", graph.DefaultMaxGraphNodes, graph.DefaultMaxGraphEdges)
 	}

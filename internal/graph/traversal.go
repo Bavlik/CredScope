@@ -38,7 +38,7 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 		return []domain.EvidencePath{}, false
 	}
 	for _, edge := range input.Edges {
-		if edge.EvidenceKind == domain.EvidenceNetworkTopology {
+		if edge.EvidenceKind == domain.EvidenceNetworkTopology || edge.EvidenceKind == domain.EvidenceStructuralCallOnly {
 			continue
 		}
 		if _, fromOK := nodes[edge.From]; !fromOK {

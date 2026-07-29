@@ -177,6 +177,10 @@ const (
 	EvidenceExposureContext   EvidenceKind = "inferred_exposure_context"
 	EvidenceNetworkTopology   EvidenceKind = "network_topology_only"
 	EvidenceUnknownRuntime    EvidenceKind = "unknown_runtime_behavior"
+	// EvidenceStructuralCallOnly marks an edge that records a structural
+	// relationship (e.g. a resolved reusable-workflow call) without implying
+	// credential data flow or exposure. Traversal must not walk through it.
+	EvidenceStructuralCallOnly EvidenceKind = "structural_call_only"
 )
 
 type Node struct {
