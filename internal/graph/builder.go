@@ -95,6 +95,7 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	// secret usage rather than fabricate alias nodes from the contract
 	// declaration alone.
 	b.propagateReusableWorkflowSecrets(parsed.Workflows)
+	b.emitReusableSecretsInheritDiagnostics(parsed.Workflows)
 	for _, project := range parsed.Compose {
 		b.compose(repoID, project)
 	}
@@ -404,6 +405,64 @@ func (b *builder) forwardReusableWorkflowSecret(caller domain.Workflow, jobID st
 		reusableWorkflowHopMetadataKey: reusableWorkflowHopMetadataValue,
 	}
 	b.graph.addTypedEdgeWithMetadata(sourceCredentialID, targetState.id, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, metadata, evidenceItems, domain.ConfidenceConfirmed)
+}
+
+// reusableSecretsInheritDiagnosticCode is a stable, machine-readable prefix
+// for `secrets: inherit` diagnostics. It is deliberately not shaped like a
+// catalog rule ID (no "CRD" prefix, no rules.Catalog entry): this is a
+// structural, offline-analysis-limitation notice, never a risk finding.
+const reusableSecretsInheritDiagnosticCode = "REUSABLE_SECRETS_INHERIT"
+
+// emitReusableSecretsInheritDiagnostics records one deterministic,
+// non-traversable diagnostic per job that declares `secrets: inherit` on a
+// reusable workflow call. CredScope is offline and cannot enumerate the
+// caller's real repository, organization, or environment secret inventory,
+// so `secrets: inherit` never creates a credential node, a binding node, a
+// forwarding edge, or confirmed_static_data_flow evidence here — this is
+// diagnostic-only, by design (see the architecture audit this phase is
+// scoped to): a call-scoped binding sourced from the existing global,
+// name-only NodeCredential identity would still let unrelated same-named
+// workflow references, same-name Gitleaks findings, and globally merged
+// evidence leak into an inherited path, which would overclaim a specific
+// secret's availability CredScope cannot actually prove offline.
+func (b *builder) emitReusableSecretsInheritDiagnostics(workflows []domain.Workflow) {
+	for _, caller := range workflows {
+		for _, job := range caller.Jobs {
+			if !job.ReusableSecretsInherit {
+				continue
+			}
+			call := b.resolvedCalls[caller.File+"\x00"+job.ID]
+			b.warnings[reusableSecretsInheritDiagnostic(caller, job, call)] = struct{}{}
+		}
+	}
+}
+
+func reusableSecretsInheritDiagnostic(caller domain.Workflow, job domain.WorkflowJob, call reusableworkflow.DirectCall) string {
+	status := string(call.Status)
+	if status == "" {
+		status = "unknown"
+	}
+	location := "unknown location"
+	if job.ReusableSecretsInheritEvidence != nil {
+		location = diagnosticLocationText(job.ReusableSecretsInheritEvidence.Location)
+	}
+	const noInventory = "CredScope cannot enumerate the caller's real repository, organization, or environment secret inventory offline, so no credential forwarding relationship was inferred."
+	if call.Status == reusableworkflow.StatusResolvedLocal {
+		return fmt.Sprintf("%s: job %q in %q declares secrets: inherit calling %q (status=%s). %s (%s)",
+			reusableSecretsInheritDiagnosticCode, job.ID, caller.File, call.TargetWorkflow, status, noInventory, location)
+	}
+	return fmt.Sprintf("%s: job %q in %q declares secrets: inherit (status=%s); target secret availability cannot be determined. %s (%s)",
+		reusableSecretsInheritDiagnosticCode, job.ID, caller.File, status, noInventory, location)
+}
+
+func diagnosticLocationText(loc domain.Location) string {
+	if loc.Path == "" {
+		return "unknown location"
+	}
+	if loc.Line > 0 {
+		return fmt.Sprintf("%s:%d", loc.Path, loc.Line)
+	}
+	return loc.Path
 }
 
 func (b *builder) step(jobID, jobKey string, index int, step domain.WorkflowStep) string {
