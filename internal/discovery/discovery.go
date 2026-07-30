@@ -224,6 +224,75 @@ func (f *Finder) ResolveFile(input string) (string, error) {
 	return abs, nil
 }
 
+var driveLetterPattern = regexp.MustCompile(`^[A-Za-z]:`)
+
+// ResolveDirectory confines an explicit repository-relative directory
+// reference to the root and rejects every symlink or reparse-point
+// component, including the final directory itself. Unlike ResolveFile it
+// never accepts an absolute path even when that path would resolve within
+// root: composite-action-style directory references are always expressed
+// relative to the repository, so an absolute-looking value is rejected
+// outright rather than conditionally confined. It performs no file reads;
+// callers decide separately which files (if any) exist inside the returned
+// directory.
+func (f *Finder) ResolveDirectory(relative string) (string, error) {
+	if relative == "" {
+		return "", errors.New("path must not be empty")
+	}
+	if strings.ContainsRune(relative, 0) {
+		return "", errors.New("path must not contain NUL characters")
+	}
+	if strings.Contains(relative, "\\") {
+		return "", fmt.Errorf("path %q must not contain backslashes", relative)
+	}
+	if strings.HasPrefix(relative, "//") {
+		return "", fmt.Errorf("path %q must not be a UNC-style path", relative)
+	}
+	if driveLetterPattern.MatchString(relative) {
+		return "", fmt.Errorf("path %q must not be a drive-letter path", relative)
+	}
+	if filepath.IsAbs(relative) || strings.HasPrefix(relative, "/") {
+		return "", fmt.Errorf("path %q must not be an absolute path", relative)
+	}
+	abs, err := filepath.Abs(filepath.Join(f.root, relative))
+	if err != nil {
+		return "", fmt.Errorf("resolve path: %w", err)
+	}
+	if !withinRoot(f.root, abs) {
+		return "", fmt.Errorf("path %q is outside repository root", relative)
+	}
+	rel, err := filepath.Rel(f.root, abs)
+	if err != nil || !isSafeRelative(filepath.ToSlash(rel)) {
+		return "", fmt.Errorf("path %q is outside repository root", relative)
+	}
+	current := f.root
+	for _, part := range strings.Split(filepath.Clean(rel), string(filepath.Separator)) {
+		if part == "." || part == "" {
+			continue
+		}
+		current = filepath.Join(current, part)
+		info, statErr := os.Lstat(current)
+		if statErr != nil {
+			return "", fmt.Errorf("inspect %q: %w", relative, statErr)
+		}
+		unsafeLink, linkErr := isUnsafeLink(current, info)
+		if linkErr != nil {
+			return "", fmt.Errorf("inspect %q link state: %w", relative, linkErr)
+		}
+		if unsafeLink {
+			return "", fmt.Errorf("path %q contains a symbolic link or reparse point", relative)
+		}
+	}
+	info, err := os.Stat(abs)
+	if err != nil {
+		return "", fmt.Errorf("inspect %q: %w", relative, err)
+	}
+	if !info.IsDir() {
+		return "", fmt.Errorf("path %q is not a directory", relative)
+	}
+	return abs, nil
+}
+
 func UniqueFiles(files []File) []File {
 	byPath := make(map[string]File, len(files))
 	for _, file := range files {

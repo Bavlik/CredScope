@@ -148,6 +148,274 @@ func TestNewRejectsUnsafePattern(t *testing.T) {
 	}
 }
 
+func TestResolveDirectoryAcceptsRepositoryRoot(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	resolved, err := finder.ResolveDirectory(".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	realRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Clean(resolved) != filepath.Clean(realRoot) {
+		t.Fatalf("resolved = %q, want repository root %q", resolved, realRoot)
+	}
+}
+
+func TestResolveDirectoryAcceptsNestedDirectory(t *testing.T) {
+	root := t.TempDir()
+	nested := filepath.Join(root, ".github", "actions", "deploy")
+	if err := os.MkdirAll(nested, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	resolved, err := finder.ResolveDirectory(".github/actions/deploy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Base(resolved) != "deploy" {
+		t.Fatalf("resolved = %q, want a path ending in deploy", resolved)
+	}
+}
+
+func TestResolveDirectoryAcceptsHiddenDirectory(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, ".hidden", "action"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory(".hidden/action"); err != nil {
+		t.Fatalf("hidden directory should resolve: %v", err)
+	}
+}
+
+func TestResolveDirectoryAcceptsDeeplyNestedDirectory(t *testing.T) {
+	root := t.TempDir()
+	deep := "a/b/c/d/e/f/g"
+	if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(deep)), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory(deep); err != nil {
+		t.Fatalf("deeply nested directory should resolve: %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsNonexistentDirectory(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("does/not/exist"); err == nil {
+		t.Fatal("expected error for nonexistent directory")
+	}
+}
+
+func TestResolveDirectoryRejectsRegularFileTarget(t *testing.T) {
+	root := t.TempDir()
+	writeFixture(t, root, "action.yml", "name: x")
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("action.yml"); err == nil || !strings.Contains(err.Error(), "not a directory") {
+		t.Fatalf("expected not-a-directory rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsParentTraversal(t *testing.T) {
+	parent := t.TempDir()
+	root := filepath.Join(parent, "repository")
+	if err := os.Mkdir(root, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(parent, "outside"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("../outside"); err == nil || !strings.Contains(err.Error(), "outside repository root") {
+		t.Fatalf("expected traversal rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsDeepParentTraversal(t *testing.T) {
+	parent := t.TempDir()
+	root := filepath.Join(parent, "repository")
+	if err := os.Mkdir(root, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(parent, "outside"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "a"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("a/../../outside"); err == nil || !strings.Contains(err.Error(), "outside repository root") {
+		t.Fatalf("expected traversal rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsAbsoluteUnixPath(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("/etc/action"); err == nil || !strings.Contains(err.Error(), "absolute") {
+		t.Fatalf("expected absolute-path rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsWindowsDrivePath(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory(`C:\actions\deploy`); err == nil {
+		t.Fatal("expected drive-letter path rejection")
+	}
+}
+
+func TestResolveDirectoryRejectsUNCPath(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory(`//server/share/action`); err == nil || !strings.Contains(err.Error(), "UNC") {
+		t.Fatalf("expected UNC-path rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsBackslashPath(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory(`.github\actions\deploy`); err == nil || !strings.Contains(err.Error(), "backslash") {
+		t.Fatalf("expected backslash rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsNUL(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("action\x00dir"); err == nil || !strings.Contains(err.Error(), "NUL") {
+		t.Fatalf("expected NUL rejection, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsSymlinkedIntermediateDirectory(t *testing.T) {
+	root := t.TempDir()
+	realDir := filepath.Join(root, "real")
+	if err := os.MkdirAll(filepath.Join(realDir, "action"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "linked")
+	if err := os.Symlink(realDir, link); err != nil {
+		if runtime.GOOS == "windows" {
+			t.Skipf("creating symlinks requires privilege: %v", err)
+		}
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("linked/action"); err == nil || !strings.Contains(err.Error(), "symbolic link") {
+		t.Fatalf("expected symlink rejection for intermediate component, got %v", err)
+	}
+}
+
+func TestResolveDirectoryRejectsSymlinkedFinalDirectory(t *testing.T) {
+	root := t.TempDir()
+	realDir := filepath.Join(root, "real-action")
+	if err := os.MkdirAll(realDir, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "action-link")
+	if err := os.Symlink(realDir, link); err != nil {
+		if runtime.GOOS == "windows" {
+			t.Skipf("creating symlinks requires privilege: %v", err)
+		}
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("action-link"); err == nil || !strings.Contains(err.Error(), "symbolic link") {
+		t.Fatalf("expected symlink rejection for final directory, got %v", err)
+	}
+}
+
+func TestResolveDirectoryIsDeterministic(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, ".github", "actions", "deploy"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, err := finder.ResolveDirectory(".github/actions/deploy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := finder.ResolveDirectory(".github/actions/deploy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first != second {
+		t.Fatalf("repeated resolution differs: %q vs %q", first, second)
+	}
+}
+
+func TestResolveDirectoryDoesNotMutateRootInput(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "action"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	rootBefore := root
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("action"); err != nil {
+		t.Fatal(err)
+	}
+	if root != rootBefore {
+		t.Fatal("root input string must remain unchanged")
+	}
+}
+
 func TestUniqueFilesDeduplicatesWindowsStyleCase(t *testing.T) {
 	input := []File{
 		{Path: `C:\repo\compose.yml`, Kind: KindCompose},
