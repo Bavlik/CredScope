@@ -183,6 +183,51 @@ func TestWriteAllPermissionIsRepresented(t *testing.T) {
 	}
 }
 
+// TestWorkflowLevelInputsReferenceUnaffectedByCompositeActionScope proves the
+// new composite-action-scoped reference extraction (added for CA0) does not
+// change existing workflow parsing: ${{ inputs.environment }} in a real
+// workflow (workflow_dispatch's own caller-supplied inputs) must retain
+// exactly its pre-CA0 representation — ReferenceGitHubContext, the
+// "inputs." dangerous-context signal, and its serialized shape. The new
+// ReferenceActionInput kind must never appear here; it is scoped
+// exclusively to composite action metadata parsing.
+func TestWorkflowLevelInputsReferenceUnaffectedByCompositeActionScope(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, ".github", "workflows", "deploy-input.yml")
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	content := "name: deploy\non:\n  workflow_dispatch:\n    inputs:\n      environment:\n        required: true\n        type: string\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo \"${{ inputs.environment }}\"\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	workflow, err := New().Parse(context.Background(), root, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := findJob(t, workflow, "deploy")
+
+	if !containsReference(job.References, domain.ReferenceGitHubContext, "inputs.environment") {
+		t.Fatalf("expected inputs.environment as ReferenceGitHubContext, got %#v", job.References)
+	}
+	for _, ref := range job.References {
+		if ref.Name == "inputs.environment" && ref.Kind == domain.ReferenceActionInput {
+			t.Fatalf("workflow-level inputs.environment must never become ReferenceActionInput: %#v", ref)
+		}
+	}
+	if !containsSignal(job.Signals, "github_context_in_shell") {
+		t.Fatalf("expected the existing dangerous-context signal for inputs.environment: %#v", job.Signals)
+	}
+
+	encoded, err := json.Marshal(workflow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(encoded), `"kind":"github_context"`) || strings.Contains(string(encoded), `"action_input"`) {
+		t.Fatalf("serialized workflow must use github_context for inputs.environment and never emit action_input: %s", encoded)
+	}
+}
+
 func TestParserDoesNotExecuteShellText(t *testing.T) {
 	root := t.TempDir()
 	workflowPath := filepath.Join(root, ".github", "workflows", "no-exec.yml")

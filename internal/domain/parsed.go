@@ -9,6 +9,12 @@ const (
 	ReferenceGitHubContext   ReferenceKind = "github_context"
 	ReferenceComposeVariable ReferenceKind = "compose_variable"
 	ReferenceComposeSecret   ReferenceKind = "compose_secret"
+	// ReferenceActionInput identifies ${{ inputs.<name> }} usage inside a
+	// composite action's own metadata. It is deliberately distinct from
+	// ReferenceGitHubContext's existing "inputs.*" dangerous-context
+	// handling, which models a workflow's own workflow_dispatch/
+	// workflow_call caller-supplied inputs — a different, unrelated scope.
+	ReferenceActionInput ReferenceKind = "action_input"
 )
 
 type Reference struct {
@@ -275,4 +281,80 @@ type ParsedRepository struct {
 	Compose        []ComposeProject `json:"compose"`
 	Warnings       []ParseWarning   `json:"warnings"`
 	Ignored        []IgnoredItem    `json:"ignored_items"`
+}
+
+// ActionInputDefinition is one declared `inputs.<name>` entry in a GitHub
+// Action's own metadata (action.yml/action.yaml). Composite action inputs
+// have no declared type in GitHub's metadata schema, so Default is a plain
+// scalar-preserving string pointer, never the typed reusable-workflow
+// default model: nil means no default was declared; a non-nil pointer to ""
+// means an explicit empty-string default was declared.
+type ActionInputDefinition struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Required    bool     `json:"required"`
+	Default     *string  `json:"default,omitempty"`
+	Evidence    Evidence `json:"evidence"`
+}
+
+// ActionOutputDefinition is one declared `outputs.<name>` entry. Value is the
+// raw declared expression text (e.g. "${{ steps.build.outputs.image }}");
+// References captures any expressions found within it.
+type ActionOutputDefinition struct {
+	Name        string      `json:"name"`
+	Description string      `json:"description,omitempty"`
+	Value       string      `json:"value,omitempty"`
+	References  []Reference `json:"references"`
+	Evidence    Evidence    `json:"evidence"`
+}
+
+// ActionInputBinding is one `with.<name>` entry on a composite step's own
+// nested `uses:` call to another local action. Value is the raw caller-side
+// scalar text; References captures any expressions found within it.
+type ActionInputBinding struct {
+	Name       string      `json:"name"`
+	Value      string      `json:"value,omitempty"`
+	References []Reference `json:"references"`
+	Evidence   Evidence    `json:"evidence"`
+}
+
+// ActionStep is one entry in a composite action's `runs.steps`.
+type ActionStep struct {
+	ID               string               `json:"id,omitempty"`
+	Name             string               `json:"name,omitempty"`
+	If               string               `json:"if,omitempty"`
+	Action           *ActionReference     `json:"action,omitempty"`
+	Run              *ShellCommand        `json:"run,omitempty"`
+	Shell            string               `json:"shell,omitempty"`
+	WorkingDirectory string               `json:"working_directory,omitempty"`
+	With             []ActionInputBinding `json:"with,omitempty"`
+	Environment      []EnvironmentBinding `json:"environment,omitempty"`
+	ContinueOnError  *bool                `json:"continue_on_error,omitempty"`
+	References       []Reference          `json:"references"`
+	Evidence         Evidence             `json:"evidence"`
+}
+
+// ActionRuns is the `runs:` block of an action's metadata. Using is
+// preserved verbatim for every action type (composite, nodeNN, docker, or
+// any other literal GitHub accepts); Steps is populated only when
+// Using == "composite".
+type ActionRuns struct {
+	Using    string       `json:"using"`
+	Steps    []ActionStep `json:"steps,omitempty"`
+	Evidence Evidence     `json:"evidence"`
+}
+
+// ActionMetadata is the immutable, scanner-neutral parse of one
+// action.yml/action.yaml file. It is not embedded in ParsedRepository by
+// CA0: discovery, resolution, and graph wiring for local action references
+// are later phases.
+type ActionMetadata struct {
+	File        string                   `json:"file"`
+	Directory   string                   `json:"directory"`
+	Name        string                   `json:"name"`
+	Description string                   `json:"description,omitempty"`
+	Inputs      []ActionInputDefinition  `json:"inputs,omitempty"`
+	Outputs     []ActionOutputDefinition `json:"outputs,omitempty"`
+	Runs        ActionRuns               `json:"runs"`
+	Evidence    Evidence                 `json:"evidence"`
 }
