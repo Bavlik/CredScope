@@ -1,0 +1,31 @@
+schema_version: 1
+id: gha-local-composite-action-resolved
+title: Repository-local composite action resolves to a canonical structural node
+description: >
+  A workflow step references a repository-local composite action via
+  `uses: ./.github/actions/deploy`. CredScope resolves the reference,
+  parses the action's own action.yml, and represents it in the graph as a
+  canonical composite_action node connected to the existing call-site node
+  by a structural, non-traversable edge. A job-level secret remains
+  reachable through its ordinary path, proving the new structural
+  relationship never becomes a credential-flow path.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: [structural_call_only]
+  edges: [runs_action]
+tags: [github-actions, composite-action, structural-only]
+forbidden_output_strings: []
+notes: >
+  This case exercises Phase CA1 (repository-local composite-action
+  resolution and structural graph modeling). It intentionally has no
+  covers.rules entries: resolving a composite action must never itself
+  trigger a rule, score, or remediation change — DEPLOY_TOKEN's own score
+  is driven entirely by its ordinary job-level env exposure, unrelated to
+  the composite action.

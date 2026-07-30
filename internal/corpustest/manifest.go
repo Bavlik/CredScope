@@ -308,6 +308,7 @@ func knownEvidenceKinds() []string {
 		string(domain.EvidenceExposureContext),
 		string(domain.EvidenceNetworkTopology),
 		string(domain.EvidenceUnknownRuntime),
+		string(domain.EvidenceStructuralCallOnly),
 	}
 }
 

@@ -1,0 +1,14 @@
+name: Deploy
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+    steps:
+      - name: Run deploy action
+        uses: ./.github/actions/deploy

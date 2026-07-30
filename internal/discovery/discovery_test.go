@@ -1,6 +1,8 @@
 package discovery
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -373,6 +375,66 @@ func TestResolveDirectoryRejectsSymlinkedFinalDirectory(t *testing.T) {
 	}
 	if _, err := finder.ResolveDirectory("action-link"); err == nil || !strings.Contains(err.Error(), "symbolic link") {
 		t.Fatalf("expected symlink rejection for final directory, got %v", err)
+	}
+}
+
+// ResolveDirectory must preserve Linux-style exact-case semantics on every
+// platform, including Windows and macOS where the default filesystem is
+// case-insensitive. A directory-component case mismatch must behave exactly
+// like the component not existing at all (fs.ErrNotExist), never a silent
+// case-insensitive match.
+func TestResolveDirectoryRequiresExactCase(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "Actions", "Deploy"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("actions/deploy"); err == nil {
+		t.Fatal("expected case-mismatched path to be rejected")
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("expected fs.ErrNotExist for a case mismatch, got %v", err)
+	}
+	resolved, err := finder.ResolveDirectory("Actions/Deploy")
+	if err != nil {
+		t.Fatalf("exact-case path must resolve: %v", err)
+	}
+	if filepath.Base(resolved) != "Deploy" {
+		t.Fatalf("resolved = %q, want a path ending in Deploy", resolved)
+	}
+}
+
+// A case mismatch on only one of two nested components must still be
+// rejected as fs.ErrNotExist, regardless of which component mismatches.
+func TestResolveDirectoryRequiresExactCasePerComponent(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "Actions", "Deploy"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("actions/Deploy"); !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("first-component mismatch: expected fs.ErrNotExist, got %v", err)
+	}
+	if _, err := finder.ResolveDirectory("Actions/deploy"); !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("second-component mismatch: expected fs.ErrNotExist, got %v", err)
+	}
+}
+
+// A directory that genuinely does not exist must also be reported as
+// fs.ErrNotExist through a typed check, not fragile error-string matching.
+func TestResolveDirectoryNonexistentIsErrNotExist(t *testing.T) {
+	root := t.TempDir()
+	finder, err := New(root, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := finder.ResolveDirectory("does/not/exist"); !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("expected fs.ErrNotExist, got %v", err)
 	}
 }
 

@@ -1597,12 +1597,17 @@
         },
         "metadata": {
           "artifact_kind": "",
+          "caller_job_id": "deploy",
+          "caller_step_index": "0",
+          "caller_workflow": ".github/workflows/deploy.yml",
           "docker": "false",
           "local": "false",
           "mutable": "true",
           "owner": "example-vendor",
           "pinned_sha": "false",
+          "raw_reference": "example-vendor/deploy-action@v1",
           "repository": "deploy-action",
+          "resolution_status": "opaque_external",
           "revision": "v1",
           "third_party": "true",
           "unresolved": "false"
