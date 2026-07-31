@@ -1,0 +1,12 @@
+name: Deploy Action
+description: Deploys the built artifact to the target environment.
+inputs:
+  token:
+    description: Deployment token
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: deploy
+      shell: bash
+      run: deploy --token "${{ inputs.token }}"

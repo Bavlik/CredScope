@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Bavlik/CredScope/internal/compositeactionflow"
 	"github.com/Bavlik/CredScope/internal/domain"
 	"github.com/Bavlik/CredScope/internal/graph"
 	profilepkg "github.com/Bavlik/CredScope/internal/profile"
@@ -54,7 +55,16 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	// owns all filesystem access and action-metadata parsing for local
 	// composite-action resolution; Analyze only reads it and performs no
 	// parsing or resolution of its own.
-	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved, CompositeActions: parsed.CompositeActions})
+	//
+	// compositeactionflow.Link is, like reusableworkflow.Resolve above, a
+	// pure computation over already-parsed domain values: it never touches
+	// the filesystem and never mutates parsed.Workflows or
+	// parsed.CompositeActions, keeping Analyze itself filesystem-free.
+	compositeFlows, err := compositeactionflow.Link(ctx, parsed.Workflows, parsed.CompositeActions)
+	if err != nil {
+		return domain.AnalysisResult{}, err
+	}
+	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved, CompositeActions: parsed.CompositeActions, CompositeActionInputFlows: compositeFlows})
 	if built.LimitExceeded {
 		return domain.AnalysisResult{}, fmt.Errorf("analysis graph exceeded the safety limit of %d nodes or %d edges", graph.DefaultMaxGraphNodes, graph.DefaultMaxGraphEdges)
 	}

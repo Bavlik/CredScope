@@ -1,0 +1,33 @@
+schema_version: 1
+id: gha-composite-action-confirmed-input-flow
+title: Confirmed composite-action input flow from a workflow secret to its internal usage
+description: >
+  A workflow step calls a repository-local composite action via
+  `uses: ./.github/actions/deploy` and passes `${{ secrets.PROD_TOKEN }}` as
+  the action's declared `token` input through `with:`. CredScope establishes
+  a confirmed static flow from the workflow's secret reference, through a
+  call-specific input-binding node, to a call-specific usage node
+  representing the composite action's internal step that reads
+  `${{ inputs.token }}`. The pre-existing generic workflow-step reference
+  edge for PROD_TOKEN continues to exist unchanged alongside this new,
+  alias-aware confirmed chain.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: [confirmed_static_data_flow, structural_call_only]
+  edges: [explicitly_forwarded_to, runs_action]
+tags: [github-actions, composite-action, input-flow, structural-only]
+forbidden_output_strings: []
+notes: >
+  This case exercises Phase CA2 (workflow action-step `with:` parsing and
+  confirmed repository-local composite-action input flow). It intentionally
+  has no covers.rules entries: the new confirmed binding/usage chain never
+  itself triggers a rule, score, or remediation change on its own — it only
+  makes an already-truthful, alias-preserving reachability path explicit and
+  visible in the graph.

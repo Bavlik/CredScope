@@ -136,6 +136,23 @@ const (
 	// (local, external, or docker) regardless of whether that reference was
 	// ever resolved.
 	NodeCompositeAction NodeType = "composite_action"
+	// NodeCompositeActionInputBinding represents one workflow-step call-site
+	// `with:` binding whose entire raw value was proven, by CA2's strict
+	// whole-value matcher, to be exactly one static named secret reference,
+	// for a call resolved to a local composite action that declares the
+	// bound input. Its identity is call-specific (caller workflow + caller
+	// job + caller step index + input name): two calls, even to the same
+	// canonical action and input, always produce distinct binding nodes, so
+	// no traversal can cross from one call's credential into another call's
+	// binding.
+	NodeCompositeActionInputBinding NodeType = "composite_action_input_binding"
+	// NodeCompositeActionInputUsage represents one internal composite-action
+	// step's confirmed usage of a declared input, scoped to the specific
+	// call that bound it. Its identity additionally folds in the canonical
+	// directory and internal action-step index, but remains call-specific
+	// through the caller workflow/job/step-index/input-name components it
+	// shares with its NodeCompositeActionInputBinding parent.
+	NodeCompositeActionInputUsage NodeType = "composite_action_input_usage"
 )
 
 type EdgeType string
