@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Bavlik/CredScope/internal/classification"
+	"github.com/Bavlik/CredScope/internal/compositeactionflow"
 	"github.com/Bavlik/CredScope/internal/domain"
 	"github.com/Bavlik/CredScope/internal/reusableworkflow"
 	"github.com/Bavlik/CredScope/internal/sanitizer"
@@ -28,6 +29,14 @@ type BuildOptions struct {
 	// pre-CA1 behavior. The graph builder performs no filesystem access or
 	// action-metadata parsing of its own; it only ever reads this value.
 	CompositeActions domain.CompositeActionResolution
+	// CompositeActionInputFlows carries internal/compositeactionflow.Link's
+	// immutable output, computed once by the caller (internal/analysis)
+	// before graph construction — the same pattern already used for
+	// ReusableWorkflows. A zero-value Result is safe: no binding/usage node
+	// or confirmed-flow edge is added, matching pre-CA2 behavior. The graph
+	// builder performs no expression interpretation of its own here: it only
+	// ever reads this already-computed value.
+	CompositeActionInputFlows compositeactionflow.Result
 }
 
 type BuildResult struct {
@@ -122,6 +131,14 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	// declaration alone.
 	b.propagateReusableWorkflowSecrets(parsed.Workflows)
 	b.emitReusableSecretsInheritDiagnostics(parsed.Workflows)
+	// CA2 confirmed composite-action input flow is built from the caller's
+	// own already-computed linker result, after ordinary workflow processing
+	// above has created every credential node from genuine reference usage
+	// (the generic step.References sweep already covers a with: binding's
+	// secret reference today; this pass adds the alias-aware, call-specific
+	// confirmed chain in parallel, never replacing it).
+	b.compositeActionInputFlows(b.options.CompositeActionInputFlows.Flows)
+	b.emitCompositeActionInputFlowDiagnostics(b.options.CompositeActionInputFlows.Diagnostics)
 	for _, project := range parsed.Compose {
 		b.compose(repoID, project)
 	}
@@ -622,6 +639,83 @@ func compositeActionStepIdentifier(call domain.CompositeActionCall) string {
 		return call.CallerStepID
 	}
 	return strconv.Itoa(call.CallerStepIndex)
+}
+
+// compositeActionInputFlows adds, for every CA2-confirmed input flow, one
+// call-specific NodeCompositeActionInputBinding and, for each of its
+// internal usages, one call-specific NodeCompositeActionInputUsage — never a
+// shared canonical input/step node. The credential node is resolved or
+// created exactly like any other secret reference (b.credential is
+// idempotent), so this never fabricates a second, divergent credential
+// identity for the same secret name. Both new node kinds are keyed so that
+// two different calls — even to the same canonical action and the same
+// declared input, even from two different secrets — always produce distinct
+// nodes: no traversal starting from one call's credential can ever reach
+// another call's binding or usage node, since no edge connects them.
+func (b *builder) compositeActionInputFlows(flows []compositeactionflow.ConfirmedInputFlow) {
+	for _, flow := range flows {
+		credentialID := b.credential(flow.SourceSecret, string(domain.ReferenceSecret), "", domain.ReferenceSecret, false, false)
+		if credentialID == "" {
+			continue
+		}
+		bindingKey := nodeKey(flow.CallerWorkflow, flow.CallerJobID, flow.CallerStepIndex, flow.InputName)
+		bindingMetadata := map[string]string{
+			"caller_workflow":     flow.CallerWorkflow,
+			"caller_job_id":       flow.CallerJobID,
+			"caller_step_index":   strconv.Itoa(flow.CallerStepIndex),
+			"caller_step_id":      flow.CallerStepID,
+			"input_name":          flow.InputName,
+			"canonical_directory": flow.CanonicalDirectory,
+			"source_secret":       flow.SourceSecret,
+			"flow_status":         "confirmed_secret_flow",
+		}
+		bindingID := b.graph.addNode(domain.NodeCompositeActionInputBinding, bindingKey, flow.InputName, locationPtr(flow.BindingEvidence), bindingMetadata, []domain.Evidence{flow.BindingEvidence}, domain.ConfidenceConfirmed)
+		b.graph.addTypedEdge(credentialID, bindingID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("composite_action_input_binding", flow.BindingEvidence, "Workflow explicitly forwards this secret to this composite-action call's declared input.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+		for _, usage := range flow.Usages {
+			usageKey := nodeKey(flow.CallerWorkflow, flow.CallerJobID, flow.CallerStepIndex, flow.InputName, flow.CanonicalDirectory, usage.ActionStepIndex)
+			label := usage.ActionStepID
+			if label == "" {
+				label = flow.InputName + " -> step-" + strconv.Itoa(usage.ActionStepIndex)
+			}
+			usageMetadata := map[string]string{
+				"caller_workflow":     flow.CallerWorkflow,
+				"caller_job_id":       flow.CallerJobID,
+				"caller_step_index":   strconv.Itoa(flow.CallerStepIndex),
+				"input_name":          flow.InputName,
+				"canonical_directory": flow.CanonicalDirectory,
+				"action_step_index":   strconv.Itoa(usage.ActionStepIndex),
+				"action_step_id":      usage.ActionStepID,
+				"evidence_field":      usage.Evidence.Field,
+				"flow_status":         "confirmed_secret_flow",
+			}
+			usageID := b.graph.addNode(domain.NodeCompositeActionInputUsage, usageKey, label, locationPtr(usage.Evidence), usageMetadata, []domain.Evidence{usage.Evidence}, domain.ConfidenceConfirmed)
+			b.graph.addTypedEdge(bindingID, usageID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("composite_action_input_usage", usage.Evidence, "Composite action's internal step reads this declared input, which this call bound to a confirmed secret.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+		}
+	}
+}
+
+const compositeActionInputFlowDiagnosticCode = "COMPOSITE_ACTION_INPUT_FLOW"
+
+// emitCompositeActionInputFlowDiagnostics records one deterministic,
+// non-traversable, non-scoring warning per CA2 linker diagnostic. None of
+// these correspond to a rules.Catalog entry, a Finding, or a remediation.
+func (b *builder) emitCompositeActionInputFlowDiagnostics(diagnostics []compositeactionflow.Diagnostic) {
+	for _, diag := range diagnostics {
+		b.warnings[compositeActionInputFlowDiagnostic(diag)] = struct{}{}
+	}
+}
+
+func compositeActionInputFlowDiagnostic(diag compositeactionflow.Diagnostic) string {
+	stepIdentifier := diag.CallerStepID
+	if stepIdentifier == "" {
+		stepIdentifier = strconv.Itoa(diag.CallerStepIndex)
+	}
+	message := fmt.Sprintf("%s: workflow %q job %q step %s input %q: %s",
+		compositeActionInputFlowDiagnosticCode, diag.CallerWorkflow, diag.CallerJobID, stepIdentifier, diag.InputName, diag.Kind)
+	if diag.CanonicalDirectory != "" {
+		message += fmt.Sprintf(" directory=%q", diag.CanonicalDirectory)
+	}
+	return message + " (" + diagnosticLocationText(diag.Evidence.Location) + ")"
 }
 
 func (b *builder) compose(repoID string, project domain.ComposeProject) {

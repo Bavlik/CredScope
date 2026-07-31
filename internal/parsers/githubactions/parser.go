@@ -582,10 +582,68 @@ func parseSteps(file, jobID string, node *yaml.Node) ([]domain.WorkflowStep, err
 				return nil, err
 			}
 		}
+		if with, ok, err := yamlsafe.MappingValue(item, "with"); err != nil {
+			return nil, structuralError(file, item, field+".with", err)
+		} else if ok {
+			step.With, err = parseWorkflowStepInputBindings(file, field, with)
+			if err != nil {
+				return nil, err
+			}
+		}
 		step.References = extractReferencesFromNode(file, item, field)
 		steps = append(steps, step)
 	}
 	return steps, nil
+}
+
+// parseWorkflowStepInputBindings parses a workflow-step's own `with:` mapping
+// (the caller-side binding into a step's `uses:` target — local composite,
+// external, or docker). It deliberately mirrors parseActionInputBindings'
+// structural rules exactly, but extracts References using workflow expression
+// scope (extractReferences), never the composite-action-metadata-scoped
+// extractActionReferences: a workflow step's `with:` value lives in workflow
+// scope, where `secrets.*` is a real, credential-eligible ReferenceSecret,
+// unlike inside a composite action's own metadata.
+func parseWorkflowStepInputBindings(file, stepField string, node *yaml.Node) ([]domain.ActionCallInputBinding, error) {
+	if node.Kind != yaml.MappingNode {
+		return nil, &ParseError{Path: file, Line: node.Line, Field: stepField + ".with", Msg: "with must be a mapping"}
+	}
+	entries, err := yamlsafe.MappingEntries(node)
+	if err != nil {
+		return nil, structuralError(file, node, stepField+".with", err)
+	}
+	bindings := make([]domain.ActionCallInputBinding, 0, len(entries))
+	// seenNames tracks normalized identifiers already produced by this
+	// mapping. yamlsafe only rejects two raw keys that are byte-identical;
+	// it cannot see that "api token" and "api_token" collide only after
+	// sanitizer.Identifier normalization (whitespace and other non-identifier
+	// runes both fold to "_"). Silently keeping the first or last such key
+	// would let CA2 attribute a caller's binding to a name the caller never
+	// actually wrote in that exact form, so any such collision is rejected
+	// outright rather than resolved by an arbitrary precedence rule.
+	seenNames := make(map[string]bool, len(entries))
+	for _, entry := range entries {
+		name := sanitizer.Identifier(entry[0].Value)
+		if name == "" {
+			return nil, &ParseError{Path: file, Line: entry[0].Line, Field: stepField + ".with", Msg: "with key must be a non-empty identifier"}
+		}
+		if seenNames[name] {
+			return nil, &ParseError{Path: file, Line: entry[0].Line, Field: stepField + ".with." + name, Msg: fmt.Sprintf("with key normalizes to already-used identifier %q", name)}
+		}
+		seenNames[name] = true
+		field := stepField + ".with." + name
+		if entry[1].Kind != yaml.ScalarNode {
+			return nil, &ParseError{Path: file, Line: entry[1].Line, Field: field, Msg: "with value must be a scalar"}
+		}
+		bindings = append(bindings, domain.ActionCallInputBinding{
+			Name:       name,
+			Value:      safeText(entry[1].Value),
+			References: extractReferences(file, entry[1], field, entry[1].Value),
+			Evidence:   evidence(file, entry[1], field, "Workflow step action-call input binding", domain.ConfidenceConfirmed),
+		})
+	}
+	sort.Slice(bindings, func(i, j int) bool { return bindings[i].Name < bindings[j].Name })
+	return bindings, nil
 }
 
 func parseRun(file string, node *yaml.Node, field string) domain.ShellCommand {

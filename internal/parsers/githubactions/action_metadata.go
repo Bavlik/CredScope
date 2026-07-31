@@ -157,8 +157,21 @@ func parseActionInputs(file string, node *yaml.Node) ([]domain.ActionInputDefini
 		return nil, structuralError(file, node, "inputs", err)
 	}
 	inputs := make([]domain.ActionInputDefinition, 0, len(entries))
+	// seenNames guards against two distinct declared input keys (e.g. "api
+	// token" and "api_token") normalizing through sanitizer.Identifier to
+	// the same non-empty name. Silently keeping the first or last such
+	// declaration would leave CA2's declaration-matching ambiguous about
+	// which one a caller's normalized binding name actually refers to, so
+	// the whole action metadata is rejected as malformed here — the same
+	// ParseActionMetadata error path CompositeActionCall already surfaces
+	// as CompositeActionMalformedMetadata for any other structural defect.
+	seenNames := make(map[string]bool, len(entries))
 	for _, entry := range entries {
 		name := sanitizer.Identifier(entry[0].Value)
+		if seenNames[name] {
+			return nil, &ParseError{Path: file, Line: entry[0].Line, Field: "inputs." + name, Msg: fmt.Sprintf("input key normalizes to already-declared identifier %q", name)}
+		}
+		seenNames[name] = true
 		field := "inputs." + name
 		if entry[1].Kind != yaml.MappingNode {
 			return nil, &ParseError{Path: file, Line: entry[1].Line, Field: field, Msg: "input definition must be a mapping"}

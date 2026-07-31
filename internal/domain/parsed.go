@@ -86,14 +86,31 @@ type WorkflowOutput struct {
 	Evidence   Evidence    `json:"evidence"`
 }
 
+// ActionCallInputBinding is one `with.<name>` entry on a workflow-step's own
+// `uses:` call site. It is deliberately distinct from ActionInputBinding
+// (which is a composite step's own nested `uses:` binding, parsed in
+// composite-action metadata scope): References here are extracted using
+// workflow expression scope, where `secrets.*` is a real ReferenceSecret,
+// never the composite-metadata-scope structural-only handling. Value is the
+// raw caller-side scalar text; it exists for the pure linker (CA2) to perform
+// its own strict whole-value secret matching and must never be copied into
+// graph node/edge metadata, warnings, findings, or any reporter output.
+type ActionCallInputBinding struct {
+	Name       string      `json:"name"`
+	Value      string      `json:"value,omitempty"`
+	References []Reference `json:"references"`
+	Evidence   Evidence    `json:"evidence"`
+}
+
 type WorkflowStep struct {
-	ID          string               `json:"id,omitempty"`
-	Name        string               `json:"name,omitempty"`
-	Action      *ActionReference     `json:"action,omitempty"`
-	Run         *ShellCommand        `json:"run,omitempty"`
-	Environment []EnvironmentBinding `json:"environment"`
-	References  []Reference          `json:"references"`
-	Evidence    Evidence             `json:"evidence"`
+	ID          string                   `json:"id,omitempty"`
+	Name        string                   `json:"name,omitempty"`
+	Action      *ActionReference         `json:"action,omitempty"`
+	Run         *ShellCommand            `json:"run,omitempty"`
+	Environment []EnvironmentBinding     `json:"environment"`
+	With        []ActionCallInputBinding `json:"with,omitempty"`
+	References  []Reference              `json:"references"`
+	Evidence    Evidence                 `json:"evidence"`
 }
 
 // ReusableWorkflowInput is a single job-level `with:` entry on a reusable
