@@ -1,0 +1,16 @@
+name: Deploy Action
+description: Deploys the built artifact to the target environment.
+inputs:
+  environment:
+    description: Target environment name
+    required: true
+outputs:
+  deployed:
+    description: Whether the deployment succeeded
+    value: ${{ steps.deploy.outputs.result }}
+runs:
+  using: composite
+  steps:
+    - id: deploy
+      shell: bash
+      run: echo "deploying"

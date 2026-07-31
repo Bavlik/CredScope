@@ -999,12 +999,17 @@
         },
         "metadata": {
           "artifact_kind": "",
+          "caller_job_id": "test",
+          "caller_step_index": "0",
+          "caller_workflow": ".github/workflows/ci.yml",
           "docker": "false",
           "local": "false",
           "mutable": "false",
           "owner": "actions",
           "pinned_sha": "true",
+          "raw_reference": "actions/checkout@0123456789abcdef0123456789abcdef01234567",
           "repository": "checkout",
+          "resolution_status": "opaque_external",
           "revision": "0123456789abcdef0123456789abcdef01234567",
           "third_party": "false",
           "unresolved": "false"

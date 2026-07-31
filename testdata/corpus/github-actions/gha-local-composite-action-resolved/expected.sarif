@@ -1,0 +1,526 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "credscope",
+          "version": "corpustest",
+          "rules": [
+            {
+              "id": "CRD101",
+              "name": "Credential finding imported",
+              "shortDescription": {
+                "text": "Credential finding imported"
+              },
+              "fullDescription": {
+                "text": "A scanner-neutral credential finding was imported."
+              },
+              "help": {
+                "text": "A scanner-neutral credential finding was imported.",
+                "markdown": "**CRD101 — Credential finding imported**\n\nA scanner-neutral credential finding was imported."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD102",
+              "name": "Credential referenced by workflow",
+              "shortDescription": {
+                "text": "Credential referenced by workflow"
+              },
+              "fullDescription": {
+                "text": "A GitHub Actions workflow structurally references the credential."
+              },
+              "help": {
+                "text": "A GitHub Actions workflow structurally references the credential.",
+                "markdown": "**CRD102 — Credential referenced by workflow**\n\nA GitHub Actions workflow structurally references the credential."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD103",
+              "name": "Credential used by multiple jobs",
+              "shortDescription": {
+                "text": "Credential used by multiple jobs"
+              },
+              "fullDescription": {
+                "text": "The credential is structurally referenced by multiple workflow jobs."
+              },
+              "help": {
+                "text": "The credential is structurally referenced by multiple workflow jobs.",
+                "markdown": "**CRD103 — Credential used by multiple jobs**\n\nThe credential is structurally referenced by multiple workflow jobs."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD104",
+              "name": "Credential used by pull_request_target",
+              "shortDescription": {
+                "text": "Credential used by pull_request_target"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a workflow triggered by pull_request_target."
+              },
+              "help": {
+                "text": "The credential reaches a workflow triggered by pull_request_target.",
+                "markdown": "**CRD104 — Credential used by pull_request_target**\n\nThe credential reaches a workflow triggered by pull_request_target."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD201",
+              "name": "Workflow grants write permission",
+              "shortDescription": {
+                "text": "Workflow grants write permission"
+              },
+              "fullDescription": {
+                "text": "A reachable workflow or job explicitly grants a write-level permission."
+              },
+              "help": {
+                "text": "A reachable workflow or job explicitly grants a write-level permission.",
+                "markdown": "**CRD201 — Workflow grants write permission**\n\nA reachable workflow or job explicitly grants a write-level permission."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD202",
+              "name": "Workflow grants write-all",
+              "shortDescription": {
+                "text": "Workflow grants write-all"
+              },
+              "fullDescription": {
+                "text": "A reachable workflow or job explicitly grants write-all."
+              },
+              "help": {
+                "text": "A reachable workflow or job explicitly grants write-all.",
+                "markdown": "**CRD202 — Workflow grants write-all**\n\nA reachable workflow or job explicitly grants write-all."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD203",
+              "name": "Secret passed to shell",
+              "shortDescription": {
+                "text": "Secret passed to shell"
+              },
+              "fullDescription": {
+                "text": "A credential reference occurs in an inert workflow shell block."
+              },
+              "help": {
+                "text": "A credential reference occurs in an inert workflow shell block.",
+                "markdown": "**CRD203 — Secret passed to shell**\n\nA credential reference occurs in an inert workflow shell block."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD204",
+              "name": "Secret passed to third-party action",
+              "shortDescription": {
+                "text": "Secret passed to third-party action"
+              },
+              "fullDescription": {
+                "text": "A credential reaches a third-party action input or step scope; third-party does not imply malicious."
+              },
+              "help": {
+                "text": "A credential reaches a third-party action input or step scope; third-party does not imply malicious.",
+                "markdown": "**CRD204 — Secret passed to third-party action**\n\nA credential reaches a third-party action input or step scope; third-party does not imply malicious."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD205",
+              "name": "Third-party action uses mutable reference",
+              "shortDescription": {
+                "text": "Third-party action uses mutable reference"
+              },
+              "fullDescription": {
+                "text": "A reachable third-party action is pinned to a mutable revision rather than a full commit SHA."
+              },
+              "help": {
+                "text": "A reachable third-party action is pinned to a mutable revision rather than a full commit SHA.",
+                "markdown": "**CRD205 — Third-party action uses mutable reference**\n\nA reachable third-party action is pinned to a mutable revision rather than a full commit SHA."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD206",
+              "name": "Secret propagated through job output",
+              "shortDescription": {
+                "text": "Secret propagated through job output"
+              },
+              "fullDescription": {
+                "text": "A job output directly references the credential."
+              },
+              "help": {
+                "text": "A job output directly references the credential.",
+                "markdown": "**CRD206 — Secret propagated through job output**\n\nA job output directly references the credential."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD207",
+              "name": "Missing explicit workflow permissions",
+              "shortDescription": {
+                "text": "Missing explicit workflow permissions"
+              },
+              "fullDescription": {
+                "text": "A reachable workflow omits an explicit permissions declaration; effective defaults depend on repository settings."
+              },
+              "help": {
+                "text": "A reachable workflow omits an explicit permissions declaration; effective defaults depend on repository settings.",
+                "markdown": "**CRD207 — Missing explicit workflow permissions**\n\nA reachable workflow omits an explicit permissions declaration; effective defaults depend on repository settings."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD208",
+              "name": "Credential reaches production environment",
+              "shortDescription": {
+                "text": "Credential reaches production environment"
+              },
+              "fullDescription": {
+                "text": "The credential reaches an environment whose name appears production-like."
+              },
+              "help": {
+                "text": "The credential reaches an environment whose name appears production-like.",
+                "markdown": "**CRD208 — Credential reaches production environment**\n\nThe credential reaches an environment whose name appears production-like."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD301",
+              "name": "Credential passed to Compose service",
+              "shortDescription": {
+                "text": "Credential passed to Compose service"
+              },
+              "fullDescription": {
+                "text": "A Compose service directly receives the credential reference."
+              },
+              "help": {
+                "text": "A Compose service directly receives the credential reference.",
+                "markdown": "**CRD301 — Credential passed to Compose service**\n\nA Compose service directly receives the credential reference."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD302",
+              "name": "Credential reaches privileged service",
+              "shortDescription": {
+                "text": "Credential reaches privileged service"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service configured with privileged mode."
+              },
+              "help": {
+                "text": "The credential reaches a service configured with privileged mode.",
+                "markdown": "**CRD302 — Credential reaches privileged service**\n\nThe credential reaches a service configured with privileged mode."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD303",
+              "name": "Credential reaches published host port",
+              "shortDescription": {
+                "text": "Credential reaches published host port"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service publishing a host port; external reachability depends on runtime configuration."
+              },
+              "help": {
+                "text": "The credential reaches a service publishing a host port; external reachability depends on runtime configuration.",
+                "markdown": "**CRD303 — Credential reaches published host port**\n\nThe credential reaches a service publishing a host port; external reachability depends on runtime configuration."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD304",
+              "name": "Credential reaches Docker socket mount",
+              "shortDescription": {
+                "text": "Credential reaches Docker socket mount"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service mounting a Docker socket."
+              },
+              "help": {
+                "text": "The credential reaches a service mounting a Docker socket.",
+                "markdown": "**CRD304 — Credential reaches Docker socket mount**\n\nThe credential reaches a service mounting a Docker socket."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD305",
+              "name": "Credential reaches host-network service",
+              "shortDescription": {
+                "text": "Credential reaches host-network service"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service configured with host network mode."
+              },
+              "help": {
+                "text": "The credential reaches a service configured with host network mode.",
+                "markdown": "**CRD305 — Credential reaches host-network service**\n\nThe credential reaches a service configured with host network mode."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD306",
+              "name": "Credential shared across multiple services",
+              "shortDescription": {
+                "text": "Credential shared across multiple services"
+              },
+              "fullDescription": {
+                "text": "The same credential is directly passed to multiple Compose services."
+              },
+              "help": {
+                "text": "The same credential is directly passed to multiple Compose services.",
+                "markdown": "**CRD306 — Credential shared across multiple services**\n\nThe same credential is directly passed to multiple Compose services."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD307",
+              "name": "Credential reaches writable host bind mount",
+              "shortDescription": {
+                "text": "Credential reaches writable host bind mount"
+              },
+              "fullDescription": {
+                "text": "The credential reaches a service with a writable host bind mount."
+              },
+              "help": {
+                "text": "The credential reaches a service with a writable host bind mount.",
+                "markdown": "**CRD307 — Credential reaches writable host bind mount**\n\nThe credential reaches a service with a writable host bind mount."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD308",
+              "name": "Container user cannot be confirmed as non-root",
+              "shortDescription": {
+                "text": "Container user cannot be confirmed as non-root"
+              },
+              "fullDescription": {
+                "text": "No explicit non-root user can be confirmed for a reached service; this does not prove root execution."
+              },
+              "help": {
+                "text": "No explicit non-root user can be confirmed for a reached service; this does not prove root execution.",
+                "markdown": "**CRD308 — Container user cannot be confirmed as non-root**\n\nNo explicit non-root user can be confirmed for a reached service; this does not prove root execution."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD401",
+              "name": "Credential shared across CI and runtime",
+              "shortDescription": {
+                "text": "Credential shared across CI and runtime"
+              },
+              "fullDescription": {
+                "text": "The same credential is referenced by GitHub Actions and passed to a Compose service."
+              },
+              "help": {
+                "text": "The same credential is referenced by GitHub Actions and passed to a Compose service.",
+                "markdown": "**CRD401 — Credential shared across CI and runtime**\n\nThe same credential is referenced by GitHub Actions and passed to a Compose service."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD402",
+              "name": "Credential reaches multiple production components",
+              "shortDescription": {
+                "text": "Credential reaches multiple production components"
+              },
+              "fullDescription": {
+                "text": "The credential reaches multiple structurally production-like components."
+              },
+              "help": {
+                "text": "The credential reaches multiple structurally production-like components.",
+                "markdown": "**CRD402 — Credential reaches multiple production components**\n\nThe credential reaches multiple structurally production-like components."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD403",
+              "name": "Credential reaches write permission and deployment environment",
+              "shortDescription": {
+                "text": "Credential reaches write permission and deployment environment"
+              },
+              "fullDescription": {
+                "text": "The credential reaches both a write-level repository permission and a deployment environment."
+              },
+              "help": {
+                "text": "The credential reaches both a write-level repository permission and a deployment environment.",
+                "markdown": "**CRD403 — Credential reaches write permission and deployment environment**\n\nThe credential reaches both a write-level repository permission and a deployment environment."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "CRD404",
+              "name": "Credential has multiple independent reachability paths",
+              "shortDescription": {
+                "text": "Credential has multiple independent reachability paths"
+              },
+              "fullDescription": {
+                "text": "The credential has multiple independent first-hop paths to affected components."
+              },
+              "help": {
+                "text": "The credential has multiple independent first-hop paths to affected components.",
+                "markdown": "**CRD404 — Credential has multiple independent reachability paths**\n\nThe credential has multiple independent first-hop paths to affected components."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "CRD501",
+              "name": "Reusable workflow unresolved",
+              "shortDescription": {
+                "text": "Reusable workflow unresolved"
+              },
+              "fullDescription": {
+                "text": "A reachable reusable workflow was not resolved; no network lookup was attempted."
+              },
+              "help": {
+                "text": "A reachable reusable workflow was not resolved; no network lookup was attempted.",
+                "markdown": "**CRD501 — Reusable workflow unresolved**\n\nA reachable reusable workflow was not resolved; no network lookup was attempted."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD502",
+              "name": "Runtime permissions cannot be confirmed",
+              "shortDescription": {
+                "text": "Runtime permissions cannot be confirmed"
+              },
+              "fullDescription": {
+                "text": "Static Compose analysis cannot confirm the effective runtime permissions of a reached service."
+              },
+              "help": {
+                "text": "Static Compose analysis cannot confirm the effective runtime permissions of a reached service.",
+                "markdown": "**CRD502 — Runtime permissions cannot be confirmed**\n\nStatic Compose analysis cannot confirm the effective runtime permissions of a reached service."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            },
+            {
+              "id": "CRD503",
+              "name": "External network exposure cannot be confirmed",
+              "shortDescription": {
+                "text": "External network exposure cannot be confirmed"
+              },
+              "fullDescription": {
+                "text": "A host port is published, but actual external reachability cannot be confirmed statically."
+              },
+              "help": {
+                "text": "A host port is published, but actual external reachability cannot be confirmed statically.",
+                "markdown": "**CRD503 — External network exposure cannot be confirmed**\n\nA host port is published, but actual external reachability cannot be confirmed statically."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CRD102",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "CRD102: Credential referenced by workflow for DEPLOY_TOKEN. Risk score 8/100. Recommended action: Limit the credential to the smallest job, step, environment, or service scope that requires it and use separate credentials for independent consumers."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/deploy.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "credentialRule/v2": "492b2260e1756566faeb920358350f47ad8d5e2a9b3d91a97e2870914864238e"
+          },
+          "properties": {
+            "credentialId": "node:credential:77db30e1d769f1fe58b027fa44a39a2a95394bb538728d5787f28db32fe2fad3",
+            "credential": "DEPLOY_TOKEN",
+            "riskScore": 8,
+            "confidence": "confirmed",
+            "policyVersion": "v2",
+            "ruleCatalogVersion": "v2",
+            "remediationId": "REM007",
+            "classification": "secret",
+            "classificationSource": "source_syntax",
+            "environmentProfile": "ci",
+            "analysisSource": "credscope_static_reachability",
+            "profileAssumptions": "Jobs are treated as ephemeral unless repository evidence says otherwise.; Secrets available to jobs and steps are reported.; Untrusted pull-request risk is evaluated separately."
+          }
+        }
+      ],
+      "properties": {
+        "environmentProfile": "ci",
+        "profileSource": "repository_context",
+        "profileReason": "The repository contains GitHub Actions workflows and no Docker Compose input.",
+        "profileAssumptions": [
+          "Jobs are treated as ephemeral unless repository evidence says otherwise.",
+          "Secrets available to jobs and steps are reported.",
+          "Untrusted pull-request risk is evaluated separately."
+        ],
+        "ignoredCount": 0
+      }
+    }
+  ]
+}

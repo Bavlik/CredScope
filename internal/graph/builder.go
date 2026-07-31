@@ -3,6 +3,7 @@ package graph
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Bavlik/CredScope/internal/classification"
@@ -20,6 +21,13 @@ type BuildOptions struct {
 	// call is then represented exactly as an unresolved call, matching the
 	// pre-resolver behavior.
 	ReusableWorkflows reusableworkflow.Result
+	// CompositeActions carries internal/compositeaction.Resolve's immutable
+	// output, computed once by internal/ingest before graph construction. A
+	// zero-value CompositeActionResolution is safe: no call-site metadata is
+	// added and no canonical composite-action node is created, matching
+	// pre-CA1 behavior. The graph builder performs no filesystem access or
+	// action-metadata parsing of its own; it only ever reads this value.
+	CompositeActions domain.CompositeActionResolution
 }
 
 type BuildResult struct {
@@ -31,13 +39,15 @@ type BuildResult struct {
 }
 
 type builder struct {
-	graph           *mutableGraph
-	credentials     map[string]*credentialState
-	warnings        map[string]struct{}
-	options         BuildOptions
-	ignored         map[string]domain.IgnoredItem
-	resolvedCalls   map[string]reusableworkflow.DirectCall
-	workflowsByFile map[string]domain.Workflow
+	graph                       *mutableGraph
+	credentials                 map[string]*credentialState
+	warnings                    map[string]struct{}
+	options                     BuildOptions
+	ignored                     map[string]domain.IgnoredItem
+	resolvedCalls               map[string]reusableworkflow.DirectCall
+	workflowsByFile             map[string]domain.Workflow
+	compositeCallsByStep        map[string]domain.CompositeActionCall
+	compositeActionsByDirectory map[string]domain.ActionMetadata
 }
 
 type credentialState struct {
@@ -61,9 +71,25 @@ func BuildWithOptions(parsed domain.ParsedRepository, options BuildOptions) Buil
 	for _, call := range options.ReusableWorkflows.DirectCalls {
 		resolvedCalls[call.CallerWorkflow+"\x00"+call.CallerJobID] = call
 	}
-	b := &builder{graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{}), options: options, ignored: make(map[string]domain.IgnoredItem), resolvedCalls: resolvedCalls}
+	compositeCallsByStep := make(map[string]domain.CompositeActionCall, len(options.CompositeActions.Calls))
+	for _, call := range options.CompositeActions.Calls {
+		compositeCallsByStep[compositeStepKey(call.CallerWorkflow, call.CallerJobID, call.CallerStepIndex)] = call
+	}
+	compositeActionsByDirectory := make(map[string]domain.ActionMetadata, len(options.CompositeActions.Actions))
+	for _, action := range options.CompositeActions.Actions {
+		compositeActionsByDirectory[action.Directory] = action
+	}
+	b := &builder{
+		graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{}),
+		options: options, ignored: make(map[string]domain.IgnoredItem), resolvedCalls: resolvedCalls,
+		compositeCallsByStep: compositeCallsByStep, compositeActionsByDirectory: compositeActionsByDirectory,
+	}
 	b.build(parsed)
 	return b.finish()
+}
+
+func compositeStepKey(callerWorkflow, callerJobID string, callerStepIndex int) string {
+	return callerWorkflow + "\x00" + callerJobID + "\x00" + strconv.Itoa(callerStepIndex)
 }
 
 func (b *builder) build(parsed domain.ParsedRepository) {
@@ -252,7 +278,7 @@ func (b *builder) job(workflow domain.Workflow, wfID, wfKey string, jobIDs map[s
 		_ = outputIndex
 	}
 	for index, step := range job.Steps {
-		stepID := b.step(jobID, jobKey, index, step)
+		stepID := b.step(workflow.File, job.ID, jobID, jobKey, index, step)
 		for _, ref := range propagatedRefs {
 			if credentialID := b.reference(ref); credentialID != "" {
 				b.graph.addTypedEdge(credentialID, stepID, domain.EdgeAvailableToProcess, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("inherited_environment", ref.Evidence, "Environment reference is available to this workflow step.", ref.Evidence.Confidence)}, ref.Evidence.Confidence)
@@ -465,7 +491,7 @@ func diagnosticLocationText(loc domain.Location) string {
 	return loc.Path
 }
 
-func (b *builder) step(jobID, jobKey string, index int, step domain.WorkflowStep) string {
+func (b *builder) step(callerWorkflowFile, callerJobID, jobID, jobKey string, index int, step domain.WorkflowStep) string {
 	label := step.Name
 	if label == "" {
 		label = step.ID
@@ -492,10 +518,110 @@ func (b *builder) step(jobID, jobKey string, index int, step domain.WorkflowStep
 	}
 	if step.Action != nil {
 		action := step.Action
-		actionID := b.graph.addNode(domain.NodeExternalAction, nodeKey(stepKey, action.Reference), action.Reference, locationPtr(action.Evidence), actionMetadata(*action, false), []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
+		metadata := actionMetadata(*action, false)
+		call, hasCall := b.compositeCallsByStep[compositeStepKey(callerWorkflowFile, callerJobID, index)]
+		if hasCall {
+			addCompositeCallMetadata(metadata, call)
+		}
+		actionID := b.graph.addNode(domain.NodeExternalAction, nodeKey(stepKey, action.Reference), action.Reference, locationPtr(action.Evidence), metadata, []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
 		b.graph.addEdge(stepID, actionID, domain.EdgeRunsAction, []domain.Evidence{evidence("action_reference", action.Evidence, "Step references this action; third-party does not imply malicious.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
+		if hasCall {
+			b.compositeActionCall(actionID, call)
+		}
 	}
 	return stepID
+}
+
+// addCompositeCallMetadata adds additive, machine-readable resolver-outcome
+// metadata for a workflow-step action call site. It never overwrites any key
+// actionMetadata already set (local, third_party, mutable, owner,
+// repository, revision, pinned_sha, artifact_kind, unresolved), and never
+// changes the node's identity: metadata is not part of a node's stable ID.
+func addCompositeCallMetadata(metadata map[string]string, call domain.CompositeActionCall) {
+	metadata["resolution_status"] = string(call.Status)
+	metadata["raw_reference"] = call.RawReference
+	metadata["caller_workflow"] = call.CallerWorkflow
+	metadata["caller_job_id"] = call.CallerJobID
+	metadata["caller_step_index"] = strconv.Itoa(call.CallerStepIndex)
+	if call.CanonicalDirectory != "" {
+		metadata["canonical_directory"] = call.CanonicalDirectory
+	}
+	if call.MetadataFile != "" {
+		metadata["metadata_file"] = call.MetadataFile
+	}
+}
+
+// compositeActionCall represents, structurally, one resolved local
+// composite-action call: it creates (or reuses) the canonical
+// NodeCompositeAction for call.CanonicalDirectory and connects the existing
+// call-site node to it with a structural, non-traversable edge. For every
+// other status it either emits a deterministic diagnostic (rejected path,
+// missing/ambiguous/malformed metadata) or does nothing (opaque external,
+// opaque docker, unsupported expression, target not composite) — the
+// existing call-site node and edge are never altered either way.
+func (b *builder) compositeActionCall(actionID string, call domain.CompositeActionCall) {
+	switch call.Status {
+	case domain.CompositeActionRejectedPath, domain.CompositeActionMetadataMissing, domain.CompositeActionMetadataAmbiguous, domain.CompositeActionMalformedMetadata:
+		b.warnings[compositeActionDiagnostic(call)] = struct{}{}
+		return
+	case domain.CompositeActionResolvedLocalComposite:
+	default:
+		return
+	}
+	action, ok := b.compositeActionsByDirectory[call.CanonicalDirectory]
+	if !ok {
+		return
+	}
+	label := action.Name
+	if label == "" {
+		label = action.Directory
+	}
+	inputNames := make([]string, 0, len(action.Inputs))
+	for _, input := range action.Inputs {
+		inputNames = append(inputNames, input.Name)
+	}
+	outputNames := make([]string, 0, len(action.Outputs))
+	for _, output := range action.Outputs {
+		outputNames = append(outputNames, output.Name)
+	}
+	metadata := map[string]string{
+		"directory":     action.Directory,
+		"metadata_file": call.MetadataFile,
+		"name":          action.Name,
+		"runs_using":    action.Runs.Using,
+		"input_names":   strings.Join(inputNames, ","),
+		"output_names":  strings.Join(outputNames, ","),
+		"step_count":    strconv.Itoa(len(action.Runs.Steps)),
+	}
+	canonicalID := b.graph.addNode(domain.NodeCompositeAction, action.Directory, label, locationPtr(action.Evidence), metadata, []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
+	structuralEvidence := []domain.Evidence{evidence("resolved_local_composite_action", action.Evidence, "Workflow step's local action reference resolves to this composite action; this is not credential data flow or exposure.", domain.ConfidenceConfirmed)}
+	b.graph.addTypedEdge(actionID, canonicalID, domain.EdgeRunsAction, domain.EvidenceStructuralCallOnly, structuralEvidence, domain.ConfidenceConfirmed)
+}
+
+const compositeActionDiagnosticCode = "COMPOSITE_ACTION_RESOLUTION"
+
+// compositeActionDiagnostic renders one deterministic warning for a
+// composite-action call whose resolution needs surfacing to a human
+// (rejected path, missing/ambiguous/malformed metadata). Its identity is
+// folded entirely into the returned text, which finish() deduplicates and
+// sorts exactly like every other builder warning.
+func compositeActionDiagnostic(call domain.CompositeActionCall) string {
+	message := fmt.Sprintf("%s: workflow %q job %q step %s references %q (status=%s)",
+		compositeActionDiagnosticCode, call.CallerWorkflow, call.CallerJobID, compositeActionStepIdentifier(call), call.RawReference, call.Status)
+	if call.CanonicalDirectory != "" {
+		message += fmt.Sprintf(" directory=%q", call.CanonicalDirectory)
+	}
+	if call.MetadataFile != "" {
+		message += fmt.Sprintf(" metadata_file=%q", call.MetadataFile)
+	}
+	return message + " (" + diagnosticLocationText(call.Evidence.Location) + ")"
+}
+
+func compositeActionStepIdentifier(call domain.CompositeActionCall) string {
+	if call.CallerStepID != "" {
+		return call.CallerStepID
+	}
+	return strconv.Itoa(call.CallerStepIndex)
 }
 
 func (b *builder) compose(repoID string, project domain.ComposeProject) {

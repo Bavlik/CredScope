@@ -270,6 +270,25 @@ func (f *Finder) ResolveDirectory(relative string) (string, error) {
 		if part == "." || part == "" {
 			continue
 		}
+		// Exact-case existence check: os.Lstat alone would succeed on a
+		// case-insensitive host filesystem (default on Windows and macOS)
+		// even when the requested component's case does not match the
+		// on-disk entry, silently resolving a reference like "./Actions"
+		// against a real directory named "actions". Reading the parent
+		// directory's entries and requiring a byte-exact Name() match makes
+		// every supported platform behave like Linux's case-sensitive
+		// semantics. A component that does not exist under its exact case
+		// is reported as fs.ErrNotExist, identical to a component that does
+		// not exist at all — from the caller's perspective, and from a
+		// caller-visible-status perspective, an exact-case mismatch and a
+		// genuinely missing directory are the same fact.
+		exists, existsErr := exactCaseEntryExists(current, part)
+		if existsErr != nil {
+			return "", fmt.Errorf("inspect %q: %w", relative, existsErr)
+		}
+		if !exists {
+			return "", fmt.Errorf("path %q component %q does not exist under its exact case: %w", relative, part, fs.ErrNotExist)
+		}
 		current = filepath.Join(current, part)
 		info, statErr := os.Lstat(current)
 		if statErr != nil {
@@ -291,6 +310,95 @@ func (f *Finder) ResolveDirectory(relative string) (string, error) {
 		return "", fmt.Errorf("path %q is not a directory", relative)
 	}
 	return abs, nil
+}
+
+// exactCaseEntryExists reports whether parentDir contains a directory entry
+// whose Name() is byte-exact equal to name. It never follows a symlink to
+// resolve parentDir itself (the caller has already confined and verified
+// every ancestor component before calling this for the next one) and
+// performs no case folding: on a case-insensitive host filesystem this is
+// the only way to tell "Deploy" and "deploy" apart.
+func exactCaseEntryExists(parentDir, name string) (bool, error) {
+	entries, err := os.ReadDir(parentDir)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
+	}
+	for _, entry := range entries {
+		if entry.Name() == name {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// Root returns the finder's confined, symlink-resolved repository root. It
+// exists so callers that already hold a *Finder (rather than the original
+// root string) can pass a consistent root into other repository-confined
+// operations, such as Parser.ParseActionMetadata, without reconstructing or
+// re-validating it.
+func (f *Finder) Root() string {
+	return f.root
+}
+
+// CandidateFileState is the tri-state outcome of inspecting one bare
+// filename (no path separators) for use as a metadata candidate.
+type CandidateFileState int
+
+const (
+	// CandidateAbsent means no directory entry with that exact,
+	// case-sensitive name exists.
+	CandidateAbsent CandidateFileState = iota
+	// CandidateSafeRegular means a regular file with that exact name exists
+	// and is not a symlink or reparse point.
+	CandidateSafeRegular
+	// CandidateUnsafe means an entry with that exact name exists but is a
+	// symlink, a reparse point, or not a regular file (e.g. a directory).
+	CandidateUnsafe
+)
+
+// StatMetadataCandidate inspects one bare filename inside dirAbs for exact
+// on-disk existence, without ever following a symlink or reparse point at
+// the final component, and without accepting a non-regular file.
+//
+// dirAbs must already be a directory this Finder produced via
+// ResolveDirectory (or equivalently confined) — this method performs no
+// confinement or symlink checks on dirAbs itself, only on the single named
+// entry within it. It reads the directory listing (rather than stat'ing the
+// joined path directly) so that name matching is exact and case-sensitive
+// even on a case-insensitive host filesystem: a directory entry named
+// "Action.yml" never satisfies a lookup for "action.yml".
+func (f *Finder) StatMetadataCandidate(dirAbs, name string) (CandidateFileState, error) {
+	if name == "" || strings.ContainsAny(name, "/\\") {
+		return CandidateUnsafe, fmt.Errorf("candidate filename %q must not be empty or contain path separators", name)
+	}
+	entries, err := os.ReadDir(dirAbs)
+	if err != nil {
+		return CandidateUnsafe, fmt.Errorf("read directory %q: %w", dirAbs, err)
+	}
+	for _, entry := range entries {
+		if entry.Name() != name {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return CandidateUnsafe, fmt.Errorf("inspect %q: %w", name, err)
+		}
+		unsafeLink, err := isUnsafeLink(filepath.Join(dirAbs, name), info)
+		if err != nil {
+			return CandidateUnsafe, fmt.Errorf("inspect %q link state: %w", name, err)
+		}
+		if unsafeLink {
+			return CandidateUnsafe, nil
+		}
+		if !info.Mode().IsRegular() {
+			return CandidateUnsafe, nil
+		}
+		return CandidateSafeRegular, nil
+	}
+	return CandidateAbsent, nil
 }
 
 func UniqueFiles(files []File) []File {

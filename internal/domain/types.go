@@ -129,6 +129,13 @@ const (
 	NodeComposeSecret    NodeType = "compose_secret"
 	NodeEnvFile          NodeType = "env_file"
 	NodeRepository       NodeType = "repository"
+	// NodeCompositeAction represents one canonical, parsed repository-local
+	// composite action (one action.yml/action.yaml, identified only by its
+	// canonical directory). It is distinct from NodeExternalAction, which
+	// continues to represent the workflow step's own call-site reference
+	// (local, external, or docker) regardless of whether that reference was
+	// ever resolved.
+	NodeCompositeAction NodeType = "composite_action"
 )
 
 type EdgeType string

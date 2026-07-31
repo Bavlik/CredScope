@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/Bavlik/CredScope/internal/adapters/gitleaks"
+	"github.com/Bavlik/CredScope/internal/compositeaction"
 	"github.com/Bavlik/CredScope/internal/config"
 	"github.com/Bavlik/CredScope/internal/discovery"
 	"github.com/Bavlik/CredScope/internal/domain"
@@ -66,6 +67,17 @@ func Repository(ctx context.Context, root string, cfg config.Config, gitleaksRep
 	}
 	sort.Slice(result.Workflows, func(i, j int) bool { return result.Workflows[i].File < result.Workflows[j].File })
 	sort.Slice(result.Compose, func(i, j int) bool { return result.Compose[i].File < result.Compose[j].File })
+
+	// Resolve repository-local composite-action references found in the
+	// workflow steps just parsed. This is the only place in the pipeline
+	// that touches the filesystem or parses action metadata for this
+	// purpose: analysis.Analyze and the graph builder consume only this
+	// already-immutable result.
+	composite, err := compositeaction.Resolve(ctx, finder, workflowParser, result.Workflows)
+	if err != nil {
+		return domain.ParsedRepository{}, err
+	}
+	result.CompositeActions = composite
 	sort.Slice(result.Warnings, func(i, j int) bool {
 		if result.Warnings[i].Location.Path != result.Warnings[j].Location.Path {
 			return result.Warnings[i].Location.Path < result.Warnings[j].Location.Path

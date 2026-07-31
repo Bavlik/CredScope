@@ -50,7 +50,11 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	// hand the result to graph construction explicitly. Resolve reads
 	// parsed.Workflows only; it never mutates them.
 	resolved := reusableworkflow.Resolve(parsed.Workflows)
-	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved})
+	// parsed.CompositeActions was computed once by ingest.Repository, which
+	// owns all filesystem access and action-metadata parsing for local
+	// composite-action resolution; Analyze only reads it and performs no
+	// parsing or resolution of its own.
+	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved, CompositeActions: parsed.CompositeActions})
 	if built.LimitExceeded {
 		return domain.AnalysisResult{}, fmt.Errorf("analysis graph exceeded the safety limit of %d nodes or %d edges", graph.DefaultMaxGraphNodes, graph.DefaultMaxGraphEdges)
 	}

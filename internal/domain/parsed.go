@@ -275,12 +275,13 @@ type ComposeProject struct {
 }
 
 type ParsedRepository struct {
-	RepositoryRoot string           `json:"repository_root"`
-	Findings       []Finding        `json:"findings"`
-	Workflows      []Workflow       `json:"workflows"`
-	Compose        []ComposeProject `json:"compose"`
-	Warnings       []ParseWarning   `json:"warnings"`
-	Ignored        []IgnoredItem    `json:"ignored_items"`
+	RepositoryRoot   string                    `json:"repository_root"`
+	Findings         []Finding                 `json:"findings"`
+	Workflows        []Workflow                `json:"workflows"`
+	Compose          []ComposeProject          `json:"compose"`
+	Warnings         []ParseWarning            `json:"warnings"`
+	Ignored          []IgnoredItem             `json:"ignored_items"`
+	CompositeActions CompositeActionResolution `json:"composite_actions"`
 }
 
 // ActionInputDefinition is one declared `inputs.<name>` entry in a GitHub
@@ -357,4 +358,101 @@ type ActionMetadata struct {
 	Outputs     []ActionOutputDefinition `json:"outputs,omitempty"`
 	Runs        ActionRuns               `json:"runs"`
 	Evidence    Evidence                 `json:"evidence"`
+}
+
+// CompositeActionResolutionStatus is the closed set of outcomes for a single
+// workflow-step `uses:` action reference, as resolved by
+// internal/compositeaction.Resolve.
+type CompositeActionResolutionStatus string
+
+const (
+	// CompositeActionResolvedLocalComposite means the reference is a safe
+	// local directory containing exactly one safe action.yml/action.yaml
+	// that parsed successfully and declares runs.using: composite. The
+	// canonical ActionMetadata is present in CompositeActionResolution.Actions.
+	CompositeActionResolvedLocalComposite CompositeActionResolutionStatus = "resolved_local_composite"
+	// CompositeActionOpaqueExternal means the reference is a normal
+	// owner/repository action. No filesystem access occurs; existing graph
+	// semantics for this call site are unchanged.
+	CompositeActionOpaqueExternal CompositeActionResolutionStatus = "opaque_external"
+	// CompositeActionOpaqueDocker means the reference is a docker://
+	// reference. No filesystem access occurs; existing graph semantics for
+	// this call site are unchanged.
+	CompositeActionOpaqueDocker CompositeActionResolutionStatus = "opaque_docker"
+	// CompositeActionUnsupportedExpression means the raw uses value contains
+	// a ${{ ... }} GitHub expression and cannot be statically resolved. No
+	// filesystem access occurs and no resolution claim is made.
+	CompositeActionUnsupportedExpression CompositeActionResolutionStatus = "unsupported_expression"
+	// CompositeActionRejectedPath means the reference looks locally-scoped
+	// but is unsafe or structurally invalid: traversal, an absolute path, a
+	// drive letter, a UNC path, a backslash, a NUL byte, a query or fragment
+	// suffix, a direct action.yml/action.yaml reference, an unsafe
+	// (symlink/reparse-point) directory or metadata candidate, or a
+	// directory that otherwise fails to resolve safely.
+	CompositeActionRejectedPath CompositeActionResolutionStatus = "rejected_path"
+	// CompositeActionMetadataMissing means the safe local directory exists
+	// but neither action.yml nor action.yaml exists in it.
+	CompositeActionMetadataMissing CompositeActionResolutionStatus = "metadata_missing"
+	// CompositeActionMetadataAmbiguous means both a safe, regular action.yml
+	// and a safe, regular action.yaml exist in the directory. Neither is
+	// silently preferred.
+	CompositeActionMetadataAmbiguous CompositeActionResolutionStatus = "metadata_ambiguous"
+	// CompositeActionMalformedMetadata means exactly one safe metadata file
+	// exists but Parser.ParseActionMetadata rejected its YAML or required
+	// structure.
+	CompositeActionMalformedMetadata CompositeActionResolutionStatus = "malformed_metadata"
+	// CompositeActionTargetNotComposite means exactly one safe metadata file
+	// exists and parsed successfully, but its runs.using is not "composite"
+	// (e.g. a JavaScript or Docker local action). This is a legitimate,
+	// common outcome, not a defect.
+	CompositeActionTargetNotComposite CompositeActionResolutionStatus = "target_not_composite"
+)
+
+// CompositeActionCall is the resolution outcome for one workflow-step
+// `uses:` action reference. It never embeds *ActionMetadata: a resolved
+// call's canonical action is looked up from CompositeActionResolution.Actions
+// by CanonicalDirectory, so call records can never share or mutate a
+// canonical action's nested slices through a pointer.
+type CompositeActionCall struct {
+	CallerWorkflow string `json:"caller_workflow"`
+	CallerJobID    string `json:"caller_job_id"`
+	// CallerStepIndex is the step's zero-based position within its job's
+	// Steps slice — the authoritative identity field, always present and
+	// never duplicated. CallerStepID is informational only: a step's own
+	// `id:` is optional and, in principle, not guaranteed unique.
+	CallerStepIndex int    `json:"caller_step_index"`
+	CallerStepID    string `json:"caller_step_id,omitempty"`
+	// RawReference preserves the exact, unmodified `uses:` text.
+	RawReference string `json:"raw_reference"`
+	// CanonicalDirectory is the repository-relative, forward-slash,
+	// case-exact directory this reference normalized to. It is empty for
+	// OpaqueExternal, OpaqueDocker, and UnsupportedExpression (the reference
+	// was never attempted as a local path) and for a RejectedPath caused by
+	// string-level grammar rejection before any filesystem lookup was
+	// attempted. It is populated for MetadataMissing, MetadataAmbiguous,
+	// MalformedMetadata, TargetNotComposite, and ResolvedLocalComposite, and
+	// may also be populated for a RejectedPath whose normalized path passed
+	// grammar validation but was rejected at the filesystem-confinement
+	// layer (e.g. a symlinked directory component or an escape outside the
+	// repository root).
+	CanonicalDirectory string `json:"canonical_directory,omitempty"`
+	// MetadataFile is "action.yml" or "action.yaml" — whichever single safe
+	// candidate was selected — populated only for MalformedMetadata,
+	// TargetNotComposite, and ResolvedLocalComposite. It is evidence, never
+	// part of any identity.
+	MetadataFile string                          `json:"metadata_file,omitempty"`
+	Status       CompositeActionResolutionStatus `json:"status"`
+	Reason       string                          `json:"reason,omitempty"`
+	Evidence     Evidence                        `json:"evidence"`
+}
+
+// CompositeActionResolution is the deterministic, immutable output of
+// internal/compositeaction.Resolve. Actions holds at most one ActionMetadata
+// value per canonical directory; Calls holds one record per workflow-step
+// action reference and references its action only through
+// CanonicalDirectory/MetadataFile, never by pointer, so mutating one
+// resolution result's slices can never affect a separately produced result.
+type CompositeActionResolution struct {
+	Actions []ActionMetadata      `json:"actions"`
+	Calls   []CompositeActionCall `json:"calls"`
 }
