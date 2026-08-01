@@ -1,0 +1,539 @@
+{
+  "schema_version": "2",
+  "tool": {
+    "name": "credscope",
+    "version": "corpustest"
+  },
+  "scan": {
+    "repository": "gha-nested-composite-action-resolved",
+    "started_at": "2026-01-01T00:00:00Z",
+    "completed_at": "2026-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "format": "json",
+    "fail_on": "none",
+    "minimum_score": 0,
+    "threshold_exceeded": false,
+    "configuration": {
+      "include": [
+        ".github/workflows/*.yaml",
+        ".github/workflows/*.yml",
+        "compose.yaml",
+        "compose.yml",
+        "docker-compose.yaml",
+        "docker-compose.yml"
+      ],
+      "exclude": [
+        ".git/**",
+        ".tmp/**",
+        "build/**",
+        "coverage/**",
+        "dist/**",
+        "node_modules/**",
+        "vendor/**"
+      ],
+      "disabled_rules": [],
+      "no_color": false,
+      "quiet": false,
+      "verbose": false
+    },
+    "profile": {
+      "requested": "auto",
+      "selected": "ci",
+      "source": "repository_context",
+      "reason": "The repository contains GitHub Actions workflows and no Docker Compose input.",
+      "assumptions": [
+        "Jobs are treated as ephemeral unless repository evidence says otherwise.",
+        "Secrets available to jobs and steps are reported.",
+        "Untrusted pull-request risk is evaluated separately."
+      ]
+    }
+  },
+  "policies": {
+    "scoring_policy": "v2",
+    "rule_catalog": "v2"
+  },
+  "summary": {
+    "credential_count": 0,
+    "informational": 0,
+    "low": 0,
+    "medium": 0,
+    "high": 0,
+    "critical": 0,
+    "highest_score": 0,
+    "threshold_exceeded": false
+  },
+  "credentials": [],
+  "graph": {
+    "nodes": [
+      {
+        "id": "node:composite_action:58394e8200a031a643f8b497fe12bc364df7e3435275ce8ad66be3cbd49e81e8",
+        "type": "composite_action",
+        "label": "Authenticate Action",
+        "location": {
+          "path": ".github/actions/authenticate/action.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "directory": ".github/actions/authenticate",
+          "input_names": "",
+          "metadata_file": "action.yml",
+          "name": "Authenticate Action",
+          "output_names": "",
+          "runs_using": "composite",
+          "step_count": "1"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Action metadata",
+            "location": {
+              "path": ".github/actions/authenticate/action.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:composite_action:c89c7bab9630b718c1df35e30097e779368fa253cedb0d3003e78c23cc1857c9",
+        "type": "composite_action",
+        "label": "Deploy Action",
+        "location": {
+          "path": ".github/actions/deploy/action.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "directory": ".github/actions/deploy",
+          "input_names": "",
+          "metadata_file": "action.yml",
+          "name": "Deploy Action",
+          "output_names": "",
+          "runs_using": "composite",
+          "step_count": "1"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Action metadata",
+            "location": {
+              "path": ".github/actions/deploy/action.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:external_action:6ccdf5a70f6c646b580e8e5f5f6c36017fb096f44ff552b509dfdf1f0e7dc088",
+        "type": "external_action",
+        "label": "./.github/actions/deploy",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 8,
+          "column": 15
+        },
+        "metadata": {
+          "artifact_kind": "",
+          "caller_job_id": "deploy",
+          "caller_step_index": "0",
+          "caller_workflow": ".github/workflows/deploy.yml",
+          "canonical_directory": ".github/actions/deploy",
+          "docker": "false",
+          "local": "true",
+          "metadata_file": "action.yml",
+          "mutable": "false",
+          "owner": "",
+          "pinned_sha": "false",
+          "raw_reference": "./.github/actions/deploy",
+          "repository": "",
+          "resolution_status": "resolved_local_composite",
+          "revision": "",
+          "third_party": "false",
+          "unresolved": "false"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Action or reusable workflow reference",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 8,
+              "column": 15
+            },
+            "field": "jobs.deploy.steps[0].uses",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+        "type": "file",
+        "label": ".github/workflows/deploy.yml",
+        "location": {
+          "path": ".github/workflows/deploy.yml"
+        },
+        "metadata": {
+          "path": ".github/workflows/deploy.yml"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:job:1f5d37600fcc97d90e1e340f4c3ca8aefd3669485e43fc5e3bf5548b5a82e8d7",
+        "type": "job",
+        "label": "deploy",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 6,
+          "column": 5
+        },
+        "metadata": {
+          "job_id": "deploy",
+          "workflow": "Deploy"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow job",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 6,
+              "column": 5
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "repository",
+        "label": "repository",
+        "metadata": {
+          "scope": "selected_root"
+        },
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:step:543c8be169eb980550374cf178222609fdbef10a0cd6f90e77b864b9c19b702c",
+        "type": "step",
+        "label": "step jobs.deploy.steps_0",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 8,
+          "column": 9
+        },
+        "metadata": {
+          "has_shell": "false",
+          "step_id": ""
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow step",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 8,
+              "column": 9
+            },
+            "field": "jobs.deploy.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:trigger:f409462898e1265d79f1de37ecc57dd0f2225fcfaf523e28d02687540bee4268",
+        "type": "trigger",
+        "label": "push",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 2,
+          "column": 5
+        },
+        "metadata": {
+          "name": "push"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "Workflow trigger",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 2,
+              "column": 5
+            },
+            "field": "on",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "node:workflow:fd104236322dcc229a80a21e0a175132fa526be65ef9be54fd06b34f0fa351d3",
+        "type": "workflow",
+        "label": "Deploy",
+        "location": {
+          "path": ".github/workflows/deploy.yml",
+          "line": 1,
+          "column": 1
+        },
+        "metadata": {
+          "file": ".github/workflows/deploy.yml",
+          "missing_explicit_permissions": "true"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "description": "GitHub Actions workflow",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          },
+          {
+            "rule_id": "",
+            "type": "signal:missing_explicit_permissions",
+            "description": "Workflow does not declare explicit repository permissions; effective defaults depend on repository settings.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "field": "permissions",
+            "source": "github-actions",
+            "confidence": "high"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge:372bb8d70fdad1aef0aeac4d74814a3034565066373b2b9954ab548d57c30371",
+        "from": "node:external_action:6ccdf5a70f6c646b580e8e5f5f6c36017fb096f44ff552b509dfdf1f0e7dc088",
+        "to": "node:composite_action:c89c7bab9630b718c1df35e30097e779368fa253cedb0d3003e78c23cc1857c9",
+        "type": "runs_action",
+        "evidence_kind": "structural_call_only",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "resolved_local_composite_action",
+            "description": "Workflow step's local action reference resolves to this composite action; this is not credential data flow or exposure.",
+            "location": {
+              "path": ".github/actions/deploy/action.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:3dd3ca8a4243fde172899d58f1186b37b267dd4a6c94c344466194b76d590c2c",
+        "from": "node:job:1f5d37600fcc97d90e1e340f4c3ca8aefd3669485e43fc5e3bf5548b5a82e8d7",
+        "to": "node:workflow:fd104236322dcc229a80a21e0a175132fa526be65ef9be54fd06b34f0fa351d3",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_job",
+            "description": "Job belongs to this workflow.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 6,
+              "column": 5
+            },
+            "field": "jobs.deploy",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:619a1f1773dfc386f24649b17764f5dc2f0ea7067ad962803db20c34786aff05",
+        "from": "node:step:543c8be169eb980550374cf178222609fdbef10a0cd6f90e77b864b9c19b702c",
+        "to": "node:job:1f5d37600fcc97d90e1e340f4c3ca8aefd3669485e43fc5e3bf5548b5a82e8d7",
+        "type": "belongs_to",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_step",
+            "description": "Step executes within this job.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 8,
+              "column": 9
+            },
+            "field": "jobs.deploy.steps[0]",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:865f1bf47f1f45e9b5f4a48cec4e09775c12dbcf7d2e5c23644f577e23cf5e00",
+        "from": "node:workflow:fd104236322dcc229a80a21e0a175132fa526be65ef9be54fd06b34f0fa351d3",
+        "to": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_definition",
+            "description": "Workflow is defined in this file.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a27e14b81bc044dada14b5b9b9fed06f98a2c7b07d3d55762d467adf818ae4f0",
+        "from": "node:workflow:fd104236322dcc229a80a21e0a175132fa526be65ef9be54fd06b34f0fa351d3",
+        "to": "node:trigger:f409462898e1265d79f1de37ecc57dd0f2225fcfaf523e28d02687540bee4268",
+        "type": "triggered_by",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "workflow_trigger",
+            "description": "Workflow declares this trigger.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 2,
+              "column": 5
+            },
+            "field": "on",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:a7c1269e8b5d3716fccc9e2ab910a5dcbde4bee8d049453d8b7a11e26e4182fe",
+        "from": "node:file:995b5900a7728d0c24ad0b5bf61398c58aeedf04df632e52b89602ad87685769",
+        "to": "node:repository:d42b474ace914236607799e5489b38ccd30a84d7e222a8c6d07055ebfd5fda08",
+        "type": "detected_in",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "repository_file",
+            "description": "Workflow file belongs to the selected repository.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 1,
+              "column": 1
+            },
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:aa766c40d8c5c373a5dcf8aebd2e5afce825eae93a52e360676964426a684850",
+        "from": "node:step:543c8be169eb980550374cf178222609fdbef10a0cd6f90e77b864b9c19b702c",
+        "to": "node:external_action:6ccdf5a70f6c646b580e8e5f5f6c36017fb096f44ff552b509dfdf1f0e7dc088",
+        "type": "runs_action",
+        "evidence_kind": "inferred_exposure_context",
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "action_reference",
+            "description": "Step references this action; third-party does not imply malicious.",
+            "location": {
+              "path": ".github/workflows/deploy.yml",
+              "line": 8,
+              "column": 15
+            },
+            "field": "jobs.deploy.steps[0].uses",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      },
+      {
+        "id": "edge:b686e3dc8578e3abde0aa0cb930f5fcde9b06f415302ddb111e1d1022ab80b0c",
+        "from": "node:composite_action:c89c7bab9630b718c1df35e30097e779368fa253cedb0d3003e78c23cc1857c9",
+        "to": "node:composite_action:58394e8200a031a643f8b497fe12bc364df7e3435275ce8ad66be3cbd49e81e8",
+        "type": "runs_action",
+        "evidence_kind": "structural_call_only",
+        "metadata": {
+          "canonical_directory": ".github/actions/authenticate",
+          "metadata_file": "action.yml",
+          "parent_action_step_id": "",
+          "parent_action_step_index": "0",
+          "parent_canonical_directory": ".github/actions/deploy",
+          "parent_metadata_file": "action.yml",
+          "raw_reference": "./.github/actions/authenticate",
+          "resolution_status": "resolved_local_composite"
+        },
+        "evidence": [
+          {
+            "rule_id": "",
+            "type": "resolved_nested_composite_action",
+            "description": "Composite action's internal step resolves to this nested composite action; this is not credential data flow or exposure.",
+            "location": {
+              "path": ".github/actions/deploy/action.yml",
+              "line": 6,
+              "column": 13
+            },
+            "field": "runs.steps[0].uses",
+            "source": "github-actions",
+            "confidence": "confirmed"
+          }
+        ],
+        "confidence": "confirmed"
+      }
+    ]
+  },
+  "repository_warnings": [],
+  "parser_warnings": [],
+  "non_fatal_errors": [],
+  "ignored_count": 0,
+  "ignored_items": []
+}

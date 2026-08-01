@@ -1,0 +1,6 @@
+name: Deploy Action
+description: Deploys the built artifact to the target environment.
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/authenticate

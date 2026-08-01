@@ -59,6 +59,39 @@ func TestRepositoryAttachesCompositeActionResolution(t *testing.T) {
 	}
 }
 
+// CA3A: ingest surfaces repository-wide nested composite-action resolution
+// (a canonical action reachable only through another action's own nested
+// uses:, never directly by any workflow) end-to-end through Repository.
+func TestRepositoryAttachesNestedCompositeActionResolution(t *testing.T) {
+	root := t.TempDir()
+	writeIngestFixture(t, root, ".github/workflows/ci.yml", ingestCallerWorkflowYAML)
+	writeIngestFixture(t, root, ".github/actions/deploy/action.yml", `name: Deploy
+description: Deploys the app
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/authenticate
+`)
+	writeIngestFixture(t, root, ".github/actions/authenticate/action.yml", ingestCompositeActionYAML)
+
+	result, err := Repository(context.Background(), root, config.Default(), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	foundAuth := false
+	for _, action := range result.CompositeActions.Actions {
+		if action.Directory == ".github/actions/authenticate" {
+			foundAuth = true
+		}
+	}
+	if !foundAuth {
+		t.Fatalf("expected the nested-only authenticate action to be resolved and retained, got %#v", result.CompositeActions.Actions)
+	}
+	if len(result.CompositeActions.NestedCalls) != 1 || result.CompositeActions.NestedCalls[0].CanonicalDirectory != ".github/actions/authenticate" {
+		t.Fatalf("expected one nested call to authenticate, got %#v", result.CompositeActions.NestedCalls)
+	}
+}
+
 // 71. context cancellation propagates through ingest's composite-action resolution.
 func TestRepositoryPropagatesCancellationToCompositeResolution(t *testing.T) {
 	root := t.TempDir()

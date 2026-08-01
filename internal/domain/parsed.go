@@ -463,13 +463,114 @@ type CompositeActionCall struct {
 	Evidence     Evidence                        `json:"evidence"`
 }
 
+// NestedCompositeActionCall is the resolution outcome for one composite
+// action's own internal `runs.steps[*].uses:` reference — a call site inside
+// an already-resolved canonical composite action, not inside a workflow. Its
+// identity is the canonical structural fact "this parent canonical action's
+// internal step at this index references this target," entirely independent
+// of which workflow, job, or root call ever reaches that parent: the same
+// parent action reached by ten different root workflows still produces
+// exactly one NestedCompositeActionCall per its own internal step, matching
+// how CompositeActionResolution.Actions is itself deduplicated by canonical
+// directory regardless of caller count. Root-workflow provenance intentionally
+// never appears here — a future confirmed-forwarding phase that needs a
+// specific root-to-leaf path computes that path separately, by walking these
+// canonical, path-agnostic records from a specific root, rather than this
+// record needing to carry it. It never embeds *ActionMetadata, for the same
+// pointer-sharing-safety reason CompositeActionCall does not.
+type NestedCompositeActionCall struct {
+	// ParentCanonicalDirectory is the repository-relative, forward-slash,
+	// case-exact canonical directory of the composite action whose own
+	// runs.steps contains this call site. It is always non-empty: a nested
+	// call only ever exists because some canonical action was itself
+	// successfully resolved and expanded.
+	ParentCanonicalDirectory string `json:"parent_canonical_directory"`
+	// ParentMetadataFile is "action.yml" or "action.yaml" for the parent
+	// action, evidence only, never part of any identity.
+	ParentMetadataFile string `json:"parent_metadata_file"`
+	// ParentActionStepIndex is the step's zero-based position within the
+	// parent action's Runs.Steps slice — the authoritative identity field,
+	// mirroring CompositeActionCall.CallerStepIndex's own role exactly.
+	ParentActionStepIndex int    `json:"parent_action_step_index"`
+	ParentActionStepID    string `json:"parent_action_step_id,omitempty"`
+	// RawReference preserves the exact, unmodified `uses:` text of the
+	// nested step.
+	RawReference string `json:"raw_reference"`
+	// CanonicalDirectory and MetadataFile mirror CompositeActionCall's own
+	// fields exactly, one level deeper: populated under the same conditions,
+	// empty under the same conditions.
+	CanonicalDirectory string                          `json:"canonical_directory,omitempty"`
+	MetadataFile       string                          `json:"metadata_file,omitempty"`
+	Status             CompositeActionResolutionStatus `json:"status"`
+	Reason             string                          `json:"reason,omitempty"`
+	Evidence           Evidence                        `json:"evidence"`
+}
+
+// NestedCompositeActionDiagnosticKind is the closed set of path-level
+// diagnostics for the canonical nested composite-action dependency graph.
+// These are properties of an entire root-to-leaf path, never of one
+// individual NestedCompositeActionCall's own resolution outcome: a call that
+// itself resolves correctly to a real, valid composite action keeps
+// CompositeActionResolvedLocalComposite even when the path containing it is
+// cyclic or exceeds the maximum nesting depth.
+type NestedCompositeActionDiagnosticKind string
+
+const (
+	// NestedCompositeActionDiagnosticCycle means a canonical directory
+	// repeats within one root-to-current walk of the resolved nested-call
+	// dependency graph. Path holds the complete, closed cycle in canonical,
+	// rotation-independent order.
+	NestedCompositeActionDiagnosticCycle NestedCompositeActionDiagnosticKind = "nested_cycle"
+	// NestedCompositeActionDiagnosticDepthExceeded means a walk from a root
+	// canonical directory attempted to enter an 11th resolved composite
+	// action on one path. Path holds the full attempted chain; Depth holds
+	// the attempted depth (always one past the configured maximum).
+	NestedCompositeActionDiagnosticDepthExceeded NestedCompositeActionDiagnosticKind = "nested_depth_exceeded"
+)
+
+// NestedCompositeActionDiagnostic is one deterministic, path-level notice
+// about the resolved nested composite-action dependency graph. It carries no
+// finding, rule, or remediation semantics, and no raw file content, binding
+// value, shell command, or secret value — only canonical, repository-relative
+// directory names and small integers.
+type NestedCompositeActionDiagnostic struct {
+	Kind NestedCompositeActionDiagnosticKind `json:"kind"`
+	// RootCanonicalDirectory is the top-level, workflow-resolved canonical
+	// directory this diagnostic's walk started from.
+	RootCanonicalDirectory string `json:"root_canonical_directory"`
+	// Path holds the ordered chain of canonical directories the walk
+	// traversed: for a cycle, the complete closed cycle; for a depth
+	// diagnostic, the complete attempted chain up to and including the
+	// rejected 11th action.
+	Path []string `json:"path"`
+	// Depth is populated only for NestedCompositeActionDiagnosticDepthExceeded.
+	Depth int `json:"depth,omitempty"`
+	// Limit is the configured maximum nesting depth this diagnostic was
+	// evaluated against: MaxCompositeActionNestingDepth for
+	// NestedCompositeActionDiagnosticDepthExceeded, 0 for
+	// NestedCompositeActionDiagnosticCycle (no depth limit applies to a
+	// cycle diagnostic). Populated by the producer, never inferred by a
+	// consumer from Depth.
+	Limit    int      `json:"limit,omitempty"`
+	Evidence Evidence `json:"evidence"`
+}
+
 // CompositeActionResolution is the deterministic, immutable output of
-// internal/compositeaction.Resolve. Actions holds at most one ActionMetadata
-// value per canonical directory; Calls holds one record per workflow-step
-// action reference and references its action only through
-// CanonicalDirectory/MetadataFile, never by pointer, so mutating one
-// resolution result's slices can never affect a separately produced result.
+// internal/compositeaction.Resolve. Actions now contains every
+// repository-local canonical composite action transitively reachable from a
+// resolved workflow action call, deduplicated by canonical repository-relative
+// directory — not only the top-level actions a workflow step calls directly.
+// Calls holds one record per workflow-step action reference (unchanged in
+// shape and meaning from CA1/CA2); NestedCalls holds one record per
+// composite-action-internal action-step reference, entirely separate from
+// Calls, and references its target only through CanonicalDirectory/
+// MetadataFile, never by pointer, so mutating one resolution result's slices
+// can never affect a separately produced result. Diagnostics holds
+// deterministic, path-level cycle/depth notices computed once over the
+// complete, finite NestedCalls dependency graph.
 type CompositeActionResolution struct {
-	Actions []ActionMetadata      `json:"actions"`
-	Calls   []CompositeActionCall `json:"calls"`
+	Actions     []ActionMetadata                  `json:"actions"`
+	Calls       []CompositeActionCall             `json:"calls"`
+	NestedCalls []NestedCompositeActionCall       `json:"nested_calls,omitempty"`
+	Diagnostics []NestedCompositeActionDiagnostic `json:"diagnostics,omitempty"`
 }

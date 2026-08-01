@@ -129,7 +129,23 @@ func Resolve(ctx context.Context, finder *discovery.Finder, parser *githubaction
 	sort.Slice(calls, func(i, j int) bool { return lessCall(calls[i], calls[j]) })
 	sort.Slice(actions, func(i, j int) bool { return actions[i].Directory < actions[j].Directory })
 
-	return domain.CompositeActionResolution{Actions: actions, Calls: calls}, nil
+	// CA3A: expand every top-level resolved composite action's own
+	// runs.steps for further repository-local nested composite-action
+	// references, seeded by exactly the top-level directories just resolved
+	// above. topLevelDirectories is captured before nested expansion, since
+	// cycle/depth diagnostics must walk from the original workflow-resolved
+	// roots, not from every canonical action discovered along the way.
+	topLevelDirectories := make([]string, len(actions))
+	for i, action := range actions {
+		topLevelDirectories[i] = action.Directory
+	}
+	allActions, nestedCalls, err := resolveNested(ctx, finder, parser, actions)
+	if err != nil {
+		return domain.CompositeActionResolution{}, err
+	}
+	diagnostics := computeNestedDiagnostics(topLevelDirectories, nestedCalls)
+
+	return domain.CompositeActionResolution{Actions: allActions, Calls: calls, NestedCalls: nestedCalls, Diagnostics: diagnostics}, nil
 }
 
 func uniqueSortedDirectories(pending []pendingLocal) []string {

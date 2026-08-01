@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -57,6 +58,15 @@ type builder struct {
 	workflowsByFile             map[string]domain.Workflow
 	compositeCallsByStep        map[string]domain.CompositeActionCall
 	compositeActionsByDirectory map[string]domain.ActionMetadata
+	// canonicalActionNodeByDirectory maps every canonical directory in
+	// compositeActionsByDirectory (top-level and, from CA3A, nested) to its
+	// already-created NodeCompositeAction ID. Populated once, up front, by
+	// canonicalCompositeActionNodes — independent of whichever call site
+	// (a top-level CompositeActionCall or a NestedCompositeActionCall) is
+	// processed first, so a canonical action reached only through nesting
+	// (never directly by a workflow) still always has a node before any
+	// edge-creation code ever looks it up.
+	canonicalActionNodeByDirectory map[string]string
 }
 
 type credentialState struct {
@@ -92,6 +102,7 @@ func BuildWithOptions(parsed domain.ParsedRepository, options BuildOptions) Buil
 		graph: newMutable(), credentials: make(map[string]*credentialState), warnings: make(map[string]struct{}),
 		options: options, ignored: make(map[string]domain.IgnoredItem), resolvedCalls: resolvedCalls,
 		compositeCallsByStep: compositeCallsByStep, compositeActionsByDirectory: compositeActionsByDirectory,
+		canonicalActionNodeByDirectory: make(map[string]string, len(compositeActionsByDirectory)),
 	}
 	b.build(parsed)
 	return b.finish()
@@ -106,6 +117,16 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	for _, workflow := range parsed.Workflows {
 		b.workflowsByFile[workflow.File] = workflow
 	}
+	// CA3A: ensure every canonical composite action in
+	// options.CompositeActions.Actions — top-level and, since CA3A, nested —
+	// has its NodeCompositeAction created before any edge-creation code
+	// (compositeActionCall for a top-level call site, nestedCompositeActionCall
+	// for a composite-action-internal call site) ever looks one up. This
+	// must not depend on which call site happens to be processed first: a
+	// canonical action reached only through nesting (never referenced
+	// directly by any workflow step) still needs its node to exist before
+	// its own further nested calls, if any, are processed.
+	b.canonicalCompositeActionNodes()
 	repoID := b.graph.addNode(domain.NodeRepository, "selected-repository", "repository", nil, map[string]string{"scope": "selected_root"}, nil, domain.ConfidenceConfirmed)
 	for _, finding := range parsed.Findings {
 		credentialID := b.credential(finding.Credential.Label, finding.Credential.Type, finding.Credential.Fingerprint, "", true, finding.TestFixtureCandidate)
@@ -139,6 +160,16 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	// confirmed chain in parallel, never replacing it).
 	b.compositeActionInputFlows(b.options.CompositeActionInputFlows.Flows)
 	b.emitCompositeActionInputFlowDiagnostics(b.options.CompositeActionInputFlows.Diagnostics)
+	// CA3A: structural nested composite-action resolution. Each
+	// NestedCompositeActionCall is a canonical, call-site-specific fact
+	// (parent canonical directory + parent internal step index) entirely
+	// independent of which workflow reaches the parent — it never carries
+	// credential-flow semantics, only a structural, non-traversable edge or
+	// (for the four actionable failure statuses) a diagnostic.
+	for _, call := range b.options.CompositeActions.NestedCalls {
+		b.nestedCompositeActionCall(call)
+	}
+	b.emitNestedCompositeActionDiagnostics(b.options.CompositeActions.Diagnostics)
 	for _, project := range parsed.Compose {
 		b.compose(repoID, project)
 	}
@@ -568,27 +599,30 @@ func addCompositeCallMetadata(metadata map[string]string, call domain.CompositeA
 	}
 }
 
-// compositeActionCall represents, structurally, one resolved local
-// composite-action call: it creates (or reuses) the canonical
-// NodeCompositeAction for call.CanonicalDirectory and connects the existing
-// call-site node to it with a structural, non-traversable edge. For every
-// other status it either emits a deterministic diagnostic (rejected path,
-// missing/ambiguous/malformed metadata) or does nothing (opaque external,
-// opaque docker, unsupported expression, target not composite) — the
-// existing call-site node and edge are never altered either way.
-func (b *builder) compositeActionCall(actionID string, call domain.CompositeActionCall) {
-	switch call.Status {
-	case domain.CompositeActionRejectedPath, domain.CompositeActionMetadataMissing, domain.CompositeActionMetadataAmbiguous, domain.CompositeActionMalformedMetadata:
-		b.warnings[compositeActionDiagnostic(call)] = struct{}{}
-		return
-	case domain.CompositeActionResolvedLocalComposite:
-	default:
-		return
+// canonicalCompositeActionNodes creates (or reuses) one NodeCompositeAction
+// per canonical directory in b.compositeActionsByDirectory, in deterministic
+// directory order, and records each node's ID in
+// b.canonicalActionNodeByDirectory. It must run before any edge-creation
+// code (compositeActionCall, nestedCompositeActionCall) looks a canonical
+// node up, since — since CA3A — a canonical action may be reachable only
+// through nesting and never directly through any top-level workflow call.
+func (b *builder) canonicalCompositeActionNodes() {
+	directories := make([]string, 0, len(b.compositeActionsByDirectory))
+	for directory := range b.compositeActionsByDirectory {
+		directories = append(directories, directory)
 	}
-	action, ok := b.compositeActionsByDirectory[call.CanonicalDirectory]
-	if !ok {
-		return
+	sort.Strings(directories)
+	for _, directory := range directories {
+		b.canonicalActionNodeByDirectory[directory] = b.canonicalCompositeActionNode(b.compositeActionsByDirectory[directory])
 	}
+}
+
+// canonicalCompositeActionNode creates or reuses the one NodeCompositeAction
+// for action's canonical directory. addNode is content-addressed by
+// (NodeCompositeAction, action.Directory), so calling this any number of
+// times for the same directory is safe and always yields the same node ID —
+// callers never need to guard against duplicate creation themselves.
+func (b *builder) canonicalCompositeActionNode(action domain.ActionMetadata) string {
 	label := action.Name
 	if label == "" {
 		label = action.Directory
@@ -603,14 +637,41 @@ func (b *builder) compositeActionCall(actionID string, call domain.CompositeActi
 	}
 	metadata := map[string]string{
 		"directory":     action.Directory,
-		"metadata_file": call.MetadataFile,
+		"metadata_file": path.Base(action.File),
 		"name":          action.Name,
 		"runs_using":    action.Runs.Using,
 		"input_names":   strings.Join(inputNames, ","),
 		"output_names":  strings.Join(outputNames, ","),
 		"step_count":    strconv.Itoa(len(action.Runs.Steps)),
 	}
-	canonicalID := b.graph.addNode(domain.NodeCompositeAction, action.Directory, label, locationPtr(action.Evidence), metadata, []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
+	return b.graph.addNode(domain.NodeCompositeAction, action.Directory, label, locationPtr(action.Evidence), metadata, []domain.Evidence{action.Evidence}, domain.ConfidenceConfirmed)
+}
+
+// compositeActionCall represents, structurally, one resolved local
+// composite-action call: it connects the existing call-site node to the
+// already-created canonical NodeCompositeAction for call.CanonicalDirectory
+// with a structural, non-traversable edge. For every other status it either
+// emits a deterministic diagnostic (rejected path, missing/ambiguous/malformed
+// metadata) or does nothing (opaque external, opaque docker, unsupported
+// expression, target not composite) — the existing call-site node and edge
+// are never altered either way.
+func (b *builder) compositeActionCall(actionID string, call domain.CompositeActionCall) {
+	switch call.Status {
+	case domain.CompositeActionRejectedPath, domain.CompositeActionMetadataMissing, domain.CompositeActionMetadataAmbiguous, domain.CompositeActionMalformedMetadata:
+		b.warnings[compositeActionDiagnostic(call)] = struct{}{}
+		return
+	case domain.CompositeActionResolvedLocalComposite:
+	default:
+		return
+	}
+	action, ok := b.compositeActionsByDirectory[call.CanonicalDirectory]
+	if !ok {
+		return
+	}
+	canonicalID, ok := b.canonicalActionNodeByDirectory[call.CanonicalDirectory]
+	if !ok {
+		return
+	}
 	structuralEvidence := []domain.Evidence{evidence("resolved_local_composite_action", action.Evidence, "Workflow step's local action reference resolves to this composite action; this is not credential data flow or exposure.", domain.ConfidenceConfirmed)}
 	b.graph.addTypedEdge(actionID, canonicalID, domain.EdgeRunsAction, domain.EvidenceStructuralCallOnly, structuralEvidence, domain.ConfidenceConfirmed)
 }
@@ -639,6 +700,103 @@ func compositeActionStepIdentifier(call domain.CompositeActionCall) string {
 		return call.CallerStepID
 	}
 	return strconv.Itoa(call.CallerStepIndex)
+}
+
+// nestedCompositeActionCall represents, structurally, one composite action's
+// own internal `runs.steps[*].uses:` reference (CA3A). For a resolved local
+// target it connects the parent's already-created canonical NodeCompositeAction
+// to the child's with a structural, non-traversable edge — never a new node,
+// never a placeholder, and never for a status with no resolved child (opaque
+// external/docker, unsupported expression, target not composite): those
+// statuses have no canonical child NodeCompositeAction to point to, and
+// fabricating one would misrepresent an external/Docker/non-composite/
+// unresolved target as a real, parsed composite action. Only the four
+// actionable resolution failures (rejected path, missing/ambiguous/malformed
+// metadata) emit a diagnostic; every other non-resolved status is silent,
+// matching CA1's own compositeActionCall parity exactly.
+func (b *builder) nestedCompositeActionCall(call domain.NestedCompositeActionCall) {
+	switch call.Status {
+	case domain.CompositeActionRejectedPath, domain.CompositeActionMetadataMissing, domain.CompositeActionMetadataAmbiguous, domain.CompositeActionMalformedMetadata:
+		b.warnings[nestedCompositeActionDiagnostic(call)] = struct{}{}
+		return
+	case domain.CompositeActionResolvedLocalComposite:
+	default:
+		return
+	}
+	parentID, hasParent := b.canonicalActionNodeByDirectory[call.ParentCanonicalDirectory]
+	childID, hasChild := b.canonicalActionNodeByDirectory[call.CanonicalDirectory]
+	if !hasParent || !hasChild {
+		return
+	}
+	metadata := map[string]string{
+		"parent_canonical_directory": call.ParentCanonicalDirectory,
+		"parent_metadata_file":       call.ParentMetadataFile,
+		"parent_action_step_index":   strconv.Itoa(call.ParentActionStepIndex),
+		"parent_action_step_id":      call.ParentActionStepID,
+		"raw_reference":              call.RawReference,
+		"canonical_directory":        call.CanonicalDirectory,
+		"metadata_file":              call.MetadataFile,
+		"resolution_status":          string(call.Status),
+	}
+	structuralEvidence := []domain.Evidence{evidence("resolved_nested_composite_action", call.Evidence, "Composite action's internal step resolves to this nested composite action; this is not credential data flow or exposure.", domain.ConfidenceConfirmed)}
+	b.graph.addTypedEdgeWithMetadata(parentID, childID, domain.EdgeRunsAction, domain.EvidenceStructuralCallOnly, metadata, structuralEvidence, domain.ConfidenceConfirmed)
+}
+
+const nestedCompositeActionDiagnosticCode = "COMPOSITE_ACTION_NESTED_RESOLUTION"
+
+// nestedCompositeActionDiagnostic renders one deterministic warning for a
+// composite-action-internal call whose resolution needs surfacing to a
+// human, mirroring compositeActionDiagnostic exactly but keyed by parent
+// canonical directory and internal step index/ID instead of workflow/job/step.
+func nestedCompositeActionDiagnostic(call domain.NestedCompositeActionCall) string {
+	stepIdentifier := call.ParentActionStepID
+	if stepIdentifier == "" {
+		stepIdentifier = strconv.Itoa(call.ParentActionStepIndex)
+	}
+	message := fmt.Sprintf("%s: action %q step %s references %q (status=%s)",
+		nestedCompositeActionDiagnosticCode, call.ParentCanonicalDirectory, stepIdentifier, call.RawReference, call.Status)
+	if call.CanonicalDirectory != "" {
+		message += fmt.Sprintf(" directory=%q", call.CanonicalDirectory)
+	}
+	if call.MetadataFile != "" {
+		message += fmt.Sprintf(" metadata_file=%q", call.MetadataFile)
+	}
+	return message + " (" + diagnosticLocationText(call.Evidence.Location) + ")"
+}
+
+const (
+	nestedCompositeActionCycleDiagnosticCode = "COMPOSITE_ACTION_NESTING_CYCLE"
+	nestedCompositeActionDepthDiagnosticCode = "COMPOSITE_ACTION_NESTING_DEPTH"
+)
+
+// emitNestedCompositeActionDiagnostics records one deterministic,
+// non-traversable, non-scoring warning per path-level cycle/depth
+// diagnostic. Neither corresponds to a rules.Catalog entry, a Finding, or a
+// remediation.
+func (b *builder) emitNestedCompositeActionDiagnostics(diagnostics []domain.NestedCompositeActionDiagnostic) {
+	for _, diag := range diagnostics {
+		b.warnings[nestedCompositeActionPathDiagnostic(diag)] = struct{}{}
+	}
+}
+
+// nestedCompositeActionPathDiagnostic renders one deterministic warning for
+// a path-level cycle or depth diagnostic. The configured maximum depth is
+// read directly from diag.Limit, populated by the producer
+// (internal/compositeaction); it is never inferred from Depth or any other
+// observed event, and this package never imports internal/compositeaction
+// merely to read its nesting-depth constant.
+func nestedCompositeActionPathDiagnostic(diag domain.NestedCompositeActionDiagnostic) string {
+	chain := strings.Join(diag.Path, " -> ")
+	switch diag.Kind {
+	case domain.NestedCompositeActionDiagnosticCycle:
+		return fmt.Sprintf("%s: root %q has a nested composite-action cycle: %s (%s)",
+			nestedCompositeActionCycleDiagnosticCode, diag.RootCanonicalDirectory, chain, diagnosticLocationText(diag.Evidence.Location))
+	case domain.NestedCompositeActionDiagnosticDepthExceeded:
+		return fmt.Sprintf("%s: root %q attempted composite-action nesting depth %d (max %d): %s (%s)",
+			nestedCompositeActionDepthDiagnosticCode, diag.RootCanonicalDirectory, diag.Depth, diag.Limit, chain, diagnosticLocationText(diag.Evidence.Location))
+	default:
+		return fmt.Sprintf("unknown nested composite-action diagnostic kind %q for root %q", diag.Kind, diag.RootCanonicalDirectory)
+	}
 }
 
 // compositeActionInputFlows adds, for every CA2-confirmed input flow, one

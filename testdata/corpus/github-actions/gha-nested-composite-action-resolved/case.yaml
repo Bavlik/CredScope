@@ -1,0 +1,38 @@
+schema_version: 1
+id: gha-nested-composite-action-resolved
+title: Repository-local composite action resolves a further nested local composite action
+description: >
+  A purely structural fixture: a workflow step invokes a repository-local
+  composite action (`./.github/actions/deploy`) whose own single internal
+  step in turn invokes a second repository-local composite action
+  (`./.github/actions/authenticate`) via its own `uses:`. CredScope resolves
+  both actions, parses each canonical action's metadata exactly once, and
+  represents the nested relationship in the graph as a second canonical
+  `composite_action` node connected to the parent by a structural,
+  non-traversable edge, in addition to the existing workflow-call-site
+  structural edge from CA1. The fixture contains no secret, no `with:`
+  binding, and no action inputs anywhere, so it exercises only the CA3A
+  structural resolution/graph shape, with no possibility of also exercising
+  CA2's confirmed input-binding/usage flow.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: [structural_call_only]
+  edges: [runs_action]
+tags: [github-actions, composite-action, nested-composite-action, structural-only]
+forbidden_output_strings: []
+notes: >
+  This case exercises Phase CA3A (repository-local nested composite-action
+  resolution and canonical structural graph) as a purely structural fixture.
+  It intentionally has no covers.rules entries, no secrets, and no `with:`
+  binding: resolving a nested composite action must never itself trigger a
+  rule, score, remediation, credential, or CA2 input-binding/usage flow. No
+  confirmed credential or input forwarding is modeled across the nested
+  boundary in this phase (CA3B); only the structural relationship is proven
+  here.
