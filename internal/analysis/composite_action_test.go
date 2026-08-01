@@ -41,6 +41,63 @@ func caResolvedCall(workflow, jobID string, stepIndex int, directory string) dom
 	}
 }
 
+// CA3A end-to-end: a nested composite-action structural resolution passed
+// through ParsedRepository.CompositeActions.NestedCalls produces a
+// parent->child structural edge in the analyzed graph, and does not change
+// the top-level credential's score/rules/remediation (CA1/CA2 regression
+// proof) compared to the identical repository without any nested data.
+func TestAnalyzeNestedCompositeActionStructuralEdgeDoesNotChangeScoreRuleOrRemediation(t *testing.T) {
+	file := ".github/workflows/caller.yml"
+	directory := ".github/actions/deploy"
+	nestedDirectory := ".github/actions/authenticate"
+	workflows := []domain.Workflow{caWorkflow(file, caJobWithCompositeStep(file, "build", "./"+directory, "DEPLOY_TOKEN"))}
+
+	withoutNested := analyzeOrFatal(t, domain.ParsedRepository{
+		Workflows: workflows,
+		CompositeActions: domain.CompositeActionResolution{
+			Actions: []domain.ActionMetadata{caCanonicalAction(directory, "Deploy")},
+			Calls:   []domain.CompositeActionCall{caResolvedCall(file, "build", 0, directory)},
+		},
+	})
+	withNested := analyzeOrFatal(t, domain.ParsedRepository{
+		Workflows: workflows,
+		CompositeActions: domain.CompositeActionResolution{
+			Actions: []domain.ActionMetadata{caCanonicalAction(directory, "Deploy"), caCanonicalAction(nestedDirectory, "Authenticate")},
+			Calls:   []domain.CompositeActionCall{caResolvedCall(file, "build", 0, directory)},
+			NestedCalls: []domain.NestedCompositeActionCall{{
+				ParentCanonicalDirectory: directory, ParentMetadataFile: "action.yml", ParentActionStepIndex: 0,
+				RawReference: "./" + nestedDirectory, CanonicalDirectory: nestedDirectory, MetadataFile: "action.yml",
+				Status: domain.CompositeActionResolvedLocalComposite, Evidence: caEvidence(directory+"/action.yml", 5, "runs.steps"),
+			}},
+		},
+	})
+
+	foundStructuralEdge := false
+	for _, node := range withNested.Graph.Nodes {
+		if node.Type == domain.NodeCompositeAction && node.Label == "Authenticate" {
+			foundStructuralEdge = true
+		}
+	}
+	if !foundStructuralEdge {
+		t.Fatal("expected the nested Authenticate canonical action node in the analyzed graph")
+	}
+
+	credWithout := findCredential(withoutNested, "DEPLOY_TOKEN")
+	credWith := findCredential(withNested, "DEPLOY_TOKEN")
+	if credWithout == nil || credWith == nil {
+		t.Fatalf("credential missing: without=%v with=%v", credentialLabels(withoutNested), credentialLabels(withNested))
+	}
+	if credWith.Score != credWithout.Score || credWith.Severity != credWithout.Severity {
+		t.Fatalf("nested structural resolution changed score/severity: without=%+v with=%+v", credWithout, credWith)
+	}
+	if !stringSlicesEqual(ruleIDs(credWithout.MatchedRules), ruleIDs(credWith.MatchedRules)) {
+		t.Fatalf("nested structural resolution changed matched rules: without=%v with=%v", ruleIDs(credWithout.MatchedRules), ruleIDs(credWith.MatchedRules))
+	}
+	if len(credWith.RemediationIDs) != len(credWithout.RemediationIDs) {
+		t.Fatalf("nested structural resolution changed remediation: without=%v with=%v", credWithout.RemediationIDs, credWith.RemediationIDs)
+	}
+}
+
 // 66. analysis passes CompositeActions into graph construction: a resolved
 // local composite action produces a NodeCompositeAction in the analyzed graph.
 func TestAnalyzePassesCompositeActionsIntoGraph(t *testing.T) {
