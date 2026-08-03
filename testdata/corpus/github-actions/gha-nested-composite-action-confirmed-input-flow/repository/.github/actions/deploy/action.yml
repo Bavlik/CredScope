@@ -1,0 +1,13 @@
+name: Deploy Action
+description: Deploys the built artifact to the target environment.
+inputs:
+  token:
+    description: Deployment token
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: authenticate
+      uses: ./.github/actions/authenticate
+      with:
+        credential: ${{ inputs.token }}

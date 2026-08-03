@@ -35,6 +35,30 @@ const (
 	reusableWorkflowHopMetadataValue = "true"
 )
 
+// compositeActionForwardingEdgeMetadataKey/Value mark every CA3B nested
+// confirmed-forwarding edge (both parent-usage -> child-binding and
+// child-binding -> child-usage). Traversal exempts these edges from the
+// general per-path depth counter — CA3B's own two-edges-per-nesting-level
+// shape would otherwise exhaust DefaultMaxDepth long before a genuinely
+// CA3A-supported 10-action nested chain is fully traversed. This exemption
+// is opt-in per edge and never applied to any other edge kind, so every
+// unrelated forwarding chain (reusable-workflow, CA2 top-level, compose,
+// findings) keeps exactly its pre-existing depth-counting behavior.
+//
+// compositeActionForwardingHopMetadataKey/Value mark only the narrower
+// level-crossing edge (parent-usage -> child-binding) as one composite
+// nesting-boundary transition, independent of and in addition to the
+// general-depth exemption above. Traversal enforces
+// MaxCompositeActionForwardingHops against this narrower tag exactly as it
+// enforces MaxReusableWorkflowHops against reusableWorkflowHopMetadataKey —
+// two independent counters, neither sharing state with the other.
+const (
+	compositeActionForwardingEdgeMetadataKey   = "composite_action_forwarding_edge"
+	compositeActionForwardingEdgeMetadataValue = "true"
+	compositeActionForwardingHopMetadataKey    = "composite_action_forwarding_hop"
+	compositeActionForwardingHopMetadataValue  = "true"
+)
+
 func newMutable() *mutableGraph {
 	return newMutableWithLimits(DefaultMaxGraphNodes, DefaultMaxGraphEdges)
 

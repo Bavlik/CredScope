@@ -1,0 +1,12 @@
+name: Authenticate Action
+description: Authenticates against the target environment.
+inputs:
+  credential:
+    description: Authentication credential
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: login
+      shell: bash
+      run: authenticate "${{ inputs.credential }}"

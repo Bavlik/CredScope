@@ -1,0 +1,37 @@
+schema_version: 1
+id: gha-nested-composite-action-confirmed-input-flow
+title: Confirmed call-specific input forwarding through a nested repository-local composite action
+description: >
+  A workflow step calls a repository-local composite action via
+  `uses: ./.github/actions/deploy` and passes `${{ secrets.PROD_TOKEN }}` as
+  its declared `token` input through `with:` (Phase CA2). That action's own
+  single internal step in turn invokes a second repository-local composite
+  action, `./.github/actions/authenticate`, forwarding its own `token` input
+  onward as `credential: ${{ inputs.token }}` (Phase CA3B). CredScope
+  establishes the complete, truthful, call-path-specific chain from
+  PROD_TOKEN through the deploy action's confirmed binding/usage, through the
+  nested forwarding edge, to the authenticate action's own confirmed
+  binding/usage representing its internal `${{ inputs.credential }}` read.
+category: github-actions
+inputs:
+  repository: repository
+config:
+  profile: auto
+expect:
+  result: success
+covers:
+  rules: []
+  evidence: [confirmed_static_data_flow, structural_call_only]
+  edges: [explicitly_forwarded_to, runs_action]
+tags: [github-actions, composite-action, nested-composite-action, input-flow, structural-only]
+forbidden_output_strings: []
+notes: >
+  This case exercises Phase CA3B (confirmed call-specific input forwarding
+  through repository-local nested composite actions), building directly on
+  CA1's structural resolution, CA2's confirmed root binding/usage chain, and
+  CA3A's nested structural resolution. It intentionally has no covers.rules
+  entries: the nested confirmed binding/usage chain never itself triggers a
+  rule, score, or remediation change — it only makes an already-truthful,
+  call-path-specific reachability path explicit and visible in the graph.
+  No environment propagation, action output propagation, or reusable
+  workflow behavior is exercised or modeled here.
