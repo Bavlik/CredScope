@@ -18,6 +18,19 @@ const (
 	// and over-depth from another — it is never deleted or globally
 	// suppressed, only refused past the ninth transition on a given path.
 	MaxReusableWorkflowHops = 9
+	// MaxCompositeActionForwardingHops mirrors CA3A's own maximum of 10
+	// composite actions on one acyclic nesting path, expressed as a hop
+	// count: 10 actions means at most 9 parent-to-child forwarding
+	// transitions. This is a wholly independent constant from
+	// MaxReusableWorkflowHops: the two govern different GitHub features
+	// (reusable workflow calls vs. composite-action nesting) that only
+	// coincidentally share a numeral, exactly mirroring
+	// compositeaction.MaxCompositeActionNestingDepth's own documented
+	// independence from reusableworkflow.MaxChainDepth. Enforced per
+	// traversal path, independently of DefaultMaxDepth and independently of
+	// MaxReusableWorkflowHops — a path may exhaust one counter while
+	// remaining well within the other.
+	MaxCompositeActionForwardingHops = 9
 )
 
 // Traverse returns every distinct path prefix reachable from start. A node may
@@ -63,8 +76,8 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 	startNode := pathNode(nodes[start])
 	var paths []domain.EvidencePath
 	limitExceeded := false
-	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence, domain.EvidenceKind, int)
-	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence, pathKind domain.EvidenceKind, reusableHops int) {
+	var walk func(string, []domain.PathNode, []domain.PathEdge, map[string]bool, domain.Confidence, domain.EvidenceKind, int, int, int)
+	walk = func(current string, pathNodes []domain.PathNode, pathEdges []domain.PathEdge, visited map[string]bool, confidence domain.Confidence, pathKind domain.EvidenceKind, reusableHops, compositeHops, generalDepth int) {
 		for _, edge := range adjacent[current] {
 			if limitExceeded {
 				return
@@ -83,11 +96,36 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 					continue
 				}
 			}
+			nextCompositeHops := compositeHops
+			if isCompositeActionForwardingHop(edge) {
+				nextCompositeHops++
+				if nextCompositeHops > MaxCompositeActionForwardingHops {
+					// Refuse this specific composite-action-nesting-boundary
+					// transition on this specific path; the edge itself is
+					// untouched and may still be walked from a shallower
+					// starting point in a different Traverse call — the same
+					// refuse-not-delete discipline as the reusable-workflow
+					// hop cap above.
+					continue
+				}
+			}
+			// The general per-path depth counter deliberately does not
+			// count a composite-action-forwarding edge (either half of
+			// CA3B's two-edges-per-nesting-level shape): those edges are
+			// bounded solely by MaxCompositeActionForwardingHops above,
+			// exactly like reusable-workflow edges are bounded solely by
+			// MaxReusableWorkflowHops. Every other edge kind is completely
+			// unaffected and continues to consume DefaultMaxDepth exactly as
+			// before.
+			nextGeneralDepth := generalDepth
+			if !isCompositeActionForwardingEdge(edge) {
+				nextGeneralDepth++
+			}
 			nextNodes := appendCopy(pathNodes, pathNode(nodes[edge.To]))
 			nextEdges := appendEdge(pathEdges, domain.PathEdge{ID: edge.ID, From: edge.From, To: edge.To, Relationship: edge.Type, EvidenceKind: edge.EvidenceKind, Evidence: edge.Evidence, Confidence: edge.Confidence})
 			nextConfidence := weakest(confidence, edge.Confidence)
 			nextKind := combineEvidenceKind(pathKind, edge.EvidenceKind)
-			truncated := len(nextEdges) >= maxDepth && hasUnvisited(adjacent[edge.To], visited, edge.To)
+			truncated := nextGeneralDepth >= maxDepth && hasUnvisited(adjacent[edge.To], visited, edge.To)
 			path := domain.EvidencePath{CredentialID: start, Nodes: nextNodes, Edges: nextEdges, Confidence: nextConfidence, EvidenceKind: nextKind, Truncated: truncated}
 			path.ID = stableID("path", pathKey(path))
 			paths = append(paths, path)
@@ -95,15 +133,15 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 				limitExceeded = true
 				return
 			}
-			if len(nextEdges) >= maxDepth {
+			if nextGeneralDepth >= maxDepth {
 				continue
 			}
 			nextVisited := cloneVisited(visited)
 			nextVisited[edge.To] = true
-			walk(edge.To, nextNodes, nextEdges, nextVisited, nextConfidence, nextKind, nextReusableHops)
+			walk(edge.To, nextNodes, nextEdges, nextVisited, nextConfidence, nextKind, nextReusableHops, nextCompositeHops, nextGeneralDepth)
 		}
 	}
-	walk(start, []domain.PathNode{startNode}, nil, map[string]bool{start: true}, domain.ConfidenceConfirmed, domain.EvidenceConfirmedDataFlow, 0)
+	walk(start, []domain.PathNode{startNode}, nil, map[string]bool{start: true}, domain.ConfidenceConfirmed, domain.EvidenceConfirmedDataFlow, 0, 0, 0)
 	byID := make(map[string]domain.EvidencePath, len(paths))
 	for _, path := range paths {
 		byID[path.ID] = path
@@ -122,6 +160,21 @@ func TraverseLimited(input domain.Graph, start string, maxDepth, maxPaths int) (
 // EdgeExplicitlyForwardedTo edge unrelated to reusable workflows.
 func isReusableWorkflowHop(edge domain.Edge) bool {
 	return edge.Metadata[reusableWorkflowHopMetadataKey] == reusableWorkflowHopMetadataValue
+}
+
+// isCompositeActionForwardingEdge reports whether edge is any CA3B nested
+// confirmed-forwarding edge (set only by builder's nestedCompositeActionInputFlows),
+// exempting it from the general per-path depth counter.
+func isCompositeActionForwardingEdge(edge domain.Edge) bool {
+	return edge.Metadata[compositeActionForwardingEdgeMetadataKey] == compositeActionForwardingEdgeMetadataValue
+}
+
+// isCompositeActionForwardingHop reports whether edge is specifically the
+// parent-usage -> child-binding level-crossing edge, as opposed to the
+// within-level child-binding -> child-usage edge — only the former consumes
+// one MaxCompositeActionForwardingHops budget unit.
+func isCompositeActionForwardingHop(edge domain.Edge) bool {
+	return edge.Metadata[compositeActionForwardingHopMetadataKey] == compositeActionForwardingHopMetadataValue
 }
 
 func combineEvidenceKind(current, next domain.EvidenceKind) domain.EvidenceKind {

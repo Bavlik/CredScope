@@ -12,6 +12,7 @@ import (
 	"github.com/Bavlik/CredScope/internal/compositeactionflow"
 	"github.com/Bavlik/CredScope/internal/domain"
 	"github.com/Bavlik/CredScope/internal/graph"
+	"github.com/Bavlik/CredScope/internal/nestedcompositeactionflow"
 	profilepkg "github.com/Bavlik/CredScope/internal/profile"
 	"github.com/Bavlik/CredScope/internal/remediation"
 	"github.com/Bavlik/CredScope/internal/reusableworkflow"
@@ -64,7 +65,17 @@ func Analyze(ctx context.Context, parsed domain.ParsedRepository, options Option
 	if err != nil {
 		return domain.AnalysisResult{}, err
 	}
-	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved, CompositeActions: parsed.CompositeActions, CompositeActionInputFlows: compositeFlows})
+	// nestedcompositeactionflow.Link (CA3B) is, like compositeactionflow.Link
+	// above, a pure computation over already-computed values: it only ever
+	// runs after CA2's own Link has succeeded, extending compositeFlows'
+	// confirmed root bindings through CA3A's resolved nested composite-action
+	// calls. It never touches the filesystem and never mutates compositeFlows
+	// or parsed.CompositeActions, keeping Analyze itself filesystem-free.
+	nestedFlows, err := nestedcompositeactionflow.Link(ctx, compositeFlows, parsed.CompositeActions)
+	if err != nil {
+		return domain.AnalysisResult{}, err
+	}
+	built := graph.BuildWithOptions(parsed, graph.BuildOptions{Classifications: options.Classifications, IgnoredVariables: ignoredVariables, ReusableWorkflows: resolved, CompositeActions: parsed.CompositeActions, CompositeActionInputFlows: compositeFlows, NestedCompositeActionInputFlows: nestedFlows})
 	if built.LimitExceeded {
 		return domain.AnalysisResult{}, fmt.Errorf("analysis graph exceeded the safety limit of %d nodes or %d edges", graph.DefaultMaxGraphNodes, graph.DefaultMaxGraphEdges)
 	}

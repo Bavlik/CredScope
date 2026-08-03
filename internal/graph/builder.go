@@ -10,6 +10,7 @@ import (
 	"github.com/Bavlik/CredScope/internal/classification"
 	"github.com/Bavlik/CredScope/internal/compositeactionflow"
 	"github.com/Bavlik/CredScope/internal/domain"
+	"github.com/Bavlik/CredScope/internal/nestedcompositeactionflow"
 	"github.com/Bavlik/CredScope/internal/reusableworkflow"
 	"github.com/Bavlik/CredScope/internal/sanitizer"
 )
@@ -38,6 +39,16 @@ type BuildOptions struct {
 	// builder performs no expression interpretation of its own here: it only
 	// ever reads this already-computed value.
 	CompositeActionInputFlows compositeactionflow.Result
+	// NestedCompositeActionInputFlows carries
+	// internal/nestedcompositeactionflow.Link's immutable output (CA3B),
+	// computed once by the caller (internal/analysis) after CA2's own Link
+	// call succeeds — the same pattern already used for
+	// CompositeActionInputFlows. A zero-value Result is safe: no nested
+	// binding/usage node or confirmed-forwarding edge is added, matching
+	// pre-CA3B behavior. The graph builder performs no recursion, no strict
+	// matcher evaluation, no filesystem access, and no YAML parsing here: it
+	// only ever renders this already-computed value.
+	NestedCompositeActionInputFlows nestedcompositeactionflow.Result
 }
 
 type BuildResult struct {
@@ -160,6 +171,17 @@ func (b *builder) build(parsed domain.ParsedRepository) {
 	// confirmed chain in parallel, never replacing it).
 	b.compositeActionInputFlows(b.options.CompositeActionInputFlows.Flows)
 	b.emitCompositeActionInputFlowDiagnostics(b.options.CompositeActionInputFlows.Diagnostics)
+	// CA3B: confirmed call-specific input forwarding through repository-local
+	// nested composite actions, rendered after CA2's own binding/usage nodes
+	// above so that a depth-1 nested flow's parent usage node — an ordinary
+	// CA2 usage node — already exists by the time it is looked up. Flows are
+	// rendered in the order internal/nestedcompositeactionflow.Link already
+	// returns them (sorted by root identity, then call path, then child
+	// input name), which guarantees every flow's own parent flow (whose call
+	// path is this flow's own call path minus its final segment) is rendered
+	// first.
+	b.nestedCompositeActionInputFlows(b.options.NestedCompositeActionInputFlows.Flows)
+	b.emitNestedCompositeActionInputFlowDiagnostics(b.options.NestedCompositeActionInputFlows.Diagnostics)
 	// CA3A: structural nested composite-action resolution. Each
 	// NestedCompositeActionCall is a canonical, call-site-specific fact
 	// (parent canonical directory + parent internal step index) entirely
@@ -850,6 +872,187 @@ func (b *builder) compositeActionInputFlows(flows []compositeactionflow.Confirme
 			b.graph.addTypedEdge(bindingID, usageID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, []domain.Evidence{evidence("composite_action_input_usage", usage.Evidence, "Composite action's internal step reads this declared input, which this call bound to a confirmed secret.", domain.ConfidenceConfirmed)}, domain.ConfidenceConfirmed)
 		}
 	}
+}
+
+// nestedFlowKeyParts returns the shared, ordered identity prefix common to
+// both a CA3B flow's binding node and its usage nodes: the complete root
+// invocation plus every ordered CallPath hop. Always a freshly allocated
+// slice.
+func nestedFlowKeyParts(flow nestedcompositeactionflow.ConfirmedNestedInputFlow) []any {
+	parts := []any{flow.RootCallerWorkflow, flow.RootCallerJobID, flow.RootCallerStepIndex, flow.RootInputName}
+	for _, seg := range flow.CallPath {
+		parts = append(parts, seg.ParentCanonicalDirectory, seg.ParentActionStepIndex, seg.ChildCanonicalDirectory)
+	}
+	return parts
+}
+
+// nestedBindingNodeKey and nestedUsageNodeKey implement Part H's full
+// call-path identity: root workflow/job/step/input, every ordered nesting
+// segment, the current child canonical directory and input alias — and, for
+// a usage node, the child's own internal usage step index. Reuses the
+// existing variadic nodeKey/stableID mechanism unchanged; no second hashing
+// or UUID scheme is introduced.
+func nestedBindingNodeKey(flow nestedcompositeactionflow.ConfirmedNestedInputFlow) string {
+	parts := append(nestedFlowKeyParts(flow), flow.ChildCanonicalDirectory, flow.ChildInputName)
+	return nodeKey(parts...)
+}
+
+func nestedUsageNodeKey(flow nestedcompositeactionflow.ConfirmedNestedInputFlow, usageStepIndex int) string {
+	parts := append(nestedFlowKeyParts(flow), flow.ChildCanonicalDirectory, flow.ChildInputName, usageStepIndex)
+	return nodeKey(parts...)
+}
+
+// nestedParentUsageNodeID computes — never looks up in a side table — the
+// deterministic ID of the usage node that is this flow's forwarding source.
+// For a depth-1 flow that source is the ordinary CA2 usage node created by
+// compositeActionInputFlows, keyed exactly as that function keys it; for a
+// deeper flow, the source is the previous nesting level's own CA3B usage
+// node, keyed by this flow's own CallPath minus its final (current) segment.
+// Because every node ID in this graph is a pure function of (kind, key),
+// recomputing the same key independently always yields the same ID no
+// caller needs a lookup table to find.
+func nestedParentUsageNodeID(flow nestedcompositeactionflow.ConfirmedNestedInputFlow) string {
+	if len(flow.CallPath) <= 1 {
+		key := nodeKey(flow.RootCallerWorkflow, flow.RootCallerJobID, flow.RootCallerStepIndex, flow.RootInputName, flow.ParentCanonicalDirectory, flow.ParentUsageStepIndex)
+		return stableID("node:"+string(domain.NodeCompositeActionInputUsage), key)
+	}
+	parts := []any{flow.RootCallerWorkflow, flow.RootCallerJobID, flow.RootCallerStepIndex, flow.RootInputName}
+	for _, seg := range flow.CallPath[:len(flow.CallPath)-1] {
+		parts = append(parts, seg.ParentCanonicalDirectory, seg.ParentActionStepIndex, seg.ChildCanonicalDirectory)
+	}
+	parts = append(parts, flow.ParentCanonicalDirectory, flow.ParentInputName, flow.ParentUsageStepIndex)
+	key := nodeKey(parts...)
+	return stableID("node:"+string(domain.NodeCompositeActionInputUsage), key)
+}
+
+// nestedCompositeActionInputFlows renders CA3B's already-confirmed nested
+// forwarding chain: for each ConfirmedNestedInputFlow, one call-path-specific
+// NodeCompositeActionInputBinding and, for each of its child usages, one
+// call-path-specific NodeCompositeActionInputUsage — never a shared
+// canonical node, and never deduplicated by canonical directory alone (only
+// CA1/CA3A's canonical NodeCompositeAction is). The forwarding source is
+// always the exact parent call-specific usage node (never the root
+// NodeCredential directly, and never any other node), so a credential's
+// traversal only ever reaches a deeper nested usage by passing through every
+// intermediate binding/usage node in between. This function performs no
+// recursion, no strict-matcher evaluation, no filesystem access, and no YAML
+// parsing: it only renders facts internal/nestedcompositeactionflow already
+// computed.
+//
+// Rendering is deliberately two-pass and independent of flows' order. A
+// single-pass "look up my parent usage node, skip if it doesn't exist yet"
+// approach would silently drop a level-2+ flow's edges whenever its owning
+// (shallower) flow happens to appear later in the slice — Link's own sort
+// order currently happens to avoid this, but nothing about this function may
+// depend on that: Result.Flows carries no ordering contract. Pass 1 creates
+// every flow's own binding and usage nodes first, unconditionally — node
+// creation never depends on any other flow having been processed, since
+// addNode is purely content-addressed by (kind, key). Pass 2 then adds every
+// edge; by the time pass 2 runs, every node any edge could reference already
+// exists (either from CA2's own, already-completed rendering for a depth-1
+// flow's parent, or from this function's own pass 1 for a deeper flow's
+// parent), so no edge is ever skipped merely because of flows' iteration
+// order.
+func (b *builder) nestedCompositeActionInputFlows(flows []nestedcompositeactionflow.ConfirmedNestedInputFlow) {
+	for _, flow := range flows {
+		bindingMetadata := map[string]string{
+			"root_caller_workflow":       flow.RootCallerWorkflow,
+			"root_caller_job_id":         flow.RootCallerJobID,
+			"root_caller_step_index":     strconv.Itoa(flow.RootCallerStepIndex),
+			"root_caller_step_id":        flow.RootCallerStepID,
+			"root_input_name":            flow.RootInputName,
+			"root_source_secret":         flow.RootSourceSecret,
+			"nesting_depth":              strconv.Itoa(len(flow.CallPath)),
+			"parent_canonical_directory": flow.ParentCanonicalDirectory,
+			"parent_action_step_index":   strconv.Itoa(flow.ParentUsageStepIndex),
+			"parent_action_step_id":      flow.ParentUsageStepID,
+			"child_canonical_directory":  flow.ChildCanonicalDirectory,
+			"child_input_name":           flow.ChildInputName,
+			"flow_status":                "confirmed_nested_input_flow",
+		}
+		b.graph.addNode(domain.NodeCompositeActionInputBinding, nestedBindingNodeKey(flow), flow.ChildInputName, locationPtr(flow.BindingEvidence), bindingMetadata, []domain.Evidence{flow.BindingEvidence}, domain.ConfidenceConfirmed)
+
+		for _, usage := range flow.Usages {
+			label := usage.ActionStepID
+			if label == "" {
+				label = flow.ChildInputName + " -> step-" + strconv.Itoa(usage.ActionStepIndex)
+			}
+			usageMetadata := map[string]string{
+				"root_caller_workflow":      flow.RootCallerWorkflow,
+				"root_caller_job_id":        flow.RootCallerJobID,
+				"root_caller_step_index":    strconv.Itoa(flow.RootCallerStepIndex),
+				"root_input_name":           flow.RootInputName,
+				"nesting_depth":             strconv.Itoa(len(flow.CallPath)),
+				"child_canonical_directory": flow.ChildCanonicalDirectory,
+				"child_input_name":          flow.ChildInputName,
+				"child_usage_step_index":    strconv.Itoa(usage.ActionStepIndex),
+				"child_usage_step_id":       usage.ActionStepID,
+				"flow_status":               "confirmed_nested_input_flow",
+			}
+			b.graph.addNode(domain.NodeCompositeActionInputUsage, nestedUsageNodeKey(flow, usage.ActionStepIndex), label, locationPtr(usage.Evidence), usageMetadata, []domain.Evidence{usage.Evidence}, domain.ConfidenceConfirmed)
+		}
+	}
+
+	for _, flow := range flows {
+		parentUsageID := nestedParentUsageNodeID(flow)
+		if _, exists := b.graph.nodes[parentUsageID]; !exists {
+			// The exact parent usage node this flow depends on was never
+			// created (e.g. its own owning flow is genuinely absent from
+			// flows, not merely ordered differently): never fabricate a
+			// placeholder source, silently skip this flow's edges instead.
+			continue
+		}
+		bindingID := stableID("node:"+string(domain.NodeCompositeActionInputBinding), nestedBindingNodeKey(flow))
+
+		bindingEdgeEvidence := []domain.Evidence{evidence("nested_composite_action_input_binding", flow.BindingEvidence, "Composite action's internal step explicitly forwards its own already-confirmed declared input to this nested call's declared input; this is not a secret value.", domain.ConfidenceConfirmed)}
+		bindingEdgeMetadata := map[string]string{
+			"root_caller_workflow":                   flow.RootCallerWorkflow,
+			"root_caller_job_id":                     flow.RootCallerJobID,
+			"root_caller_step_index":                 strconv.Itoa(flow.RootCallerStepIndex),
+			"parent_canonical_directory":             flow.ParentCanonicalDirectory,
+			"parent_action_step_index":               strconv.Itoa(flow.ParentUsageStepIndex),
+			"child_canonical_directory":              flow.ChildCanonicalDirectory,
+			"child_input_name":                       flow.ChildInputName,
+			compositeActionForwardingEdgeMetadataKey: compositeActionForwardingEdgeMetadataValue,
+			compositeActionForwardingHopMetadataKey:  compositeActionForwardingHopMetadataValue,
+		}
+		b.graph.addTypedEdgeWithMetadata(parentUsageID, bindingID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, bindingEdgeMetadata, bindingEdgeEvidence, domain.ConfidenceConfirmed)
+
+		for _, usage := range flow.Usages {
+			usageID := stableID("node:"+string(domain.NodeCompositeActionInputUsage), nestedUsageNodeKey(flow, usage.ActionStepIndex))
+			usageEdgeEvidence := []domain.Evidence{evidence("nested_composite_action_input_usage", usage.Evidence, "Nested composite action's internal step reads this declared input, which this nested call bound to the already-confirmed parent forwarding.", domain.ConfidenceConfirmed)}
+			usageEdgeMetadata := map[string]string{
+				"child_canonical_directory":              flow.ChildCanonicalDirectory,
+				"child_input_name":                       flow.ChildInputName,
+				"child_usage_step_index":                 strconv.Itoa(usage.ActionStepIndex),
+				compositeActionForwardingEdgeMetadataKey: compositeActionForwardingEdgeMetadataValue,
+			}
+			b.graph.addTypedEdgeWithMetadata(bindingID, usageID, domain.EdgeExplicitlyForwardedTo, domain.EvidenceConfirmedDataFlow, usageEdgeMetadata, usageEdgeEvidence, domain.ConfidenceConfirmed)
+		}
+	}
+}
+
+const nestedCompositeActionInputFlowDiagnosticCode = "COMPOSITE_ACTION_NESTED_INPUT_FLOW"
+
+// emitNestedCompositeActionInputFlowDiagnostics records one deterministic,
+// non-traversable, non-scoring warning per CA3B linker diagnostic. None of
+// these correspond to a rules.Catalog entry, a Finding, or a remediation.
+func (b *builder) emitNestedCompositeActionInputFlowDiagnostics(diagnostics []nestedcompositeactionflow.Diagnostic) {
+	for _, diag := range diagnostics {
+		b.warnings[nestedCompositeActionInputFlowDiagnostic(diag)] = struct{}{}
+	}
+}
+
+// nestedCompositeActionInputFlowDiagnostic renders one deterministic warning
+// including only safe facts: root caller workflow/job/step, parent canonical
+// directory, parent internal step index, child canonical directory, child
+// input alias, diagnostic kind, and evidence location — never the raw
+// binding Value or any expression text.
+func nestedCompositeActionInputFlowDiagnostic(diag nestedcompositeactionflow.Diagnostic) string {
+	message := fmt.Sprintf("%s: root workflow %q job %q step %d: %s at parent %q step %d -> child %q input %q",
+		nestedCompositeActionInputFlowDiagnosticCode, diag.RootCallerWorkflow, diag.RootCallerJobID, diag.RootCallerStepIndex,
+		diag.Kind, diag.ParentCanonicalDirectory, diag.ParentActionStepIndex, diag.ChildCanonicalDirectory, diag.ChildInputName)
+	return message + " (" + diagnosticLocationText(diag.Evidence.Location) + ")"
 }
 
 const compositeActionInputFlowDiagnosticCode = "COMPOSITE_ACTION_INPUT_FLOW"

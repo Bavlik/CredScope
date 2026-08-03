@@ -173,7 +173,7 @@ func Link(ctx context.Context, workflows []domain.Workflow, resolution domain.Co
 					if !hasFlow {
 						continue
 					}
-					usages := internalUsages(action, binding.Name)
+					usages := InternalUsages(action, binding.Name)
 					if len(usages) == 0 {
 						// Part H.10: a declared input with zero internal
 						// step usages produces no confirmed flow, even
@@ -307,14 +307,20 @@ func distinctSecretReferenceNames(refs []domain.Reference) []string {
 	return names
 }
 
-// internalUsages scans action's own composite runs.steps in source order for
+// InternalUsages scans action's own composite runs.steps in source order for
 // ActionStep.References entries naming inputName as a ReferenceActionInput.
 // At most one InputUsage is produced per internal step index: multiple
 // references to the same input within one step (whether from run, if,
 // shell, working-directory, env, or with) collapse into a single usage
 // carrying that step's deterministically earliest evidence location. Action
 // output references are never inspected.
-func internalUsages(action domain.ActionMetadata, inputName string) []InputUsage {
+//
+// Exported so internal/nestedcompositeactionflow (CA3B) can apply the exact
+// same "declared input, internal usage" scan one nesting level deeper,
+// without duplicating this logic. Behavior is unchanged: this is a pure
+// rename/export, never called with different arguments or semantics than
+// CA2's own internal callers already use.
+func InternalUsages(action domain.ActionMetadata, inputName string) []InputUsage {
 	usages := make([]InputUsage, 0, len(action.Runs.Steps))
 	for stepIndex, step := range action.Runs.Steps {
 		found := false
